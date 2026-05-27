@@ -1,6 +1,7 @@
 
 <!DOCTYPE html>
-<html lang="vi"><head>
+<html lang="vi">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lí KHCB và dữ liệu</title>
@@ -205,22 +206,66 @@
             padding-left: 6px;
         }
 
-        /* --- BẢNG ĐIỀU KHIỂN GENERATOR (MẶC ĐỊNH ẨN) --- */
-        #admin-panel {
-            max-width: 1100px;
-            margin: 20px auto;
-            padding: 20px;
-            background: #fff3cd;
-            border: 2px dashed #ffc107;
-            border-radius: 10px;
-            display: none;
+        /* ========================================================
+           ✨ THIẾT KẾ POPUP ADMIN MODAL CAO CẤP VÀ ĐẸP MẮT
+           ======================================================== */
+        .admin-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
-        .admin-title { font-weight: bold; color: #856404; margin-bottom: 10px; font-size: 18px; }
-        .btn-sync { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .admin-modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .admin-modal-content {
+            background: #ffffff;
+            width: 90%;
+            max-width: 650px;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+            transform: translateY(-30px);
+            transition: transform 0.3s ease;
+            position: relative;
+            border: 1px solid #e2e8f0;
+        }
+        .admin-modal-overlay.show .admin-modal-content {
+            transform: translateY(0);
+        }
+        .admin-modal-close-x {
+            position: absolute;
+            top: 15px;
+            right: 18px;
+            font-size: 22px;
+            color: #a0aec0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .admin-modal-close-x:hover { color: #4a5568; }
+        .admin-title { font-weight: 700; color: #1a202c; margin-bottom: 10px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .admin-desc { font-size: 14px; color: #718096; margin-bottom: 20px; line-height: 1.5; }
+        .admin-actions { display: flex; gap: 12px; margin-bottom: 15px; }
+        
+        .btn-sync { background: #28a745; color: white; border: none; padding: 11px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s; }
         .btn-sync:hover { background: #218838; }
-        .btn-copy { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; margin-left: 10px; display: none; }
+        .btn-copy { background: #007bff; color: white; border: none; padding: 11px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; display: none; transition: background 0.2s; }
         .btn-copy:hover { background: #0069d9; }
-        #output-code { width: 100%; height: 150px; margin-top: 15px; display: none; font-family: monospace; font-size: 12px; }
+        .btn-close-text { background: #edf2f7; color: #4a5568; border: none; padding: 11px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s; }
+        .btn-close-text:hover { background: #e2e8f0; }
+
+        #output-code { width: 100%; height: 180px; margin-top: 15px; display: none; font-family: 'Courier New', monospace; font-size: 12px; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; background: #f7fafc; color: #2d3748; resize: none; outline: none; }
 
         /* --- FOOTER ACTIONS --- */
         .footer-action {
@@ -328,7 +373,7 @@
         // =========================================================================
         // 📦 BỘ NHỚ ĐỆM CHỨA DỮ LIỆU CŨ (Khi chạy lệnh sinh mã, vùng này sẽ được cập nhật tự động)
         // =========================================================================
-        const STATIC_DATA_STORE = [{"type":"parent","id":"I_1","columnGroup":"I","textDisplay":"1. Phân công công việc"},{"type":"parent","id":"I_2","columnGroup":"I","textDisplay":"2. Văn bản cuộc họp"},{"type":"parent","id":"I_3","columnGroup":"I","textDisplay":"3. Quản lí nhân sự"},{"type":"parent","id":"I_4","columnGroup":"I","textDisplay":"4. Quản lí văn bản hành chính"},{"type":"parent","id":"I_5","columnGroup":"I","textDisplay":"5. Quản lí lịch công tác"},{"type":"parent","id":"II_1","columnGroup":"II","textDisplay":"1. Nội dung chương trình"},{"type":"parent","id":"II_2","columnGroup":"II","textDisplay":"2. Kế hoạch đào tạo các khoá"},{"type":"parent","id":"II_3","columnGroup":"II","textDisplay":"3. Quản lí sinh viên"},{"type":"parent","id":"II_4","columnGroup":"II","textDisplay":"4. Đánh giá kiểm định chất lượng"},{"type":"parent","id":"III_1","columnGroup":"III","textDisplay":"1. Hội thảo - Toạ đàm"},{"type":"parent","id":"III_2","columnGroup":"III","textDisplay":"2. Hợp tác kết nối"},{"type":"parent","id":"III_3","columnGroup":"III","textDisplay":"3. Nghiên cứu khoa học"},{"type":"parent","id":"III_4","columnGroup":"III","textDisplay":"4. Dự án - đề tài"},{"type":"parent","id":"III_5","columnGroup":"III","textDisplay":"5. Hoạt động của sinh viên"},{"type":"child","id":"I_1_1","parentId":"drop-I_1","textDisplay":"1.1 Phân công công việc 2026","url":"https://drive.google.com/drive/folders/1UzH1pUKlbXiRad4JMHA_OfLxB2ulR1kg?usp=drive_link"},{"type":"child","id":"I_1_2","parentId":"drop-I_1","textDisplay":"1.2 Phân công lớp HLCTĐ","url":"https://drive.google.com/drive/folders/1RaW_WBo_QABgRtqkUxcfMbbg2DTMYXjo?usp=drive_link"},{"type":"child","id":"I_1_3","parentId":"drop-I_1","textDisplay":"1.3 Nội dung công việc khác","url":"https://drive.google.com/drive/folders/1beokjNEgVWj_njFfZH2EA4EUD5RUSB7K?usp=drive_link"},{"type":"child","id":"I_2_1","parentId":"drop-I_2","textDisplay":"2.1. Về chuyên môn","url":"https://drive.google.com/drive/folders/1tikivt7h3gs7dZDuY7ZOTTWjbd5AZDKm?usp=drive_link"},{"type":"child","id":"I_2_2","parentId":"drop-I_2","textDisplay":"2.2. Về Đảng","url":"https://drive.google.com/drive/folders/1bOV8gcM2_LYlqNzHvefT48iBfMZ_o_WS?usp=drive_link"},{"type":"child","id":"I_2_3","parentId":"drop-I_2","textDisplay":"2.3. Làm việc với lãnh đạo cấp trên","url":"https://drive.google.com/drive/folders/17E7UgpscrFOsieHHpqf-URQLF-RWavC1?usp=drive_link"},{"type":"child","id":"I_2_4","parentId":"drop-I_2","textDisplay":"2.4. Liên quan đến sinh viên","url":"https://drive.google.com/drive/folders/1iyx2a29S1w5moPcB_TmSsFrB26m6EtKJ?usp=drive_link"},{"type":"child","id":"I_2_5","parentId":"drop-I_2","textDisplay":"2.5. Nội dung họp khác","url":"https://drive.google.com/drive/folders/1zkbBjPDacZ8eIYyL3Sie34jKYqzrmGRU?usp=drive_link"},{"type":"child","id":"I_3_1","parentId":"drop-I_3","textDisplay":"3.1. Hồ sơ giảng viên","url":"https://drive.google.com/drive/folders/1fPia-GDCCxEcJEg6lVWaLKc5MGq9P3ym?usp=drive_link"},{"type":"child","id":"I_3_2","parentId":"drop-I_3","textDisplay":"3.2. Theo dõi lương, khen thưởng- kỷ luật","url":"https://drive.google.com/drive/folders/1GppcWgkjpKaEDPr1B7Y3nT8Jg_-e7K9a?usp=drive_link"},{"type":"child","id":"I_3_3","parentId":"drop-I_3","textDisplay":"3.3. Hồ sơ giảng viên-nhân viên","url":"https://drive.google.com/drive/folders/19DFOz7Pdst-Ig_-cjrEqkvea_qwBfshk?usp=drive_link"},{"type":"child","id":"I_3_4","parentId":"drop-I_3","textDisplay":"3.4. Đào tạo bồi dưỡng","url":"https://drive.google.com/drive/folders/12Vw8vOdxJqrPxDlXmjzTN2jmaPBWH_bD?usp=drive_link"},{"type":"child","id":"I_4_1","parentId":"drop-I_4","textDisplay":"4.1. Công văn đến (tờ trình, báo cáo)","url":"https://drive.google.com/drive/folders/1ommGOvPdkJ9jwryYGvdKM19v36OLPk-f?usp=drive_link"},{"type":"child","id":"I_4_2","parentId":"drop-I_4","textDisplay":"4.2. Công văn đi (tờ trình, báo cáo)","url":"https://drive.google.com/drive/folders/1-fX7eydvwlUK_zlpjAAGVSenbBjbOsqc?usp=drive_link"},{"type":"child","id":"I_4_3","parentId":"drop-I_4","textDisplay":"4.3. Hệ thống biểu mẫu hành chính nội bộ","url":"https://drive.google.com/drive/folders/1zhq28TBQ0gYsconewmOEqm-EjHs87pDE?usp=drive_link"},{"type":"child","id":"I_4_4","parentId":"drop-I_4","textDisplay":"4.4. Văn bản khác","url":"https://drive.google.com/drive/folders/1YrJnESbWAEWIa5CSc94CAtdtT_c-89FN?usp=drive_link"},{"type":"child","id":"I_5_1","parentId":"drop-I_5","textDisplay":"5.1. Lãnh đạo khoa","url":"https://drive.google.com/drive/folders/11YFEcW09PTO-WVpiBecQ6yE9lPNu31jY?usp=drive_link"},{"type":"child","id":"I_5_2","parentId":"drop-I_5","textDisplay":"5.2. Giảng viên khoa","url":"https://drive.google.com/drive/folders/1eQTryE_qNtI571hKCcFoqSuYKLzwRNY0?usp=drive_link"},{"type":"child","id":"I_5_3","parentId":"drop-I_5","textDisplay":"5.3. Nội dung khác","url":"https://drive.google.com/drive/folders/1MnFjx3MPFTCM3HDw4D5cGs-DvmsVBO_L?usp=drive_link"},{"type":"child","id":"II_1_1","parentId":"drop-II_1","textDisplay":"1.1. Chương trình, đề cương","url":"https://drive.google.com/drive/folders/1yBpbtFe8MHXEZ95MbcL8GBk-FNAoTYEO?usp=drive_link"},{"type":"child","id":"II_1_2","parentId":"drop-II_1","textDisplay":"1.2. Giáo trình, tài liệu học tập","url":"https://drive.google.com/drive/folders/1yTfi_XvvNh4kwRAjWI0yao3RCtS8UjI1?usp=drive_link"},{"type":"child","id":"II_1_3","parentId":"drop-II_1","textDisplay":"1.3. Cải tiến chương trình","url":"https://drive.google.com/drive/folders/13IwycI-L1mFeTSxH72I9ggODaf6rfTT0?usp=drive_link"},{"type":"child","id":"II_2_1","parentId":"drop-II_2","textDisplay":"2.1. Đã thực hiện","url":"https://drive.google.com/drive/folders/1-gzVCCrq0HR-StQziNHHwU_SS4XaaORW?usp=drive_link"},{"type":"child","id":"II_2_2","parentId":"drop-II_2","textDisplay":"2.2. Đang thực hiện","url":"https://drive.google.com/drive/folders/1obh5VejusKHyhinAtw2q_3wm5JbPrf11?usp=drive_link"},{"type":"child","id":"II_2_3","parentId":"drop-II_2","textDisplay":"2.3. Dự thảo","url":"https://drive.google.com/drive/folders/1A0lClqWD4eJ9MfbcONB6PH926VCSHsWY?usp=drive_link"},{"type":"child","id":"II_2_4","parentId":"drop-II_2","textDisplay":"2.4. Nội dung khác","url":"https://drive.google.com/drive/folders/1oJKpN_VBArTmxcmZt2S9H38peIPf8Tm_?usp=drive_link"},{"type":"child","id":"II_3_1","parentId":"drop-II_3","textDisplay":"3.1. Danh sách sinh viên","url":"https://drive.google.com/drive/folders/1K09j7RAqVYTp6HDILy6bqglJIbUokVtg?usp=drive_link"},{"type":"child","id":"II_3_2","parentId":"drop-II_3","textDisplay":"3.2. Điểm tổng kết (nợ môn, thôi học)","url":"https://drive.google.com/drive/folders/1INCxzjAmFqDFGnQN878FP0tM8ZHUrut_?usp=drive_link"},{"type":"child","id":"II_3_3","parentId":"drop-II_3","textDisplay":"3.3. Sổ tay sinh viên, biên bản sinh hoạt lớp","url":"https://drive.google.com/drive/folders/1E9ZePwfT_QITUgptj1yH9mM6q3KOsAe0?usp=drive_link"},{"type":"child","id":"II_3_4","parentId":"drop-II_3","textDisplay":"3.4. Nội dung khác","url":"https://drive.google.com/drive/folders/1c-wNZ5E3VpzZ3r-6B-wjoiZY01O693wz?usp=drive_link"},{"type":"child","id":"II_4_1","parentId":"drop-II_4","textDisplay":"4.1. Bộ chỉ số kiểm định","url":"https://drive.google.com/drive/folders/1B2KcjrjJUitge4Kt6zAZkq-FYrLR6iZ1?usp=drive_link"},{"type":"child","id":"II_4_2","parentId":"drop-II_4","textDisplay":"4.2. Kết quả khảo sát","url":"https://drive.google.com/drive/folders/1V3cw-huWlP5O4jxW6UYCHvN3is6q7g-S?usp=drive_link"},{"type":"child","id":"II_4_3","parentId":"drop-II_4","textDisplay":"4.3. Hồ sơ tự đánh giá và minh chứng kiểm định","url":"https://drive.google.com/drive/folders/1FVGfELg2IrA5oP9wwcMWVfUzSroxJcM7?usp=drive_link"},{"type":"child","id":"III_1_1","parentId":"drop-III_1","textDisplay":"1.1. Kế hoạch tổ chức Tọa đàm – Hội thảo","url":"https://drive.google.com/drive/folders/1jEhmZNdziyT2erYTmFLBvbY2ovWKmKiK?usp=drive_link"},{"type":"child","id":"III_1_2","parentId":"drop-III_1","textDisplay":"1.2. Tổng kết sau Tọa đàm – Hội thảo","url":"https://drive.google.com/drive/folders/1xW-oKxmCxxhrXmyHKbfxhYG85SP48nZU?usp=drive_link"},{"type":"child","id":"III_2_1","parentId":"drop-III_2","textDisplay":"2.1. Danh sách đối tác, mạng lưới cựu sinh viên","url":"https://drive.google.com/drive/folders/1fmxTFN6xR69c6tq1OIGuFFk7LgXRUf--?usp=drive_link"},{"type":"child","id":"III_2_2","parentId":"drop-III_2","textDisplay":"2.2. Thỏa thuận hợp tác","url":"https://drive.google.com/drive/folders/1HH7nXWBV0aM4pNpC2PZkRnJJ2SJAwxtV?usp=drive_link"},{"type":"child","id":"III_3_1","parentId":"drop-III_3","textDisplay":"3.1. Đề tài cơ sở","url":"https://drive.google.com/drive/folders/1gXmUNN8fg-a59jh4SQ9t6ZseF-AX_KJB?usp=drive_link"},{"type":"child","id":"III_3_2","parentId":"drop-III_3","textDisplay":"3.2. Đề tài trên cơ sở","url":"https://drive.google.com/drive/folders/1Y_8ikCDMEi69aXfyTTaBmKtlXthv-Hnz?usp=drive_link"},{"type":"child","id":"III_3_3","parentId":"drop-III_3","textDisplay":"3.3. Bài báo đã công bố","url":"https://drive.google.com/drive/folders/1RBx54D1TaK_swd6dif8M9EFAxY3Q5xAj?usp=drive_link"},{"type":"child","id":"III_3_4","parentId":"drop-III_3","textDisplay":"3.4. Nhóm nghiên cứu mạnh","url":"https://drive.google.com/drive/folders/1h7nn-rWfkJlkOR3xiNJB-pAEmGcEP6hu?usp=drive_link"},{"type":"child","id":"III_4_1","parentId":"drop-III_4","textDisplay":"4.1. Cấp cơ sở","url":"https://drive.google.com/drive/folders/1iUZg2rzuQGOeNmGZyY-sRc-d8oBFa6kN?usp=drive_link"},{"type":"child","id":"III_4_2","parentId":"drop-III_4","textDisplay":"4.2. Cấp trên cơ sở","url":"https://drive.google.com/drive/folders/1lUB1Hp7K4nPbpk1MdNiUaa9cvCoec2Lg?usp=drive_link"},{"type":"child","id":"III_5_1","parentId":"drop-III_5","textDisplay":"5.1. Câu lạc bộ học thuật","url":"https://drive.google.com/drive/folders/1N_HHesBF16tItprAiz1qdUl8o5A4Fg01?usp=drive_link"},{"type":"child","id":"III_5_2","parentId":"drop-III_5","textDisplay":"5.2. Hoạt động Đoàn – Hội, tình nguyện hè","url":"https://drive.google.com/drive/folders/1-Y84XOmAFSkEhpDtNpDNuGt5CcCgtIGP?usp=drive_link"},{"type":"child","id":"III_5_3","parentId":"drop-III_5","textDisplay":"5.3. Cuộc thi chuyên môn và phong trào khác","url":"https://drive.google.com/drive/folders/1rli19eJ511Qr5Ym8s_IWJ34pMIxO1Jbo?usp=drive_link"},{"type":"child","id":"III_5_4","parentId":"drop-III_5","textDisplay":"5.4. Nghiên cứu khoa học của sinh viên","url":"https://drive.google.com/drive/folders/17aehX9gTpg_9cW4-zPFJp-5xN2gCxDWY?usp=drive_link"}];
+        const STATIC_DATA_STORE = [];
 
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGSAfaa7s68I0cwNes4pEDCOHUFynPUujt-dUHUEG3HtrdfEPpNDX2Ejtv4NZZ5FcKTtOdAaWLGiCm/pub?gid=0&single=true&output=tsv";
 
@@ -342,15 +387,12 @@
         }
 
         window.onload = function() {
-            // Kiểm tra bộ nhớ đệm, nếu đã có dữ liệu tĩnh -> Render trực tiếp không cần fetch Sheet
             if (STATIC_DATA_STORE && STATIC_DATA_STORE.length > 0) {
                 renderUIFromData(STATIC_DATA_STORE);
             } else {
-                // Nếu là lần đầu tiên chưa cấu hình cache, tự động tải dữ liệu gốc từ Google Sheet
                 fetchAndBuildCache(false);
             }
 
-            // Nhận diện hoạt động Menu active
             const currentUrl = window.location.href;
             document.querySelectorAll('.nav-menu .nav-item').forEach(el => el.classList.remove('active'));
             if (currentUrl.includes('/video/')) {
@@ -359,7 +401,6 @@
                 document.getElementById('menu-home').classList.add('active');
             }
 
-            // Đóng menu mobile khi click ngoài
             document.addEventListener('click', (e) => {
                 if (window.innerWidth <= 768) {
                     const menu = document.getElementById('mobileNavMenu');
@@ -368,12 +409,9 @@
             });
         };
 
-        // Hàm dựng giao diện cây danh mục từ mảng dữ liệu cấu trúc sẵn
         function renderUIFromData(dataArr) {
-            // Xóa sạch các dữ liệu cũ phát sinh nếu có
             document.querySelectorAll('.menu-block').forEach(el => el.remove());
 
-            // Phân loại và phân bổ danh mục mục lớn
             dataArr.forEach(item => {
                 if (item.type === 'parent') {
                     let colElement = document.getElementById('col-' + item.columnGroup);
@@ -397,7 +435,6 @@
                 }
             });
 
-            // Gán các liên kết con vào các mục lớn tương ứng
             dataArr.forEach(item => {
                 if (item.type === 'child') {
                     let targetDropdown = document.getElementById(item.parentId);
@@ -412,7 +449,6 @@
                 }
             });
 
-            // Điền thông báo nếu trống dữ liệu
             document.querySelectorAll('.sheet-dropdown').forEach(div => {
                 if(div.innerHTML.trim() === '') {
                     div.innerHTML = '<span style="color:#95a5a6; font-size:13px; display:block; padding:3px 10px; font-style: italic; text-align:center;">Chưa có dữ liệu con</span>';
@@ -420,7 +456,6 @@
             });
         }
 
-        // Hàm Fetch dữ liệu từ Google Sheet phục vụ sinh mã nguồn
         function fetchAndBuildCache(isGenerateMode = false) {
             return fetch(CSV_URL)
                 .then(response => response.text())
@@ -428,7 +463,6 @@
                     let lines = text.split(/\r?\n/);
                     let dataArr = [];
                     
-                    // Lọc xử lý mục cha
                     for (let i = 1; i < lines.length; i++) {
                         if (!lines[i].trim()) continue;
                         let columns = lines[i].split('\t');
@@ -437,17 +471,11 @@
                             let textDisplay = columns[1].trim().replace(/^"|"$/g, '');
                             let idParts = id.split('_');
                             if (idParts.length === 2) {
-                                dataArr.push({
-                                    type: 'parent',
-                                    id: id,
-                                    columnGroup: idParts[0],
-                                    textDisplay: textDisplay
-                                });
+                                dataArr.push({ type: 'parent', id: id, columnGroup: idParts[0], textDisplay: textDisplay });
                             }
                         }
                     }
 
-                    // Lọc xử lý mục con
                     for (let i = 1; i < lines.length; i++) {
                         if (!lines[i].trim()) continue;
                         let columns = lines[i].split('\t');
@@ -457,13 +485,7 @@
                             let url = columns[2].trim().replace(/^"|"$/g, '');
                             let idParts = id.split('_');
                             if (idParts.length >= 3) {
-                                dataArr.push({
-                                    type: 'child',
-                                    id: id,
-                                    parentId: 'drop-' + idParts[0] + '_' + idParts[1],
-                                    textDisplay: textDisplay,
-                                    url: normalizeGoogleDriveLink(url)
-                                });
+                                dataArr.push({ type: 'child', id: id, parentId: 'drop-' + idParts[0] + '_' + idParts[1], textDisplay: textDisplay, url: normalizeGoogleDriveLink(url) });
                             }
                         }
                     }
@@ -477,28 +499,27 @@
                 .catch(err => console.error("Lỗi hệ thống:", err));
         }
 
-        // Lắng nghe người dùng gõ tìm kiếm Password kích hoạt Admin Panel
+        // Lắng nghe mật khẩu và mở Popup Modal chuyên nghiệp
         function handleSearchInput(inputVal) {
             if (inputVal.trim() === 'khcb123') {
-                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('adminModal').classList.add('show');
                 document.getElementById('search-box-input').value = ''; 
-                document.getElementById('admin-panel').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
-        // Hàm sinh cấu trúc mã nguồn mới đóng gói mảng tĩnh dữ liệu
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.remove('show');
+        }
+
         function generateNewCodeTemplate(dataArr) {
             let currentFullHtml = document.documentElement.outerHTML;
             let dataString = JSON.stringify(dataArr);
             
-            // Tìm và thay thế dữ liệu vào khối STATIC_DATA_STORE trong cấu trúc mã nguồn hiện tại
             let updatedHtml = "<!DOCTYPE html>\n" + currentFullHtml.replace(/const STATIC_DATA_STORE = \[.*?\];/, `const STATIC_DATA_STORE = ${dataString};`);
             
-            // Hiển thị mã nguồn ra màn hình để Admin Copy
             document.getElementById('output-code').value = updatedHtml;
             document.getElementById('output-code').style.display = 'block';
             document.getElementById('btn-copy-code').style.display = 'inline-block';
-            alert("Đã cập nhật dữ liệu mới từ Google Sheet thành công! Vui lòng copy đoạn mã bên dưới dán vào GitHub.");
         }
 
         function copyCodeToClipboard() {
@@ -540,7 +561,7 @@
             <div class="mobile-close-btn" onclick="closeMobileMenu(event)"><i class="fa fa-times"></i></div>
 
             <div class="nav-item-wrap">
-                <a href="#" class="nav-item active" id="menu-home">Trang chủ</a>
+                <a href="#" class="nav-item" id="menu-home">Trang chủ</a>
             </div>
 
             <div class="nav-item-wrap">
@@ -555,26 +576,37 @@
         </div>
     </div>
 
-    <div id="admin-panel" style="display: block;">
-        <div class="admin-title">🛠️ BẢNG ĐIỀU KHIỂN &amp; CẬP NHẬT CODE DỮ LIỆU TĨNH</div>
-        <p style="font-size: 14px; margin-bottom: 12px; color: #664d03;">Nhấn nút bên dưới hệ thống sẽ quét dữ liệu mới nhất từ Google Sheet và đóng gói trực tiếp vào một khối mã HTML mới cho bạn.</p>
-        <button class="btn-sync" onclick="fetchAndBuildCache(true)">Cập nhật dữ liệu từ Google Sheet</button>
-        <button class="btn-copy" id="btn-copy-code" onclick="copyCodeToClipboard()">Bấm để Copy toàn bộ Code mới</button>
-        <textarea id="output-code" readonly="" placeholder="Mã nguồn trang web mới của bạn sẽ tự động xuất hiện ở đây..."></textarea>
+    <!-- ========================================================
+         ✨ GIAO DIỆN MODAL POPUP ADMIN KHÔNG BỊ ĐẨY CHỮ KHÔNG ĐẸP MẮT
+         ======================================================== -->
+    <div class="admin-modal-overlay" id="adminModal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-close-x" onclick="closeAdminModal()">&times;</div>
+            <div class="admin-title"><i class="fa fa-cogs"></i> Bảng điều khiển hệ thống nâng cao</div>
+            <div class="admin-desc">Nhấn cập nhật bên dưới để quét dữ liệu bảng tính mới nhất từ Google Sheet, hệ thống sẽ tự động đóng gói dữ liệu và viết ra đoạn mã nguồn hoàn chỉnh mới cho bạn.</div>
+            
+            <div class="admin-actions">
+                <button class="btn-sync" onclick="fetchAndBuildCache(true)">Cập nhật dữ liệu mới</button>
+                <button class="btn-copy" id="btn-copy-code" onclick="copyCodeToClipboard()">Copy toàn bộ Code mới</button>
+                <button class="btn-close-text" onclick="closeAdminModal()">Đóng lại</button>
+            </div>
+            
+            <textarea id="output-code" readonly placeholder="Mã nguồn trang web đóng gói mới sẽ xuất hiện tại đây..."></textarea>
+        </div>
     </div>
 
     <div class="container">
         <div class="column" id="col-I">
             <div class="column-header bg-green">1. Chương trình đào tạo</div>
-        <div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-I_1')"><h2>1. Phân công công việc</h2></div><div class="sheet-dropdown" id="drop-I_1"><a id="I_1_1" href="https://drive.google.com/drive/folders/1UzH1pUKlbXiRad4JMHA_OfLxB2ulR1kg?usp=drive_link" target="_blank">1.1 Phân công công việc 2026</a><a id="I_1_2" href="https://drive.google.com/drive/folders/1RaW_WBo_QABgRtqkUxcfMbbg2DTMYXjo?usp=drive_link" target="_blank">1.2 Phân công lớp HLCTĐ</a><a id="I_1_3" href="https://drive.google.com/drive/folders/1beokjNEgVWj_njFfZH2EA4EUD5RUSB7K?usp=drive_link" target="_blank">1.3 Nội dung công việc khác</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-I_2')"><h2>2. Văn bản cuộc họp</h2></div><div class="sheet-dropdown" id="drop-I_2"><a id="I_2_1" href="https://drive.google.com/drive/folders/1tikivt7h3gs7dZDuY7ZOTTWjbd5AZDKm?usp=drive_link" target="_blank">2.1. Về chuyên môn</a><a id="I_2_2" href="https://drive.google.com/drive/folders/1bOV8gcM2_LYlqNzHvefT48iBfMZ_o_WS?usp=drive_link" target="_blank">2.2. Về Đảng</a><a id="I_2_3" href="https://drive.google.com/drive/folders/17E7UgpscrFOsieHHpqf-URQLF-RWavC1?usp=drive_link" target="_blank">2.3. Làm việc với lãnh đạo cấp trên</a><a id="I_2_4" href="https://drive.google.com/drive/folders/1iyx2a29S1w5moPcB_TmSsFrB26m6EtKJ?usp=drive_link" target="_blank">2.4. Liên quan đến sinh viên</a><a id="I_2_5" href="https://drive.google.com/drive/folders/1zkbBjPDacZ8eIYyL3Sie34jKYqzrmGRU?usp=drive_link" target="_blank">2.5. Nội dung họp khác</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-I_3')"><h2>3. Quản lí nhân sự</h2></div><div class="sheet-dropdown" id="drop-I_3"><a id="I_3_1" href="https://drive.google.com/drive/folders/1fPia-GDCCxEcJEg6lVWaLKc5MGq9P3ym?usp=drive_link" target="_blank">3.1. Hồ sơ giảng viên</a><a id="I_3_2" href="https://drive.google.com/drive/folders/1GppcWgkjpKaEDPr1B7Y3nT8Jg_-e7K9a?usp=drive_link" target="_blank">3.2. Theo dõi lương, khen thưởng- kỷ luật</a><a id="I_3_3" href="https://drive.google.com/drive/folders/19DFOz7Pdst-Ig_-cjrEqkvea_qwBfshk?usp=drive_link" target="_blank">3.3. Hồ sơ giảng viên-nhân viên</a><a id="I_3_4" href="https://drive.google.com/drive/folders/12Vw8vOdxJqrPxDlXmjzTN2jmaPBWH_bD?usp=drive_link" target="_blank">3.4. Đào tạo bồi dưỡng</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-I_4')"><h2>4. Quản lí văn bản hành chính</h2></div><div class="sheet-dropdown" id="drop-I_4"><a id="I_4_1" href="https://drive.google.com/drive/folders/1ommGOvPdkJ9jwryYGvdKM19v36OLPk-f?usp=drive_link" target="_blank">4.1. Công văn đến (tờ trình, báo cáo)</a><a id="I_4_2" href="https://drive.google.com/drive/folders/1-fX7eydvwlUK_zlpjAAGVSenbBjbOsqc?usp=drive_link" target="_blank">4.2. Công văn đi (tờ trình, báo cáo)</a><a id="I_4_3" href="https://drive.google.com/drive/folders/1zhq28TBQ0gYsconewmOEqm-EjHs87pDE?usp=drive_link" target="_blank">4.3. Hệ thống biểu mẫu hành chính nội bộ</a><a id="I_4_4" href="https://drive.google.com/drive/folders/1YrJnESbWAEWIa5CSc94CAtdtT_c-89FN?usp=drive_link" target="_blank">4.4. Văn bản khác</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-I_5')"><h2>5. Quản lí lịch công tác</h2></div><div class="sheet-dropdown" id="drop-I_5"><a id="I_5_1" href="https://drive.google.com/drive/folders/11YFEcW09PTO-WVpiBecQ6yE9lPNu31jY?usp=drive_link" target="_blank">5.1. Lãnh đạo khoa</a><a id="I_5_2" href="https://drive.google.com/drive/folders/1eQTryE_qNtI571hKCcFoqSuYKLzwRNY0?usp=drive_link" target="_blank">5.2. Giảng viên khoa</a><a id="I_5_3" href="https://drive.google.com/drive/folders/1MnFjx3MPFTCM3HDw4D5cGs-DvmsVBO_L?usp=drive_link" target="_blank">5.3. Nội dung khác</a></div></div></div>
+        </div>
 
         <div class="column" id="col-II">
             <div class="column-header bg-blue">2. Quản lí hoạt động khoa</div>
-        <div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-II_1')"><h2>1. Nội dung chương trình</h2></div><div class="sheet-dropdown" id="drop-II_1"><a id="II_1_1" href="https://drive.google.com/drive/folders/1yBpbtFe8MHXEZ95MbcL8GBk-FNAoTYEO?usp=drive_link" target="_blank">1.1. Chương trình, đề cương</a><a id="II_1_2" href="https://drive.google.com/drive/folders/1yTfi_XvvNh4kwRAjWI0yao3RCtS8UjI1?usp=drive_link" target="_blank">1.2. Giáo trình, tài liệu học tập</a><a id="II_1_3" href="https://drive.google.com/drive/folders/13IwycI-L1mFeTSxH72I9ggODaf6rfTT0?usp=drive_link" target="_blank">1.3. Cải tiến chương trình</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-II_2')"><h2>2. Kế hoạch đào tạo các khoá</h2></div><div class="sheet-dropdown" id="drop-II_2"><a id="II_2_1" href="https://drive.google.com/drive/folders/1-gzVCCrq0HR-StQziNHHwU_SS4XaaORW?usp=drive_link" target="_blank">2.1. Đã thực hiện</a><a id="II_2_2" href="https://drive.google.com/drive/folders/1obh5VejusKHyhinAtw2q_3wm5JbPrf11?usp=drive_link" target="_blank">2.2. Đang thực hiện</a><a id="II_2_3" href="https://drive.google.com/drive/folders/1A0lClqWD4eJ9MfbcONB6PH926VCSHsWY?usp=drive_link" target="_blank">2.3. Dự thảo</a><a id="II_2_4" href="https://drive.google.com/drive/folders/1oJKpN_VBArTmxcmZt2S9H38peIPf8Tm_?usp=drive_link" target="_blank">2.4. Nội dung khác</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-II_3')"><h2>3. Quản lí sinh viên</h2></div><div class="sheet-dropdown" id="drop-II_3"><a id="II_3_1" href="https://drive.google.com/drive/folders/1K09j7RAqVYTp6HDILy6bqglJIbUokVtg?usp=drive_link" target="_blank">3.1. Danh sách sinh viên</a><a id="II_3_2" href="https://drive.google.com/drive/folders/1INCxzjAmFqDFGnQN878FP0tM8ZHUrut_?usp=drive_link" target="_blank">3.2. Điểm tổng kết (nợ môn, thôi học)</a><a id="II_3_3" href="https://drive.google.com/drive/folders/1E9ZePwfT_QITUgptj1yH9mM6q3KOsAe0?usp=drive_link" target="_blank">3.3. Sổ tay sinh viên, biên bản sinh hoạt lớp</a><a id="II_3_4" href="https://drive.google.com/drive/folders/1c-wNZ5E3VpzZ3r-6B-wjoiZY01O693wz?usp=drive_link" target="_blank">3.4. Nội dung khác</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-II_4')"><h2>4. Đánh giá kiểm định chất lượng</h2></div><div class="sheet-dropdown" id="drop-II_4"><a id="II_4_1" href="https://drive.google.com/drive/folders/1B2KcjrjJUitge4Kt6zAZkq-FYrLR6iZ1?usp=drive_link" target="_blank">4.1. Bộ chỉ số kiểm định</a><a id="II_4_2" href="https://drive.google.com/drive/folders/1V3cw-huWlP5O4jxW6UYCHvN3is6q7g-S?usp=drive_link" target="_blank">4.2. Kết quả khảo sát</a><a id="II_4_3" href="https://drive.google.com/drive/folders/1FVGfELg2IrA5oP9wwcMWVfUzSroxJcM7?usp=drive_link" target="_blank">4.3. Hồ sơ tự đánh giá và minh chứng kiểm định</a></div></div></div>
+        </div>
 
         <div class="column" id="col-III">
             <div class="column-header bg-orange">3. Hoạt động khác</div>
-        <div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-III_1')"><h2>1. Hội thảo - Toạ đàm</h2></div><div class="sheet-dropdown" id="drop-III_1"><a id="III_1_1" href="https://drive.google.com/drive/folders/1jEhmZNdziyT2erYTmFLBvbY2ovWKmKiK?usp=drive_link" target="_blank">1.1. Kế hoạch tổ chức Tọa đàm – Hội thảo</a><a id="III_1_2" href="https://drive.google.com/drive/folders/1xW-oKxmCxxhrXmyHKbfxhYG85SP48nZU?usp=drive_link" target="_blank">1.2. Tổng kết sau Tọa đàm – Hội thảo</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-III_2')"><h2>2. Hợp tác kết nối</h2></div><div class="sheet-dropdown" id="drop-III_2"><a id="III_2_1" href="https://drive.google.com/drive/folders/1fmxTFN6xR69c6tq1OIGuFFk7LgXRUf--?usp=drive_link" target="_blank">2.1. Danh sách đối tác, mạng lưới cựu sinh viên</a><a id="III_2_2" href="https://drive.google.com/drive/folders/1HH7nXWBV0aM4pNpC2PZkRnJJ2SJAwxtV?usp=drive_link" target="_blank">2.2. Thỏa thuận hợp tác</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-III_3')"><h2>3. Nghiên cứu khoa học</h2></div><div class="sheet-dropdown" id="drop-III_3"><a id="III_3_1" href="https://drive.google.com/drive/folders/1gXmUNN8fg-a59jh4SQ9t6ZseF-AX_KJB?usp=drive_link" target="_blank">3.1. Đề tài cơ sở</a><a id="III_3_2" href="https://drive.google.com/drive/folders/1Y_8ikCDMEi69aXfyTTaBmKtlXthv-Hnz?usp=drive_link" target="_blank">3.2. Đề tài trên cơ sở</a><a id="III_3_3" href="https://drive.google.com/drive/folders/1RBx54D1TaK_swd6dif8M9EFAxY3Q5xAj?usp=drive_link" target="_blank">3.3. Bài báo đã công bố</a><a id="III_3_4" href="https://drive.google.com/drive/folders/1h7nn-rWfkJlkOR3xiNJB-pAEmGcEP6hu?usp=drive_link" target="_blank">3.4. Nhóm nghiên cứu mạnh</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-III_4')"><h2>4. Dự án - đề tài</h2></div><div class="sheet-dropdown" id="drop-III_4"><a id="III_4_1" href="https://drive.google.com/drive/folders/1iUZg2rzuQGOeNmGZyY-sRc-d8oBFa6kN?usp=drive_link" target="_blank">4.1. Cấp cơ sở</a><a id="III_4_2" href="https://drive.google.com/drive/folders/1lUB1Hp7K4nPbpk1MdNiUaa9cvCoec2Lg?usp=drive_link" target="_blank">4.2. Cấp trên cơ sở</a></div></div><div class="menu-block"><div class="item-card" onclick="toggleMenu('drop-III_5')"><h2>5. Hoạt động của sinh viên</h2></div><div class="sheet-dropdown" id="drop-III_5"><a id="III_5_1" href="https://drive.google.com/drive/folders/1N_HHesBF16tItprAiz1qdUl8o5A4Fg01?usp=drive_link" target="_blank">5.1. Câu lạc bộ học thuật</a><a id="III_5_2" href="https://drive.google.com/drive/folders/1-Y84XOmAFSkEhpDtNpDNuGt5CcCgtIGP?usp=drive_link" target="_blank">5.2. Hoạt động Đoàn – Hội, tình nguyện hè</a><a id="III_5_3" href="https://drive.google.com/drive/folders/1rli19eJ511Qr5Ym8s_IWJ34pMIxO1Jbo?usp=drive_link" target="_blank">5.3. Cuộc thi chuyên môn và phong trào khác</a><a id="III_5_4" href="https://drive.google.com/drive/folders/17aehX9gTpg_9cW4-zPFJp-5xN2gCxDWY?usp=drive_link" target="_blank">5.4. Nghiên cứu khoa học của sinh viên</a></div></div></div>
+        </div>
     </div>
 
     <div class="footer-action">
@@ -588,6 +620,5 @@
 
     <div class="copyright">© 2026 Quản lí KHCB và dữ liệu</div>
 
-
-
-</body></html>
+</body>
+</html>
