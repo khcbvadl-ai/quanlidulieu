@@ -8,7 +8,8 @@
     <style>
         :root {
             --primary-color: #1a4d2e;
-            --secondary-color: #f1f4f6;
+            --teacher-color: #0b694a;
+            --secondary-color: #f4f6f9;
             --text-color: #333;
             --border-color: #e2e8f0;
         }
@@ -21,7 +22,7 @@
 
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #fdfdfd;
+            background-color: #ffffff;
             color: var(--text-color);
             padding: 20px;
             font-size: 15px;
@@ -30,27 +31,56 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
         }
 
-        /* --- HEADER & LOGO --- */
+        /* --- HEADER & NAVBAR --- */
         .top-navbar {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             background-color: var(--secondary-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            padding: 0 10px 0 20px;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
         }
 
         .logo-img {
-            height: 55px;
+            height: 45px;
             object-fit: contain;
+            margin: 10px 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            height: 100%;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: #333;
+            padding: 22px 25px;
+            font-weight: 500;
+            font-size: 15px;
+            transition: background-color 0.2s;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Trạng thái được chọn (Active) */
+        .nav-item.active {
+            background-color: #ffffff;
+            border-bottom: 3px solid #000000;
+            font-weight: bold;
         }
 
         .header-title {
@@ -65,10 +95,10 @@
         /* --- VÙNG LỌC DỮ LIỆU --- */
         .filter-section {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 25px;
+            margin-bottom: 25px;
             background: var(--secondary-color);
-            padding: 15px;
+            padding: 15px 25px;
             border-radius: 8px;
             align-items: center;
             flex-wrap: wrap;
@@ -81,18 +111,20 @@
         }
 
         .filter-group label {
-            font-weight: 600;
+            font-weight: 500;
             color: #4a5568;
+            font-size: 14px;
         }
 
         .filter-group select {
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 6px 10px;
+            border-radius: 4px;
             border: 1px solid #cbd5e0;
             outline: none;
-            font-size: 15px;
-            min-width: 120px;
+            font-size: 14px;
+            min-width: 130px;
             cursor: pointer;
+            background-color: white;
         }
 
         .filter-group select:focus {
@@ -116,8 +148,7 @@
         }
 
         th, td {
-            padding: 12px 15px;
-            text-align: left;
+            padding: 14px 15px;
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
         }
@@ -125,20 +156,27 @@
         th {
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        /* Căn chỉnh cột riêng biệt giống thiết kế */
+        th:nth-child(2), td:nth-child(2) {
+            text-align: left; /* Cột Giảng viên căn trái */
         }
 
         tbody tr {
+            background-color: #ffffff;
             transition: background-color 0.2s ease;
         }
 
         tbody tr:nth-child(even) {
-            background-color: #f8fafc;
+            background-color: #fbfbfb; /* Màu xám rất nhạt cho hàng chẵn */
         }
 
         tbody tr:hover {
-            background-color: #e2e8f0;
+            background-color: #f1f5f9;
         }
 
         .empty-message {
@@ -154,18 +192,31 @@
             color: var(--primary-color);
             font-weight: bold;
             font-size: 16px;
-            display: none; /* Ẩn mặc định, điều khiển bằng JS */
+            display: none;
         }
         
         #sync-indicator {
             text-align: center;
             font-size: 12px;
             color: #718096;
-            margin-top: 15px;
+            margin-top: 20px;
             font-style: italic;
         }
 
         @media (max-width: 768px) {
+            .top-navbar {
+                flex-direction: column;
+                padding: 15px;
+                gap: 15px;
+            }
+            .nav-menu {
+                width: 100%;
+                justify-content: space-around;
+            }
+            .nav-item {
+                padding: 10px;
+                font-size: 14px;
+            }
             .filter-section {
                 flex-direction: column;
                 align-items: stretch;
@@ -173,23 +224,28 @@
             .filter-group {
                 justify-content: space-between;
             }
-            .filter-group select {
-                flex: 1;
-                margin-left: 10px;
-            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Logo khu vực -->
+        <!-- HEADER NAVBAR -->
         <div class="top-navbar">
-            <img src="https://raw.githubusercontent.com/khcbvadl-ai/quanlidulieu/main/logo.%20KHCB%20trong.png" alt="KHCB LOGO" class="logo-img">
+            <div class="logo-box">
+                <img src="https://raw.githubusercontent.com/khcbvadl-ai/quanlidulieu/main/logo.%20KHCB%20trong.png" alt="KHCB LOGO" class="logo-img">
+            </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-item">Trang chủ</a>
+                <!-- Mục Lịch giảng đang được chọn (Active) theo yêu cầu của bạn -->
+                <a href="#" class="nav-item active">Lịch giảng</a>
+                <a href="#" class="nav-item">Video bài giảng</a>
+            </div>
         </div>
 
-        <h2 class="header-title"><i class="fa-solid fa-calendar-days"></i> Lịch Giảng Dạy Toàn Khoa</h2>
+        <h2 class="header-title"><i class="fa-solid fa-calendar-days"></i> LỊCH GIẢNG DẠY TOÀN KHOA</h2>
 
+        <!-- BỘ LỌC -->
         <div class="filter-section">
             <div class="filter-group">
                 <label for="filter-day"><i class="fa-solid fa-filter"></i> Chọn Thứ:</label>
@@ -207,21 +263,22 @@
 
         <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
 
+        <!-- BẢNG HIỂN THỊ LỊCH -->
         <div class="table-responsive">
             <table id="schedule-table" style="display: none;">
                 <thead>
                     <tr>
                         <th>STT</th>
-                        <th>Giảng viên</th>
-                        <th>Thứ</th>
-                        <th>Ca</th>
-                        <th>Lớp</th>
-                        <th>Phòng</th>
-                        <th>Thời gian</th>
+                        <th>GIẢNG VIÊN</th>
+                        <th>THỨ</th>
+                        <th>CA</th>
+                        <th>LỚP</th>
+                        <th>PHÒNG</th>
+                        <th>THỜI GIAN</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    <!-- Dữ liệu sẽ được chèn vào đây -->
+                    <!-- Dữ liệu từ Sheet sẽ được vẽ vào đây -->
                 </tbody>
             </table>
         </div>
@@ -233,12 +290,11 @@
         // Cấu hình
         const SHEET_ID = "1yyBsezsZlOYwGfAfavDvptB-KEiWo2gZu9Go3PE8zRU";
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-        const CACHE_KEY = "SCHEDULE_DATA_CACHE_V1"; // Khóa lưu trữ đệm
+        const CACHE_KEY = "SCHEDULE_DATA_CACHE_V2";
 
         let allScheduleData = [];
 
         window.onload = function() {
-            // 1. Cố gắng hiển thị dữ liệu từ Cache (bộ nhớ đệm) trước
             const cachedDataString = localStorage.getItem(CACHE_KEY);
             let hasCache = false;
 
@@ -249,7 +305,7 @@
                     
                     document.getElementById('schedule-table').style.display = 'table';
                     populateFilterDropdowns();
-                    applyFilter(); // Hiển thị bảng
+                    applyFilter();
                     
                     document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Đang kiểm tra lịch mới...';
                 } catch (e) {
@@ -257,7 +313,6 @@
                 }
             }
 
-            // 2. Gọi Google Sheet để lấy dữ liệu mới nhất (chạy ngầm nếu đã có cache)
             fetchDataFromSheet(hasCache);
         };
 
@@ -310,7 +365,7 @@
                         }
                     }
 
-                    // Sắp xếp
+                    // Sắp xếp Thứ -> Ca -> Giảng viên
                     rawData.sort((a, b) => {
                         if (a.day !== b.day) return a.day - b.day;
                         if (a.shift !== b.shift) return a.shift - b.shift;
@@ -320,21 +375,18 @@
                     const newDataString = JSON.stringify(rawData);
                     const oldDataString = localStorage.getItem(CACHE_KEY);
 
-                    // Chỉ vẽ lại UI nếu dữ liệu có sự thay đổi thực sự, hoặc chưa có cache
                     if (newDataString !== oldDataString) {
-                        localStorage.setItem(CACHE_KEY, newDataString); // Cập nhật bộ nhớ đệm
+                        localStorage.setItem(CACHE_KEY, newDataString);
                         allScheduleData = rawData;
                         
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('schedule-table').style.display = 'table';
                         
-                        // Lấy giá trị đang chọn hiện tại để không làm mất bộ lọc của người dùng
                         let currentDay = document.getElementById('filter-day').value;
                         let currentShift = document.getElementById('filter-shift').value;
                         
                         populateFilterDropdowns();
                         
-                        // Phục hồi lại lựa chọn bộ lọc
                         document.getElementById('filter-day').value = currentDay || "ALL";
                         document.getElementById('filter-shift').value = currentShift || "ALL";
                         
@@ -344,12 +396,12 @@
                         document.getElementById('schedule-table').style.display = 'table';
                     }
                     
-                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-check-circle" style="color: green;"></i> Lịch giảng dạy đã được đồng bộ mới nhất';
+                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu lịch giảng đã được đồng bộ';
                 })
                 .catch(err => {
                     console.error("Lỗi đồng bộ dữ liệu:", err);
                     if (!isBackgroundSync) {
-                        document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu. Vui lòng kiểm tra lại kết nối hoặc quyền truy cập.</span>';
+                        document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu. Vui lòng kiểm tra lại kết nối mạng hoặc Google Sheet.</span>';
                     }
                     document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: orange;"></i> Đang sử dụng dữ liệu cũ (Ngoại tuyến)';
                 });
@@ -359,7 +411,6 @@
             const daySelect = document.getElementById('filter-day');
             const shiftSelect = document.getElementById('filter-shift');
             
-            // Xóa các tùy chọn cũ (trừ mục "Tất cả")
             daySelect.innerHTML = '<option value="ALL">-- Tất cả --</option>';
             shiftSelect.innerHTML = '<option value="ALL">-- Tất cả --</option>';
             
@@ -399,12 +450,12 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight: bold; text-align: center;">${index + 1}</td>
-                    <td style="font-weight: 500; color: #1a4d2e;">${item.teacher}</td>
+                    <td style="font-weight: bold; color: var(--teacher-color);">${item.teacher}</td>
                     <td style="text-align: center;">${item.day}</td>
                     <td style="text-align: center;">${item.shift}</td>
-                    <td>${item.className}</td>
-                    <td style="font-weight: bold;">${item.room}</td>
-                    <td style="font-size: 13px;">${item.time}</td>
+                    <td style="text-align: center;">${item.className}</td>
+                    <td style="font-weight: bold; text-align: center;">${item.room}</td>
+                    <td style="font-size: 13px; text-align: center; color: #555;">${item.time}</td>
                 `;
                 tbody.appendChild(tr);
             });
