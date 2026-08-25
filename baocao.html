@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -134,7 +133,7 @@
         }
 
         .btn {
-            padding: 9px 18px;
+            padding: 10px 20px;
             border-radius: 4px;
             border: none;
             font-weight: bold;
@@ -144,22 +143,15 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .btn-filter {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .btn-filter:hover { background-color: #123820; }
-
-        .btn-export {
-            background-color: #2563eb;
-            color: white;
             margin-left: auto;
         }
 
-        .btn-export:hover { background-color: #1d4ed8; }
+        .btn-filter-export {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        .btn-filter-export:hover { background-color: #1d4ed8; }
 
         /* --- BẢNG DỮ LIỆU --- */
         .table-responsive {
@@ -205,6 +197,14 @@
             font-style: italic;
         }
 
+        .section-note {
+            font-size: 13px;
+            color: #64748b;
+            font-style: italic;
+            margin-bottom: 10px;
+            display: block;
+        }
+
         #loading {
             text-align: center;
             padding: 20px;
@@ -217,8 +217,7 @@
         @media (max-width: 768px) {
             .top-navbar { flex-direction: column; padding: 15px; }
             .filter-section { flex-direction: column; align-items: stretch; }
-            .btn-export { margin-left: 0; justify-content: center; }
-            .btn-filter { justify-content: center; }
+            .btn { margin-left: 0; justify-content: center; }
         }
     </style>
 </head>
@@ -255,13 +254,14 @@
                 <label for="filter-end-date">Đến ngày:</label>
                 <input type="date" id="filter-end-date">
             </div>
-            <button class="btn btn-filter" onclick="applyFilter()"><i class="fa-solid fa-magnifying-glass"></i> Thống kê</button>
-            <button class="btn btn-export" onclick="exportToWord()" id="btn-export" style="display: none;"><i class="fa-solid fa-file-word"></i> Tải báo cáo (.docx)</button>
+            <!-- Đã gộp nút thống kê và tải thành 1 hành động -->
+            <button class="btn btn-filter-export" onclick="applyFilter(true)"><i class="fa-solid fa-file-arrow-down"></i> Lọc & Tải báo cáo</button>
         </div>
 
         <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
 
         <!-- BẢNG HIỂN THỊ -->
+        <span id="display-note" class="section-note">Đang hiển thị 10 công việc gần nhất</span>
         <div class="table-responsive">
             <table id="report-table" style="display: none;">
                 <thead>
@@ -287,11 +287,7 @@
         let allReportData = [];
         let filteredDataForExport = [];
 
-        // =======================================================
-        // BỘ TỪ ĐIỂN CHUẨN HÓA TÊN (SỬA LỖI GÕ SAI)
-        // Bạn có thể thêm các lỗi gõ sai thường gặp vào đây
-        // Định dạng: "tên viết thường bị sai": "Tên Hiển Thị Chuẩn"
-        // =======================================================
+        // BỘ TỪ ĐIỂN CHUẨN HÓA TÊN
         const NAME_DICTIONARY = {
             "nguyễn ngọcc hải": "Nguyễn Ngọc Hải",
             "nguyển ngọc hải": "Nguyễn Ngọc Hải",
@@ -300,20 +296,11 @@
             "trần văn thời": "Trần Văn Thời"
         };
 
-        // Hàm làm sạch và chuẩn hóa tên
         function sanitizeName(rawName) {
             if (!rawName) return "Không rõ";
-            
-            // 1. Cắt khoảng trắng đầu đuôi và xóa khoảng trắng kép ở giữa
             let cleaned = rawName.trim().replace(/\s+/g, ' ');
             let lowerCaseName = cleaned.toLowerCase();
-
-            // 2. Tra cứu trong Từ điển xem có trùng lỗi sai nào không
-            if (NAME_DICTIONARY[lowerCaseName]) {
-                return NAME_DICTIONARY[lowerCaseName];
-            }
-
-            // 3. Nếu không có trong từ điển, tự động Viết Hoa Chữ Cái Đầu
+            if (NAME_DICTIONARY[lowerCaseName]) return NAME_DICTIONARY[lowerCaseName];
             return cleaned.replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase());
         }
 
@@ -342,18 +329,15 @@
             return result;
         }
 
-        // Chuyển đổi định dạng ngày từ Google Sheet (M/D/YYYY H:MM:SS) sang Date object chuẩn
         function parseGoogleDate(dateStr) {
             if (!dateStr) return null;
-            let parts = dateStr.split(' ')[0].split('/'); // Lấy phần ngày trước dấu cách
+            let parts = dateStr.split(' ')[0].split('/'); 
             if (parts.length === 3) {
-                // Thường Google form xuất tháng trước: MM/DD/YYYY
                 return new Date(parts[2], parts[0] - 1, parts[1]);
             }
             return new Date(dateStr);
         }
 
-        // Định dạng ngày hiển thị (DD/MM/YYYY)
         function formatDateUI(dateObj) {
             if (!dateObj || isNaN(dateObj.getTime())) return "";
             let d = dateObj.getDate().toString().padStart(2, '0');
@@ -371,7 +355,7 @@
                     let lines = text.split(/\r?\n/);
                     let rawData = [];
                     
-                    for (let i = 1; i < lines.length; i++) { // Bỏ dòng tiêu đề
+                    for (let i = 1; i < lines.length; i++) {
                         if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         
@@ -381,23 +365,21 @@
                             let desc = cols[2].trim();
                             let rawDoneDate = cols[3].trim();
                             
-                            // Bỏ qua dòng trống
                             if (!rawTimestamp && !rawName) continue;
 
                             let dateReportObj = parseGoogleDate(rawTimestamp);
-                            let dateDoneObj = parseGoogleDate(rawDoneDate);
 
                             rawData.push({
                                 timestampObj: dateReportObj,
                                 timestampUI: formatDateUI(dateReportObj),
-                                name: sanitizeName(rawName), // GỌI HÀM LÀM SẠCH TÊN
+                                name: sanitizeName(rawName),
                                 description: desc,
-                                dateDoneUI: rawDoneDate // Giữ nguyên text ngày người dùng nhập
+                                dateDoneUI: rawDoneDate 
                             });
                         }
                     }
 
-                    // Sắp xếp mặc định: Báo cáo mới nhất lên đầu
+                    // Sắp xếp báo cáo mới nhất lên đầu
                     rawData.sort((a, b) => b.timestampObj - a.timestampObj);
 
                     allReportData = rawData;
@@ -406,7 +388,9 @@
                     document.getElementById('schedule-table').style.display = 'table';
                     
                     populateNameDropdown();
-                    applyFilter(); // Hiển thị tất cả mặc định
+                    
+                    // Lần đầu mở trang web: isUserAction = false -> Hiển thị 10 mục
+                    applyFilter(false); 
                 })
                 .catch(err => {
                     console.error("Lỗi tải dữ liệu:", err);
@@ -423,7 +407,6 @@
                 if (item.name && item.name !== "Không rõ") names.add(item.name);
             });
 
-            // Sắp xếp tên theo bảng chữ cái
             Array.from(names).sort((a,b) => a.localeCompare(b, 'vi')).forEach(name => {
                 let option = document.createElement('option');
                 option.value = name;
@@ -432,19 +415,20 @@
             });
         }
 
-        function applyFilter() {
+        // isUserAction = false (Lúc mới vào trang), isUserAction = true (Khi bấm Lọc & Tải)
+        function applyFilter(isUserAction = false) {
             const selectedName = document.getElementById('filter-name').value;
             const startDateInput = document.getElementById('filter-start-date').value;
             const endDateInput = document.getElementById('filter-end-date').value;
 
-            // Xử lý object thời gian chuẩn để so sánh
             let start = startDateInput ? new Date(startDateInput) : null;
             if (start) start.setHours(0,0,0,0);
             
             let end = endDateInput ? new Date(endDateInput) : null;
             if (end) end.setHours(23,59,59,999);
 
-            filteredDataForExport = allReportData.filter(item => {
+            // Lọc dữ liệu theo điều kiện
+            let filteredData = allReportData.filter(item => {
                 let matchName = (selectedName === "ALL") || (item.name === selectedName);
                 
                 let matchDate = true;
@@ -456,14 +440,23 @@
                 return matchName && matchDate;
             });
 
-            renderTable(filteredDataForExport);
+            filteredDataForExport = filteredData;
+            const displayNote = document.getElementById('display-note');
 
-            // Hiện nút tải Word nếu có dữ liệu
-            const btnExport = document.getElementById('btn-export');
-            if (filteredDataForExport.length > 0) {
-                btnExport.style.display = 'flex';
+            if (!isUserAction) {
+                // Lúc mới mở web: Cắt lấy 10 phần tử đầu tiên
+                displayNote.textContent = "Đang hiển thị 10 công việc mới nhất";
+                renderTable(filteredData.slice(0, 10));
             } else {
-                btnExport.style.display = 'none';
+                // Khi người dùng tương tác: Hiển thị toàn bộ kết quả lọc & Tải file
+                displayNote.textContent = `Đang hiển thị kết quả lọc (${filteredData.length} công việc)`;
+                renderTable(filteredData);
+                
+                if (filteredData.length > 0) {
+                    exportToWord();
+                } else {
+                    alert("Không tìm thấy công việc nào thỏa mãn điều kiện lọc để xuất file.");
+                }
             }
         }
 
@@ -472,7 +465,7 @@
             tbody.innerHTML = '';
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không có dữ liệu báo cáo nào trong khoảng thời gian này.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không có dữ liệu báo cáo nào.</td></tr>';
                 return;
             }
 
@@ -496,7 +489,6 @@
             const selectedName = document.getElementById('filter-name').value;
             let reportTitle = selectedName === "ALL" ? "BÁO CÁO CÔNG VIỆC CHUNG" : `BÁO CÁO CÔNG VIỆC - ${selectedName.toUpperCase()}`;
             
-            // Xây dựng cấu trúc HTML của tệp Word
             let tableContent = "";
             filteredDataForExport.forEach((item, index) => {
                 tableContent += `
@@ -544,12 +536,10 @@
                 </html>
             `;
 
-            // Đóng gói HTML thành tệp Word và tạo lệnh tải về
             let blob = new Blob(['\ufeff', htmlSource], { type: 'application/msword' });
             let downloadLink = document.createElement("a");
             downloadLink.href = URL.createObjectURL(blob);
             
-            // Định dạng tên file khi tải về
             let fileName = selectedName === "ALL" ? "Bao_Cao_Chung.doc" : `Bao_Cao_${selectedName.replace(/\s+/g, '_')}.doc`;
             downloadLink.download = fileName;
             
