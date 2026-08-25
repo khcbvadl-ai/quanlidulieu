@@ -1,28 +1,18 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <style>
-        .nav-item-wrap {
-            display: flex;
-            gap: 15px; /* Khoảng cách giữa các nút */
-            align-items: center;
-        }
-    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lí KHCB và dữ liệu</title>
+    <title>Khoa học cơ bản</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary-green: #1abc9c;
-            --primary-blue: #3498db;
-            --primary-orange: #e67e22;
+            --primary-green: #1a4d2e;
+            --primary-blue: #78281f;
+            --primary-orange: #B5782A;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -33,7 +23,7 @@
             overflow-x: hidden;
         }
 
-        /* --- THANH ĐIỀU HƯỚNG TỔNG (TOP NAVBAR) --- */
+        /* --- TOP NAVBAR --- */
         .top-navbar {
             max-width: 1100px;
             margin: 0 auto 25px auto;
@@ -47,308 +37,90 @@
             position: relative;
         }
 
-        .logo-box {
-            display: flex;
-            align-items: center;
-        }
+        .logo-box { display: flex; align-items: center; }
+        .logo-img { height: 45px; object-fit: contain; display: block; }
+        .mobile-menu-btn { display: none; font-size: 24px; cursor: pointer; color: #333; padding: 10px; }
 
-        .logo-img {
-            height: 45px;
-            object-fit: contain;
-            display: block;
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #333;
-            padding: 10px;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            gap: 5px;
-        }
-
-        .nav-item-wrap {
-            position: relative;
-        }
-
+        .nav-menu { display: flex; list-style: none; margin: 0; padding: 0; gap: 5px; }
+        .nav-item-wrap { position: relative; }
         .nav-item {
-            text-decoration: none;
-            color: #333;
-            padding: 14px 15px;
-            font-weight: 500;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.2s;
-            border-bottom: 4px solid transparent;
-            cursor: pointer;
+            text-decoration: none; color: #333; padding: 14px 15px; font-weight: 500; font-size: 16px;
+            display: flex; align-items: center; gap: 5px; transition: all 0.2s; border-bottom: 4px solid transparent; cursor: pointer;
         }
-
-        .nav-item.active {
-            font-weight: bold;
-            background-color: #fff;
-            border-bottom: 4px solid #000;
-        }
-
-        .nav-item:hover {
-            background-color: #e2e8f0;
-        }
-
+        .nav-item.active { font-weight: bold; background-color: #fff; border-bottom: 4px solid #000; }
+        .nav-item:hover { background-color: #e2e8f0; }
         .mobile-close-btn { display: none; }
 
-        /* --- PHẦN TÌM KIẾM --- */
-        .header-main {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            max-width: 1100px;
-            margin: 0 auto 25px auto;
-            width: 100%;
-        }
-
+        /* --- SEARCH BOX --- */
+        .header-main { display: flex; justify-content: flex-end; align-items: center; max-width: 1100px; margin: 0 auto 25px auto; width: 100%; }
         .search-box input {
-            width: 270px; 
-            padding: 10px 16px; 
-            border-radius: 25px;
-            border: 1px solid #c7d2d8;
-            background: #f1f4f6;
-            outline: none;
-            font-size: 15px;
+            width: 270px; padding: 10px 16px; border-radius: 25px; border: 1px solid #c7d2d8;
+            background: #f1f4f6; outline: none; font-size: 15px;
         }
 
-        /* --- BỐ CỤC KHỐI BÀI HỌC CHÍNH --- */
-        .container {
-            display: flex;
-            gap: 20px;
-            max-width: 1100px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        /* --- LAYOUT DỮ LIỆU --- */
+        .container { display: flex; gap: 20px; max-width: 1100px; margin: 0 auto; width: 100%; }
+        .column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
 
         .column-header {
-            padding: 14px 18px;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            font-size: 20px;
+            padding: 14px 18px; border-radius: 10px; color: white; font-weight: bold; font-size: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        .bg-green { background: #1a4d2e; }   
-        .bg-blue { background: #78281f; }    
-        .bg-orange { background: #B5782A; }  
+        .bg-col-0 { background: #1a4d2e; }   
+        .bg-col-1 { background: #78281f; }    
+        .bg-col-2 { background: #B5782A; }  
 
-        .menu-block {
-            display: flex;
-            flex-direction: column;
-        }
+        .menu-block { display: flex; flex-direction: column; }
 
         .item-card {
-            background: #fff;
-            padding: 14px 18px; 
-            border-radius: 16px;
-            border: 1.5px solid #b5b5b5; 
-            text-decoration: none;
-            display: block;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-            transition: 0.2s;
-            cursor: pointer;
+            background: #fff; padding: 14px 18px; border-radius: 16px; border: 1.5px solid #b5b5b5; 
+            text-decoration: none; display: block; box-shadow: 0 3px 8px rgba(0,0,0,0.08); transition: 0.2s; cursor: pointer;
         }
-
-        .item-card:hover {
-            background-color: #f8fafc;
-            border-color: #78281f;
-        }
-
-        .item-card h2 {
-            margin: 0;
-            font-weight: 700; 
-            color: #222; 
-            font-size: 18px;
-        }
+        .item-card:hover { background-color: #f8fafc; border-color: #78281f; }
+        .item-card h2 { margin: 0; font-weight: 700; color: #222; font-size: 18px; }
 
         .sheet-dropdown {
-            margin-top: -6px;
-            margin-bottom: 5px;
-            padding: 10px 18px 6px 18px;
-            background: #ffffff;
-            border-radius: 0 0 16px 16px;
-            border: 1.5px solid #b5b5b5;
-            border-top: none;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
-            display: none;
+            margin-top: -6px; margin-bottom: 5px; padding: 10px 18px 6px 18px; background: #ffffff;
+            border-radius: 0 0 16px 16px; border: 1.5px solid #b5b5b5; border-top: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06); display: none;
         }
-
         .sheet-dropdown a {
-            display: block;
-            text-decoration: none;
-            color: #4a5568;
-            padding: 8px 0;
-            font-size: 15px;
-            border-bottom: 1px solid #f1f4f6;
-            transition: 0.2s;
+            display: block; text-decoration: none; color: #4a5568; padding: 8px 0; font-size: 15px;
+            border-bottom: 1px solid #f1f4f6; transition: 0.2s;
         }
+        .sheet-dropdown a:last-child { border-bottom: none; }
+        .sheet-dropdown a:hover { color: #3498db; padding-left: 6px; }
 
-        .sheet-dropdown a:last-child {
-            border-bottom: none;
-        }
-
-        .sheet-dropdown a:hover {
-            color: #3498db;
-            padding-left: 6px;
-        }
-
-        /* ========================================================
-           ✨ CẤU HÌNH POPUP MODAL ADMIN CHUYÊN NGHIỆP (MẶC ĐỊNH ẨN)
-           ======================================================== */
+        /* --- ADMIN POPUP MODAL --- */
         .admin-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(3px);
-            z-index: 999999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(3px); z-index: 999999; display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
-        .admin-modal-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        .admin-modal-overlay.show { opacity: 1; pointer-events: auto; }
         .admin-modal-content {
-            background: #ffffff;
-            width: 90%;
-            max-width: 600px;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            position: relative;
-            border: 1px solid #e2e8f0;
+            background: #ffffff; width: 90%; max-width: 600px; padding: 25px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; border: 1px solid #e2e8f0;
         }
-        .admin-modal-close-btn {
-            position: absolute;
-            top: 12px;
-            right: 15px;
-            font-size: 24px;
-            color: #a0aec0;
-            cursor: pointer;
-        }
-        .admin-modal-close-btn:hover { color: #4a5568; }
+        .admin-modal-close-btn { position: absolute; top: 12px; right: 15px; font-size: 24px; color: #a0aec0; cursor: pointer; }
         .admin-title { font-weight: bold; color: #1a202c; margin-bottom: 8px; font-size: 18px; }
         .btn-sync { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .btn-sync:hover { background: #218838; }
         .btn-copy { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; margin-left: 10px; display: none; }
-        .btn-copy:hover { background: #0069d9; }
         #output-code { width: 100%; height: 160px; margin-top: 15px; display: none; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #cbd5e0; background: #f7fafc; resize: none; }
-
-        /* --- FOOTER ACTIONS --- */
-        .footer-action {
-            margin: 40px auto 20px auto;
-            max-width: 1100px;
-            width: 100%;
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
-
-        .btn-register {
-            background: linear-gradient(to bottom, #d4af37, #a67c00);
-            color: #fff;
-            padding: 14px 35px; 
-            border-radius: 25px;
-            border: 1px solid #8e6f3e;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .link-detail { font-weight: bold; text-decoration: none; font-size: 15px; text-transform: uppercase; } 
-        .copyright { color: #999; font-size: 14px; padding-left: 20px; max-width: 1100px; margin: 0 auto 20px auto; }
 
         @media (max-width: 768px) {
             body { padding: 0px; } 
-
-            .top-navbar {
-                justify-content: flex-start; 
-                gap: 15px;
-                padding: 10px 15px;
-                background-color: #f4f6f9;
-                border-radius: 0;
-                margin-bottom: 15px;
-            }
-
+            .top-navbar { justify-content: flex-start; gap: 15px; padding: 10px 15px; background-color: #f4f6f9; border-radius: 0; margin-bottom: 15px; }
             .mobile-menu-btn { display: block; }
-            .logo-box { width: auto; margin-bottom: 0; }
-
             .nav-menu {
-                position: fixed;
-                top: 0;
-                left: -280px; 
-                width: 260px;
-                height: 100%;
-                background-color: #f4f6f8;
-                box-shadow: 4px 0 12px rgba(0,0,0,0.15);
-                z-index: 99999;
-                flex-direction: column;
-                padding-top: 60px;
+                position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background-color: #f4f6f8;
+                box-shadow: 4px 0 12px rgba(0,0,0,0.15); z-index: 99999; flex-direction: column; padding-top: 60px; gap: 0;
                 transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                gap: 0;
             }
-
             .nav-menu.open { left: 0 !important; }
-
-            .mobile-close-btn {
-                display: block !important;
-                position: absolute;
-                top: 15px;
-                left: 20px;
-                font-size: 24px;
-                cursor: pointer;
-                color: #222;
-                font-weight: bold;
-            }
-
-            .nav-item-wrap { width: 100%; }
-
-            .nav-item {
-                padding: 12px 20px;
-                font-size: 15px; 
-                color: #222;
-                font-weight: 600;
-                border-bottom: none;
-                border-left: 5px solid transparent;
-                justify-content: space-between; 
-                width: 100%;
-                background-color: transparent;
-            }
-
-            .nav-item.active {
-                background-color: #e2e8f0;
-                border-left: 6px solid #000 !important;
-                border-bottom: none !important;
-                font-weight: bold;
-            }
-
+            .mobile-close-btn { display: block !important; position: absolute; top: 15px; left: 20px; font-size: 24px; cursor: pointer; color: #222; font-weight: bold; }
             .header-main { flex-direction: column; padding: 0 15px; gap: 12px; align-items: flex-start; }
             .search-box { width: 100%; padding: 0 15px; }
             .search-box input { width: 100%; border-radius: 20px; font-size: 14px; padding: 8px 14px; }
@@ -356,21 +128,21 @@
             .column-header { border-radius: 0; font-size: 15px; padding: 12px; text-align: center; }
             .item-card { border-radius: 0; border-left: none; border-right: none; padding: 12px; }
             .item-card h2 { font-size: 14px; text-align: center; font-weight: 600; }
-            .sheet-dropdown a { text-align: center; font-size: 13.5px; padding: 7px 0; }
-            .footer-action { flex-direction: column; align-items: center; gap: 15px; text-align: center; padding: 15px; margin: 30px auto 15px auto; }
-            .btn-register { width: 100%; padding: 12px 20px; font-size: 14px; }
-            .link-detail { font-size: 14px; }
-            .copyright { text-align: center; font-size: 12px; padding-left: 0; }
         }
     </style>
     
     <script>
         // =========================================================================
-        // 📦 BỘ NHỚ ĐỆM CHỨA DỮ LIỆU CŨ (Khi chạy lệnh sinh mã, vùng này sẽ được cập nhật tự động)
+        // 🔑 CHỈ CẦN THAY THẾ ID CỦA GOOGLE SHEET VÀO ĐÂY:
         // =========================================================================
-        const STATIC_DATA_STORE = [{"type":"parent","id":"I_1","columnGroup":"I","textDisplay":"1. Phân công công việc"},{"type":"parent","id":"I_2","columnGroup":"I","textDisplay":"2. Văn bản cuộc họp"},{"type":"parent","id":"I_3","columnGroup":"I","textDisplay":"3. Quản lí nhân sự"},{"type":"parent","id":"I_4","columnGroup":"I","textDisplay":"4. Quản lí văn bản hành chính"},{"type":"parent","id":"I_5","columnGroup":"I","textDisplay":"5. Quản lí lịch công tác"},{"type":"parent","id":"II_1","columnGroup":"II","textDisplay":"1. Nội dung chương trình"},{"type":"parent","id":"II_2","columnGroup":"II","textDisplay":"2. Kế hoạch đào tạo các khoá"},{"type":"parent","id":"II_3","columnGroup":"II","textDisplay":"3. Quản lí sinh viên"},{"type":"parent","id":"II_4","columnGroup":"II","textDisplay":"4. Đánh giá kiểm định chất lượng"},{"type":"parent","id":"III_1","columnGroup":"III","textDisplay":"1. Hội thảo - Toạ đàm"},{"type":"parent","id":"III_2","columnGroup":"III","textDisplay":"2. Hợp tác kết nối"},{"type":"parent","id":"III_3","columnGroup":"III","textDisplay":"3. Nghiên cứu khoa học"},{"type":"parent","id":"III_4","columnGroup":"III","textDisplay":"4. Dự án - đề tài"},{"type":"parent","id":"III_5","columnGroup":"III","textDisplay":"5. Hoạt động của sinh viên"},{"type":"child","id":"I_1_1","parentId":"drop-I_1","textDisplay":"1.1 Phân công công việc 2026","url":"https://drive.google.com/drive/folders/1UzH1pUKlbXiRad4JMHA_OfLxB2ulR1kg?usp=drive_link"},{"type":"child","id":"I_1_2","parentId":"drop-I_1","textDisplay":"1.2 Phân công lớp HLCTĐ","url":"https://drive.google.com/drive/folders/1RaW_WBo_QABgRtqkUxcfMbbg2DTMYXjo?usp=drive_link"},{"type":"child","id":"I_1_3","parentId":"drop-I_1","textDisplay":"1.3 Nội dung công việc khác","url":"https://drive.google.com/drive/folders/1beokjNEgVWj_njFfZH2EA4EUD5RUSB7K?usp=drive_link"},{"type":"child","id":"I_2_1","parentId":"drop-I_2","textDisplay":"2.1. Về chuyên môn","url":"https://drive.google.com/drive/folders/1tikivt7h3gs7dZDuY7ZOTTWjbd5AZDKm?usp=drive_link"},{"type":"child","id":"I_2_2","parentId":"drop-I_2","textDisplay":"2.2. Về Đảng","url":"https://drive.google.com/drive/folders/1bOV8gcM2_LYlqNzHvefT48iBfMZ_o_WS?usp=drive_link"},{"type":"child","id":"I_2_3","parentId":"drop-I_2","textDisplay":"2.3. Làm việc với lãnh đạo cấp trên","url":"https://drive.google.com/drive/folders/17E7UgpscrFOsieHHpqf-URQLF-RWavC1?usp=drive_link"},{"type":"child","id":"I_2_4","parentId":"drop-I_2","textDisplay":"2.4. Liên quan đến sinh viên","url":"https://drive.google.com/drive/folders/1iyx2a29S1w5moPcB_TmSsFrB26m6EtKJ?usp=drive_link"},{"type":"child","id":"I_2_5","parentId":"drop-I_2","textDisplay":"2.5. Nội dung họp khác","url":"https://drive.google.com/drive/folders/1zkbBjPDacZ8eIYyL3Sie34jKYqzrmGRU?usp=drive_link"},{"type":"child","id":"I_3_1","parentId":"drop-I_3","textDisplay":"3.1. Hồ sơ giảng viên","url":"https://drive.google.com/drive/folders/1fPia-GDCCxEcJEg6lVWaLKc5MGq9P3ym?usp=drive_link"},{"type":"child","id":"I_3_2","parentId":"drop-I_3","textDisplay":"3.2. Theo dõi lương, khen thưởng- kỷ luật","url":"https://drive.google.com/drive/folders/1GppcWgkjpKaEDPr1B7Y3nT8Jg_-e7K9a?usp=drive_link"},{"type":"child","id":"I_3_3","parentId":"drop-I_3","textDisplay":"3.3. Hồ sơ giảng viên-nhân viên","url":"https://drive.google.com/drive/folders/19DFOz7Pdst-Ig_-cjrEqkvea_qwBfshk?usp=drive_link"},{"type":"child","id":"I_3_4","parentId":"drop-I_3","textDisplay":"3.4. Đào tạo bồi dưỡng","url":"https://drive.google.com/drive/folders/12Vw8vOdxJqrPxDlXmjzTN2jmaPBWH_bD?usp=drive_link"},{"type":"child","id":"I_4_1","parentId":"drop-I_4","textDisplay":"4.1. Công văn đến (tờ trình, báo cáo)","url":"https://drive.google.com/drive/folders/1ommGOvPdkJ9jwryYGvdKM19v36OLPk-f?usp=drive_link"},{"type":"child","id":"I_4_2","parentId":"drop-I_4","textDisplay":"4.2. Công văn đi (tờ trình, báo cáo)","url":"https://drive.google.com/drive/folders/1-fX7eydvwlUK_zlpjAAGVSenbBjbOsqc?usp=drive_link"},{"type":"child","id":"I_4_3","parentId":"drop-I_4","textDisplay":"4.3. Hệ thống biểu mẫu hành chính nội bộ","url":"https://drive.google.com/drive/folders/1zhq28TBQ0gYsconewmOEqm-EjHs87pDE?usp=drive_link"},{"type":"child","id":"I_4_4","parentId":"drop-I_4","textDisplay":"4.4. Văn bản khác","url":"https://drive.google.com/drive/folders/1YrJnESbWAEWIa5CSc94CAtdtT_c-89FN?usp=drive_link"},{"type":"child","id":"I_5_1","parentId":"drop-I_5","textDisplay":"5.1. Lãnh đạo khoa","url":"https://drive.google.com/drive/folders/11YFEcW09PTO-WVpiBecQ6yE9lPNu31jY?usp=drive_link"},{"type":"child","id":"I_5_2","parentId":"drop-I_5","textDisplay":"5.2. Giảng viên khoa","url":"https://drive.google.com/drive/folders/1eQTryE_qNtI571hKCcFoqSuYKLzwRNY0?usp=drive_link"},{"type":"child","id":"I_5_3","parentId":"drop-I_5","textDisplay":"5.3. Nội dung khác","url":"https://drive.google.com/drive/folders/1MnFjx3MPFTCM3HDw4D5cGs-DvmsVBO_L?usp=drive_link"},{"type":"child","id":"II_1_1","parentId":"drop-II_1","textDisplay":"1.1. Chương trình, đề cương","url":"https://drive.google.com/drive/folders/1yBpbtFe8MHXEZ95MbcL8GBk-FNAoTYEO?usp=drive_link"},{"type":"child","id":"II_1_2","parentId":"drop-II_1","textDisplay":"1.2. Giáo trình, tài liệu học tập","url":"https://drive.google.com/drive/folders/1yTfi_XvvNh4kwRAjWI0yao3RCtS8UjI1?usp=drive_link"},{"type":"child","id":"II_1_3","parentId":"drop-II_1","textDisplay":"1.3. Cải tiến chương trình","url":"https://drive.google.com/drive/folders/13IwycI-L1mFeTSxH72I9ggODaf6rfTT0?usp=drive_link"},{"type":"child","id":"II_2_1","parentId":"drop-II_2","textDisplay":"2.1. Đã thực hiện","url":"https://drive.google.com/drive/folders/1-gzVCCrq0HR-StQziNHHwU_SS4XaaORW?usp=drive_link"},{"type":"child","id":"II_2_2","parentId":"drop-II_2","textDisplay":"2.2. Đang thực hiện","url":"https://drive.google.com/drive/folders/1obh5VejusKHyhinAtw2q_3wm5JbPrf11?usp=drive_link"},{"type":"child","id":"II_2_3","parentId":"drop-II_2","textDisplay":"2.3. Dự thảo","url":"https://drive.google.com/drive/folders/1A0lClqWD4eJ9MfbcONB6PH926VCSHsWY?usp=drive_link"},{"type":"child","id":"II_2_4","parentId":"drop-II_2","textDisplay":"2.4. Nội dung khác","url":"https://drive.google.com/drive/folders/1oJKpN_VBArTmxcmZt2S9H38peIPf8Tm_?usp=drive_link"},{"type":"child","id":"II_3_1","parentId":"drop-II_3","textDisplay":"3.1. Danh sách sinh viên","url":"https://drive.google.com/drive/folders/1K09j7RAqVYTp6HDILy6bqglJIbUokVtg?usp=drive_link"},{"type":"child","id":"II_3_2","parentId":"drop-II_3","textDisplay":"3.2. Điểm tổng kết (nợ môn, thôi học)","url":"https://drive.google.com/drive/folders/1INCxzjAmFqDFGnQN878FP0tM8ZHUrut_?usp=drive_link"},{"type":"child","id":"II_3_3","parentId":"drop-II_3","textDisplay":"3.3. Sổ tay sinh viên, biên bản sinh hoạt lớp","url":"https://drive.google.com/drive/folders/1E9ZePwfT_QITUgptj1yH9mM6q3KOsAe0?usp=drive_link"},{"type":"child","id":"II_3_4","parentId":"drop-II_3","textDisplay":"3.4. Nội dung khác","url":"https://drive.google.com/drive/folders/1c-wNZ5E3VpzZ3r-6B-wjoiZY01O693wz?usp=drive_link"},{"type":"child","id":"II_4_1","parentId":"drop-II_4","textDisplay":"4.1. Bộ chỉ số kiểm định","url":"https://drive.google.com/drive/folders/1B2KcjrjJUitge4Kt6zAZkq-FYrLR6iZ1?usp=drive_link"},{"type":"child","id":"II_4_2","parentId":"drop-II_4","textDisplay":"4.2. Kết quả khảo sát","url":"https://drive.google.com/drive/folders/1V3cw-huWlP5O4jxW6UYCHvN3is6q7g-S?usp=drive_link"},{"type":"child","id":"II_4_3","parentId":"drop-II_4","textDisplay":"4.3. Hồ sơ tự đánh giá và minh chứng kiểm định","url":"https://drive.google.com/drive/folders/1FVGfELg2IrA5oP9wwcMWVfUzSroxJcM7?usp=drive_link"},{"type":"child","id":"III_1_1","parentId":"drop-III_1","textDisplay":"1.1. Kế hoạch tổ chức Tọa đàm – Hội thảo","url":"https://drive.google.com/drive/folders/1jEhmZNdziyT2erYTmFLBvbY2ovWKmKiK?usp=drive_link"},{"type":"child","id":"III_1_2","parentId":"drop-III_1","textDisplay":"1.2. Tổng kết sau Tọa đàm – Hội thảo","url":"https://drive.google.com/drive/folders/1xW-oKxmCxxhrXmyHKbfxhYG85SP48nZU?usp=drive_link"},{"type":"child","id":"III_2_1","parentId":"drop-III_2","textDisplay":"2.1. Danh sách đối tác, mạng lưới cựu sinh viên","url":"https://drive.google.com/drive/folders/1fmxTFN6xR69c6tq1OIGuFFk7LgXRUf--?usp=drive_link"},{"type":"child","id":"III_2_2","parentId":"drop-III_2","textDisplay":"2.2. Thỏa thuận hợp tác","url":"https://drive.google.com/drive/folders/1HH7nXWBV0aM4pNpC2PZkRnJJ2SJAwxtV?usp=drive_link"},{"type":"child","id":"III_3_1","parentId":"drop-III_3","textDisplay":"3.1. Đề tài cơ sở","url":"https://drive.google.com/drive/folders/1gXmUNN8fg-a59jh4SQ9t6ZseF-AX_KJB?usp=drive_link"},{"type":"child","id":"III_3_2","parentId":"drop-III_3","textDisplay":"3.2. Đề tài trên cơ sở","url":"https://drive.google.com/drive/folders/1Y_8ikCDMEi69aXfyTTaBmKtlXthv-Hnz?usp=drive_link"},{"type":"child","id":"III_3_3","parentId":"drop-III_3","textDisplay":"3.3. Bài báo đã công bố","url":"https://drive.google.com/drive/folders/1RBx54D1TaK_swd6dif8M9EFAxY3Q5xAj?usp=drive_link"},{"type":"child","id":"III_3_4","parentId":"drop-III_3","textDisplay":"3.4. Nhóm nghiên cứu mạnh","url":"https://drive.google.com/drive/folders/1h7nn-rWfkJlkOR3xiNJB-pAEmGcEP6hu?usp=drive_link"},{"type":"child","id":"III_4_1","parentId":"drop-III_4","textDisplay":"4.1. Cấp cơ sở","url":"https://drive.google.com/drive/folders/1iUZg2rzuQGOeNmGZyY-sRc-d8oBFa6kN?usp=drive_link"},{"type":"child","id":"III_4_2","parentId":"drop-III_4","textDisplay":"4.2. Cấp trên cơ sở","url":"https://drive.google.com/drive/folders/1lUB1Hp7K4nPbpk1MdNiUaa9cvCoec2Lg?usp=drive_link"},{"type":"child","id":"III_5_1","parentId":"drop-III_5","textDisplay":"5.1. Câu lạc bộ học thuật","url":"https://drive.google.com/drive/folders/1N_HHesBF16tItprAiz1qdUl8o5A4Fg01?usp=drive_link"},{"type":"child","id":"III_5_2","parentId":"drop-III_5","textDisplay":"5.2. Hoạt động Đoàn – Hội, tình nguyện hè","url":"https://drive.google.com/drive/folders/1-Y84XOmAFSkEhpDtNpDNuGt5CcCgtIGP?usp=drive_link"},{"type":"child","id":"III_5_3","parentId":"drop-III_5","textDisplay":"5.3. Cuộc thi chuyên môn và phong trào khác","url":"https://drive.google.com/drive/folders/1rli19eJ511Qr5Ym8s_IWJ34pMIxO1Jbo?usp=drive_link"},{"type":"child","id":"III_5_4","parentId":"drop-III_5","textDisplay":"5.4. Nghiên cứu khoa học của sinh viên","url":"https://drive.google.com/drive/folders/17aehX9gTpg_9cW4-zPFJp-5xN2gCxDWY?usp=drive_link"}];
+        const GOOGLE_SHEET_ID = "1IR57jmQbhe1GtIIcZsP4K7maOHJNMLBVz9OwCnSFEJk";
+        
+        // Cấu trúc tự động chuyển ID thành đường dẫn nạp dữ liệu chuẩn
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv`;
+        const LOCAL_STORAGE_KEY = "KHCB_APP_DATA_CACHE";
 
-        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGSAfaa7s68I0cwNes4pEDCOHUFynPUujt-dUHUEG3HtrdfEPpNDX2Ejtv4NZZ5FcKTtOdAaWLGiCm/pub?gid=0&single=true&output=tsv";
+        // 📦 DỮ LIỆU TĨNH
+        let STATIC_DATA_STORE = [];
 
         function normalizeGoogleDriveLink(rawUrl) {
             if (!rawUrl || rawUrl.trim() === "" || rawUrl.trim() === "#") return "#";
@@ -382,73 +154,108 @@
         }
 
         window.onload = function() {
-            if (STATIC_DATA_STORE && STATIC_DATA_STORE.length > 0) {
-                renderUIFromData(STATIC_DATA_STORE);
-            } else {
-                fetchAndBuildCache(false);
-            }
-
-            const currentUrl = window.location.href;
-            document.querySelectorAll('.nav-menu .nav-item').forEach(el => el.classList.remove('active'));
-            if (currentUrl.includes('/video/')) {
-                document.getElementById('menu-video').classList.add('active');
-            } else {
-                document.getElementById('menu-home').classList.add('active');
-            }
-
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768) {
-                    const menu = document.getElementById('mobileNavMenu');
-                    if (!menu.contains(e.target)) { menu.classList.remove('open'); }
+            // 1. Đọc dữ liệu từ LocalStorage trước
+            const cachedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (cachedData) {
+                try {
+                    STATIC_DATA_STORE = JSON.parse(cachedData);
+                    renderUIFromData(STATIC_DATA_STORE);
+                } catch (e) {
+                    console.error("Lỗi đọc cache LocalStorage:", e);
                 }
-            });
+            } else if (STATIC_DATA_STORE && STATIC_DATA_STORE.length > 0) {
+                renderUIFromData(STATIC_DATA_STORE);
+            }
+
+            // 2. Tự động đồng bộ dữ liệu mới nhất từ Google Sheet
+            fetchAndBuildCache(false);
         };
 
         function renderUIFromData(dataArr) {
-            document.querySelectorAll('.menu-block').forEach(el => el.remove());
+            if (!dataArr || dataArr.length === 0) return;
+            const container = document.getElementById('main-container');
+            container.innerHTML = ''; 
 
-            dataArr.forEach(item => {
-                if (item.type === 'parent') {
-                    let colElement = document.getElementById('col-' + item.columnGroup);
-                    if (colElement) {
-                        let blockDiv = document.createElement('div');
-                        blockDiv.className = 'menu-block';
-                        
-                        let cardDiv = document.createElement('div');
-                        cardDiv.className = 'item-card';
-                        cardDiv.setAttribute('onclick', `toggleMenu('drop-${item.id}')`);
-                        cardDiv.innerHTML = `<h2>${item.textDisplay}</h2>`;
-                        
-                        let dropdownDiv = document.createElement('div');
-                        dropdownDiv.className = 'sheet-dropdown';
-                        dropdownDiv.id = 'drop-' + item.id;
-                        
-                        blockDiv.appendChild(cardDiv);
-                        blockDiv.appendChild(dropdownDiv);
-                        colElement.appendChild(blockDiv);
-                    }
+            // Vẽ Cột Cấp 1
+            const level1Items = dataArr.filter(item => item.level === 1);
+            level1Items.forEach((colItem, index) => {
+                let colDiv = document.createElement('div');
+                colDiv.className = 'column';
+                colDiv.id = 'col-' + colItem.id;
+
+                let headerDiv = document.createElement('div');
+                headerDiv.className = `column-header bg-col-${index % 3}`;
+                headerDiv.textContent = colItem.textDisplay;
+
+                colDiv.appendChild(headerDiv);
+                container.appendChild(colDiv);
+            });
+
+            // Vẽ Thẻ Cấp 2
+            const level2Items = dataArr.filter(item => item.level === 2);
+            level2Items.forEach(item => {
+                let colElement = document.getElementById('col-' + item.columnGroup);
+                if (colElement) {
+                    let blockDiv = document.createElement('div');
+                    blockDiv.className = 'menu-block';
+                    
+                    let cardDiv = document.createElement('div');
+                    cardDiv.className = 'item-card';
+                    cardDiv.setAttribute('onclick', `toggleMenu('drop-${item.id}')`);
+                    cardDiv.innerHTML = `<h2>${item.textDisplay}</h2>`;
+                    
+                    let dropdownDiv = document.createElement('div');
+                    dropdownDiv.className = 'sheet-dropdown';
+                    dropdownDiv.id = 'drop-' + item.id;
+                    
+                    blockDiv.appendChild(cardDiv);
+                    blockDiv.appendChild(dropdownDiv);
+                    colElement.appendChild(blockDiv);
                 }
             });
 
-            dataArr.forEach(item => {
-                if (item.type === 'child') {
-                    let targetDropdown = document.getElementById(item.parentId);
-                    if (targetDropdown) {
-                        let aTag = document.createElement('a');
-                        aTag.id = item.id;
-                        aTag.href = item.url;
-                        aTag.target = "_blank";
-                        aTag.textContent = item.textDisplay;
-                        targetDropdown.appendChild(aTag);
-                    }
+            // Gắn Link Cấp 3
+            const level3Items = dataArr.filter(item => item.level === 3);
+            level3Items.forEach(item => {
+                let targetDropdown = document.getElementById(item.parentId);
+                if (targetDropdown) {
+                    let aTag = document.createElement('a');
+                    aTag.id = item.id;
+                    aTag.href = item.url;
+                    aTag.target = "_blank";
+                    aTag.textContent = item.textDisplay;
+                    targetDropdown.appendChild(aTag);
                 }
             });
 
+            // Xử lý các thẻ trống
             document.querySelectorAll('.sheet-dropdown').forEach(div => {
                 if(div.innerHTML.trim() === '') {
                     div.innerHTML = '<span style="color:#95a5a6; font-size:13px; display:block; padding:3px 10px; font-style: italic; text-align:center;">Chưa có dữ liệu con</span>';
                 }
             });
+        }
+
+        // Tự động phân tách CSV an toàn
+        function parseCSVLine(text) {
+            let result = [];
+            let entry = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                if (inQuotes) {
+                    if (c === '"') {
+                        if (i + 1 < text.length && text[i + 1] === '"') { entry += '"'; i++; }
+                        else { inQuotes = false; }
+                    } else { entry += c; }
+                } else {
+                    if (c === '"') { inQuotes = true; }
+                    else if (c === ',') { result.push(entry); entry = ''; }
+                    else { entry += c; }
+                }
+            }
+            result.push(entry);
+            return result;
         }
 
         function fetchAndBuildCache(isGenerateMode = false) {
@@ -460,41 +267,38 @@
                     
                     for (let i = 1; i < lines.length; i++) {
                         if (!lines[i].trim()) continue;
-                        let columns = lines[i].split('\t');
+                        let columns = parseCSVLine(lines[i]);
                         if (columns.length >= 2) {
                             let id = columns[0].trim().toUpperCase().replace(/\s+/g, '');
-                            let textDisplay = columns[1].trim().replace(/^"|"$/g, '');
+                            let textDisplay = columns[1].trim();
+                            let url = columns[2] ? columns[2].trim() : "";
                             let idParts = id.split('_');
-                            if (idParts.length === 2) {
-                                dataArr.push({ type: 'parent', id: id, columnGroup: idParts[0], textDisplay: textDisplay });
+                            
+                            if (idParts.length === 1) {
+                                dataArr.push({ level: 1, id: id, textDisplay: textDisplay });
+                            } else if (idParts.length === 2) {
+                                dataArr.push({ level: 2, id: id, columnGroup: idParts[0], textDisplay: textDisplay });
+                            } else if (idParts.length >= 3) {
+                                dataArr.push({ level: 3, id: id, parentId: 'drop-' + idParts[0] + '_' + idParts[1], textDisplay: textDisplay, url: normalizeGoogleDriveLink(url) });
                             }
                         }
                     }
 
-                    for (let i = 1; i < lines.length; i++) {
-                        if (!lines[i].trim()) continue;
-                        let columns = lines[i].split('\t');
-                        if (columns.length >= 3) {
-                            let id = columns[0].trim().toUpperCase().replace(/\s+/g, '');
-                            let textDisplay = columns[1].trim().replace(/^"|"$/g, '');
-                            let url = columns[2].trim().replace(/^"|"$/g, '');
-                            let idParts = id.split('_');
-                            if (idParts.length >= 3) {
-                                dataArr.push({ type: 'child', id: id, parentId: 'drop-' + idParts[0] + '_' + idParts[1], textDisplay: textDisplay, url: normalizeGoogleDriveLink(url) });
-                            }
-                        }
-                    }
+                    // Lưu dữ liệu vào LocalStorage
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataArr));
 
                     if (isGenerateMode) {
                         generateNewCodeTemplate(dataArr);
                     } else {
-                        renderUIFromData(dataArr);
+                        if (JSON.stringify(STATIC_DATA_STORE) !== JSON.stringify(dataArr)) {
+                            STATIC_DATA_STORE = dataArr;
+                            renderUIFromData(dataArr);
+                        }
                     }
                 })
-                .catch(err => console.error("Lỗi hệ thống:", err));
+                .catch(err => console.error("Lỗi đồng bộ dữ liệu:", err));
         }
 
-        // Lắng nghe người dùng gõ tìm kiếm Password kích hoạt Admin Panel Popup
         function handleSearchInput(inputVal) {
             if (inputVal.trim() === 'khcb123') {
                 document.getElementById('adminModalOverlay').classList.add('show');
@@ -509,8 +313,7 @@
         function generateNewCodeTemplate(dataArr) {
             let currentFullHtml = document.documentElement.outerHTML;
             let dataString = JSON.stringify(dataArr);
-            
-            let updatedHtml = "<!DOCTYPE html>\n" + currentFullHtml.replace(/const STATIC_DATA_STORE = \[.*?\];/, `const STATIC_DATA_STORE = ${dataString};`);
+            let updatedHtml = "<!DOCTYPE html>\n" + currentFullHtml.replace(/let STATIC_DATA_STORE = \[.*?\];/, `let STATIC_DATA_STORE = ${dataString};`);
             
             document.getElementById('output-code').value = updatedHtml;
             document.getElementById('output-code').style.display = 'block';
@@ -521,7 +324,7 @@
             let textarea = document.getElementById('output-code');
             textarea.select();
             document.execCommand('copy');
-            alert("Đã sao chép mã nguồn mới vào bộ nhớ tạm! Bây giờ bạn hãy dán đè vào file index.html trên GitHub.");
+            alert("Đã sao chép mã nguồn mới vào bộ nhớ tạm! Dán đè vào file index.html trên GitHub để lưu lại.");
         }
 
         function toggleMenu(id) {
@@ -531,36 +334,17 @@
             document.querySelectorAll(".sheet-dropdown").forEach(m => m.style.display = "none");
             menu.style.display = isCurrentlyOpen ? "none" : "block";
         }
-
-        function openMobileMenu(e) {
-            e.stopPropagation();
-            document.getElementById('mobileNavMenu').classList.add('open');
-        }
-
-        function closeMobileMenu(e) {
-            e.stopPropagation();
-            document.getElementById('mobileNavMenu').classList.remove('open');
-        }
     </script>
 </head>
 <body>
 
     <div class="top-navbar">
-        <div class="mobile-menu-btn" onclick="openMobileMenu(event)"><i class="fa fa-bars"></i></div>
-
         <div class="logo-box">
             <img src="https://raw.githubusercontent.com/khcbvadl-ai/quanlidulieu/main/logo.%20KHCB%20trong.png" alt="KHCB LOGO" class="logo-img">
         </div>
-        
-        <div class="nav-menu" id="mobileNavMenu">
-            <div class="mobile-close-btn" onclick="closeMobileMenu(event)"><i class="fa fa-times"></i></div>
-
-            <div class="nav-item-wrap">
-                <a href="#" class="nav-item active" id="menu-home">Trang chủ</a>
-                <a href="lichgiang.html" class="nav-item" id="menu-lich">Lịch giảng</a>
-                <a href="video-kho.html" class="nav-item" id="menu-video">Video bài giảng</a>
-                
-            </div>
+        <div class="nav-menu">
+            <a href="#" class="nav-item active">Trang chủ</a>
+            <a href="video-kho.html" class="nav-item">Video bài giảng</a>
         </div>
     </div>
 
@@ -570,41 +354,20 @@
         </div>
     </div>
 
+    <!-- Admin Panel Popup -->
     <div class="admin-modal-overlay" id="adminModalOverlay">
         <div class="admin-modal-content">
             <div class="admin-modal-close-btn" onclick="closeAdminModal()">&times;</div>
             <div class="admin-title">🛠️ BẢNG ĐIỀU KHIỂN &amp; CẬP NHẬT CODE DỮ LIỆU TĨNH</div>
-            <p style="font-size: 14px; margin-bottom: 12px; color: #664d03; line-height: 1.4;">Nhấn nút bên dưới hệ thống sẽ quét dữ liệu mới nhất từ Google Sheet và đóng gói trực tiếp vào một khối mã HTML mới cho bạn.</p>
+            <p style="font-size: 14px; margin-bottom: 12px; color: #664d03;">Nhấn nút bên dưới hệ thống sẽ quét dữ liệu mới nhất từ Google Sheet và đóng gói trực tiếp vào mã HTML mới.</p>
             <button class="btn-sync" onclick="fetchAndBuildCache(true)">Cập nhật dữ liệu từ Google Sheet</button>
             <button class="btn-copy" id="btn-copy-code" onclick="copyCodeToClipboard()">Bấm để Copy toàn bộ Code mới</button>
-            <textarea id="output-code" readonly placeholder="Mã nguồn trang web mới của bạn sẽ tự động xuất hiện ở đây..."></textarea>
+            <textarea id="output-code" readonly placeholder="Mã nguồn trang web mới sẽ tự động xuất hiện ở đây..."></textarea>
         </div>
     </div>
 
-    <div class="container">
-        <div class="column" id="col-I">
-            <div class="column-header bg-green">1. Chương trình đào tạo</div>
-        </div>
-
-        <div class="column" id="col-II">
-            <div class="column-header bg-blue">2. Quản lí hoạt động khoa</div>
-        </div>
-
-        <div class="column" id="col-III">
-            <div class="column-header bg-orange">3. Hoạt động khác</div>
-        </div>
-    </div>
-
-    <div class="footer-action">
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSePx34NyWHvOe2ulC5mNf0UDnNjiNXl08puh1G5u6qKyCnRIw/viewform" target="_blank" style="text-decoration: none;">
-            <button class="btn-register">BÁO CÁO VẮNG</button>
-        </a>
-        <a href="http://dhcd.edu.vn/b/Tin-Khac/KHOA-KHOA-HOC-CO-BAN-VA-DU-LIEU.html" target="_blank" class="link-detail" style="color: #78281f;">
-            giới thiệu về KHCB và dữ liệu
-        </a>
-    </div>
-
-    <div class="copyright">© 2026 Quản lí KHCB và dữ liệu</div>
+    <!-- Container chính -->
+    <div class="container" id="main-container"></div>
 
 </body>
 </html>
