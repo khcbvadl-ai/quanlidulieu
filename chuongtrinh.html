@@ -14,11 +14,7 @@
             --border-color: #e2e8f0;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -28,212 +24,72 @@
             font-size: 15px;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
 
         /* --- HEADER & NAVBAR --- */
         .top-navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--secondary-color);
-            margin-bottom: 30px;
-            padding: 0 10px 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: var(--secondary-color); margin-bottom: 30px; padding: 0 10px 0 20px;
         }
-
-        .logo-box {
-            display: flex;
-            align-items: center;
-        }
-
-        .logo-img {
-            height: 45px;
-            object-fit: contain;
-            margin: 10px 0;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            height: 100%;
-        }
-
+        .logo-box { display: flex; align-items: center; }
+        .logo-img { height: 45px; object-fit: contain; margin: 10px 0; }
+        .nav-menu { display: flex; list-style: none; height: 100%; }
         .nav-item {
-            text-decoration: none;
-            color: #333;
-            padding: 22px 25px;
-            font-weight: 500;
-            font-size: 15px;
-            transition: background-color 0.2s;
-            border-bottom: 3px solid transparent;
-            display: flex;
-            align-items: center;
+            text-decoration: none; color: #333; padding: 22px 25px; font-weight: 500; font-size: 15px;
+            transition: background-color 0.2s; border-bottom: 3px solid transparent; display: flex; align-items: center;
         }
-
-        .nav-item:hover {
-            background-color: #e2e8f0;
-        }
-
-        .nav-item.active {
-            background-color: #ffffff;
-            border-bottom: 3px solid #000000;
-            font-weight: bold;
-        }
+        .nav-item:hover { background-color: #e2e8f0; }
+        .nav-item.active { background-color: #ffffff; border-bottom: 3px solid #000000; font-weight: bold; }
 
         .header-title {
-            text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 25px;
-            font-size: 22px;
-            text-transform: uppercase;
-            font-weight: 700;
+            text-align: center; color: var(--primary-color); margin-bottom: 25px;
+            font-size: 22px; text-transform: uppercase; font-weight: 700;
         }
 
         /* --- VÙNG LỌC DỮ LIỆU --- */
         .filter-section {
-            display: flex;
-            gap: 25px;
-            margin-bottom: 25px;
-            background: var(--secondary-color);
-            padding: 15px 25px;
-            border-radius: 8px;
-            align-items: center;
-            flex-wrap: wrap;
+            display: flex; gap: 25px; margin-bottom: 25px; background: var(--secondary-color);
+            padding: 15px 25px; border-radius: 8px; align-items: center; flex-wrap: wrap;
         }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .filter-group label {
-            font-weight: 500;
-            color: #4a5568;
-            font-size: 14px;
-        }
-
+        .filter-group { display: flex; align-items: center; gap: 10px; }
+        .filter-group label { font-weight: 500; color: #4a5568; font-size: 14px; }
         .filter-group select {
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid #cbd5e0;
-            outline: none;
-            font-size: 14px;
-            min-width: 140px;
-            cursor: pointer;
-            background-color: white;
+            padding: 6px 10px; border-radius: 4px; border: 1px solid #cbd5e0; outline: none;
+            font-size: 14px; min-width: 140px; cursor: pointer; background-color: white;
         }
-
-        .filter-group select:focus {
-            border-color: var(--primary-color);
-        }
+        .filter-group select:focus { border-color: var(--primary-color); }
 
         /* --- BẢNG DỮ LIỆU --- */
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        thead {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        th, td {
-            padding: 14px 15px;
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
-        }
-
-        th {
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            text-align: center;
-        }
-
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        thead { background-color: var(--primary-color); color: white; }
+        th, td { padding: 14px 15px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        th { font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; text-align: center; }
+        
         th:nth-child(2), td:nth-child(2),
-        th:nth-child(3), td:nth-child(3) {
-            text-align: left; /* Căn trái Mã và Tên HP */
-        }
+        th:nth-child(3), td:nth-child(3) { text-align: left; }
 
-        tbody tr {
-            background-color: #ffffff;
-            transition: background-color 0.2s ease;
-        }
+        tbody tr { background-color: #ffffff; transition: background-color 0.2s ease; }
+        tbody tr:nth-child(even) { background-color: #fbfbfb; }
+        tbody tr:hover { background-color: #f1f5f9; }
 
-        tbody tr:nth-child(even) {
-            background-color: #fbfbfb;
-        }
-
-        tbody tr:hover {
-            background-color: #f1f5f9;
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 30px;
-            color: #718096;
-            font-style: italic;
-        }
+        .empty-message { text-align: center; padding: 30px; color: #718096; font-style: italic; }
 
         .badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            display: inline-block;
+            padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-block;
         }
-
         .badge-success { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
         .badge-pending { background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
-        #loading {
-            text-align: center;
-            padding: 20px;
-            color: var(--primary-color);
-            font-weight: bold;
-            font-size: 16px;
-            display: none;
-        }
-        
-        #sync-indicator {
-            text-align: center;
-            font-size: 12px;
-            color: #718096;
-            margin-top: 20px;
-            font-style: italic;
-        }
+        #loading { text-align: center; padding: 20px; color: var(--primary-color); font-weight: bold; font-size: 16px; display: none; }
+        #sync-indicator { text-align: center; font-size: 12px; color: #718096; margin-top: 20px; font-style: italic; }
 
         @media (max-width: 768px) {
-            .top-navbar {
-                flex-direction: column;
-                padding: 15px;
-                gap: 15px;
-            }
-            .nav-menu {
-                width: 100%;
-                justify-content: space-around;
-            }
-            .nav-item {
-                padding: 10px;
-                font-size: 14px;
-            }
-            .filter-section {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .filter-group {
-                justify-content: space-between;
-            }
+            .top-navbar { flex-direction: column; padding: 15px; gap: 15px; }
+            .nav-menu { width: 100%; justify-content: space-around; }
+            .nav-item { padding: 10px; font-size: 14px; }
+            .filter-section { flex-direction: column; align-items: stretch; }
+            .filter-group { justify-content: space-between; }
         }
     </style>
 </head>
@@ -299,8 +155,8 @@
         const GID = "1909578552"; 
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
         
-        // Đổi key cache để tránh xung đột với code cũ
-        const CACHE_KEY = "TRAINING_PLAN_CACHE_V3"; 
+        // Đã cập nhật V4 để xóa bộ nhớ đệm lỗi
+        const CACHE_KEY = "TRAINING_PLAN_CACHE_V4"; 
 
         let allPlanData = [];
         let availableCohorts = [];
@@ -367,23 +223,24 @@
                         if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         
-                        // 1. Quét Dòng 7 (Khóa tuyển sinh) từ Cột N(13) đến T(19)
-                        if (cols[0] && cols[0].trim().toUpperCase() === 'T') {
-                            for(let c = 13; c <= 19; c++) {
+                        // FIX: Dùng cột C (Học phần) làm điểm neo thay vì cột A (chữ T) để tránh lỗi API đoán sai kiểu dữ liệu
+                        if (cols.length > 2 && cols[2] && cols[2].trim().toUpperCase() === 'HỌC PHẦN') {
+                            for(let c = 13; c <= 19; c++) { // Cột N(13) đến T(19)
                                 if (c < cols.length) {
                                     let header = cols[c].trim();
                                     if(header && header !== "") {
                                         cohortsList.push(header);
-                                        cohortIndices[header] = c; // Lưu lại vị trí cột của khóa này
+                                        cohortIndices[header] = c; 
                                     }
                                 }
                             }
                             continue;
                         }
 
-                        // 2. Quét Dòng 8 trở đi (Dữ liệu môn học)
+                        // Quét Dòng 8 trở đi (Dữ liệu môn học)
                         let stt = parseInt(cols[0]);
-                        if (!isNaN(stt) && stt > 0 && cols.length >= 13) {
+                        // FIX: Loại bỏ điều kiện cols.length >= 13 vì API có thể tự động cắt các cột trống
+                        if (!isNaN(stt) && stt > 0) {
                             
                             // Tìm Kì học (Quét từ cột E->L / Index 4->11)
                             let kiHoc = "";
@@ -394,21 +251,19 @@
                                 }
                             }
                             
-                            // Đánh giá tình trạng cho TỪNG khóa tuyển sinh có ở dòng 7
                             let statuses = {};
                             cohortsList.forEach(year => {
                                 let idx = cohortIndices[year];
                                 let val = (idx < cols.length && cols[idx]) ? cols[idx].trim() : "";
-                                // Trọng tâm logic: Nếu ô này chứa "1" thì là Đã dạy, còn lại (trống, số 0...) là Chưa dạy
-                                statuses[year] = (val === "1") ? "Đã dạy" : "Chưa dạy";
+                                statuses[year] = (val === "1") ? "Đã giảng dạy" : "Chưa giảng dạy";
                             });
 
                             rawData.push({
                                 stt: stt,
-                                maHP: cols[1] ? cols[1].trim() : "",
-                                tenHP: cols[2] ? cols[2].trim() : "",
+                                maHP: (cols.length > 1 && cols[1]) ? cols[1].trim() : "",
+                                tenHP: (cols.length > 2 && cols[2]) ? cols[2].trim() : "",
                                 kiHoc: kiHoc,
-                                khoaQL: cols[12] ? cols[12].trim() : "",
+                                khoaQL: (cols.length > 12 && cols[12]) ? cols[12].trim() : "",
                                 statuses: statuses
                             });
                         }
@@ -491,8 +346,8 @@
             }
 
             dataArray.forEach((item, index) => {
-                let statusText = item.statuses[selectedCohort] || "Chưa dạy";
-                let badgeClass = statusText === "Đã dạy" ? "badge-success" : "badge-pending";
+                let statusText = item.statuses[selectedCohort] || "Chưa giảng dạy";
+                let badgeClass = statusText === "Đã giảng dạy" ? "badge-success" : "badge-pending";
 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -513,11 +368,10 @@
             let selectedKi = document.getElementById('filter-ki').value;
             let selectedCohort = document.getElementById('filter-cohort').value;
 
-            // Nếu người dùng chưa có khóa nào trong dropdown, bỏ qua
             if (!selectedCohort) return;
 
             let filteredData = allPlanData.filter(item => {
-                return (selectedKi === "ALL") || (item.kiHoc === selectedKi);
+                return (selectedKi === "ALL") || (item.kiHoc == selectedKi);
             });
 
             renderTable(filteredData, selectedCohort);
