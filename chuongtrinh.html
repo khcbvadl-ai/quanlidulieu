@@ -299,7 +299,7 @@
         const SHEET_ID = "1zBWVtpmygOEgq-5AlM4V9N02twcp9Moi";
         const GID = "1909578552"; 
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
-        const CACHE_KEY = "TRAINING_PLAN_CACHE_V1"; // Đổi key cache để tránh đụng độ web cũ
+        const CACHE_KEY = "TRAINING_PLAN_CACHE_V2"; 
 
         let allPlanData = [];
         let availableCohorts = []; // Danh sách khóa (2026, 2027...)
@@ -360,7 +360,7 @@
                     let lines = text.split(/\r?\n/);
                     let rawData = [];
                     let cohortsList = [];
-                    let cohortIndices = {}; // Lưu vị trí cột của Khóa 2026, 2027...
+                    let cohortIndices = {}; 
                     
                     for (let i = 0; i < lines.length; i++) {
                         if (!lines[i].trim()) continue;
@@ -368,11 +368,14 @@
                         
                         // 1. Tự động lấy các "Khóa tuyển sinh" ở hàng số 7 (có chữ 'T' ở ô đầu tiên)
                         if (cols[0] && cols[0].trim().toUpperCase() === 'T') {
-                            for(let c = 13; c < cols.length; c++) {
-                                let header = cols[c].trim();
-                                if(header && !isNaN(parseInt(header))) { // Nhận diện năm (2026, 2027)
-                                    cohortsList.push(header);
-                                    cohortIndices[header] = c;
+                            // Cột N là index 13, Cột T là index 19
+                            for(let c = 13; c <= 19; c++) {
+                                if (c < cols.length) {
+                                    let header = cols[c].trim();
+                                    if(header && header !== "") { // Có dữ liệu khóa
+                                        cohortsList.push(header);
+                                        cohortIndices[header] = c;
+                                    }
                                 }
                             }
                             continue; // Chuyển sang hàng dữ liệu
@@ -391,13 +394,13 @@
                                 }
                             }
                             
-                            // Xác định tình trạng cho từng Khóa
+                            // Xác định tình trạng cho từng Khóa (quét theo các index đã lưu từ N->T)
                             let statuses = {};
                             cohortsList.forEach(year => {
                                 let idx = cohortIndices[year];
                                 let val = cols[idx] ? cols[idx].trim() : "";
-                                // 1 = Đã dạy, còn lại = Chưa dạy
-                                statuses[year] = (val === "1") ? "Đã dạy" : "Chưa dạy";
+                                // 1 = Đã giảng dạy, còn lại = Chưa giảng dạy
+                                statuses[year] = (val === "1") ? "Đã giảng dạy" : "Chưa giảng dạy";
                             });
 
                             rawData.push({
@@ -493,8 +496,8 @@
 
             dataArray.forEach((item, index) => {
                 // Lấy tình trạng theo khóa đang được chọn ở bộ lọc
-                let statusText = item.statuses[selectedCohort] || "Chưa dạy";
-                let badgeClass = statusText === "Đã dạy" ? "badge-success" : "badge-pending";
+                let statusText = item.statuses[selectedCohort] || "Chưa giảng dạy";
+                let badgeClass = statusText === "Đã giảng dạy" ? "badge-success" : "badge-pending";
 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
