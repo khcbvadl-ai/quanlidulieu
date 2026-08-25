@@ -254,7 +254,6 @@
                 <label for="filter-end-date">Đến ngày:</label>
                 <input type="date" id="filter-end-date">
             </div>
-            <!-- Đã gộp nút thống kê và tải thành 1 hành động -->
             <button class="btn btn-filter-export" onclick="applyFilter(true)"><i class="fa-solid fa-file-arrow-down"></i> Lọc & Tải báo cáo</button>
         </div>
 
@@ -385,7 +384,9 @@
                     allReportData = rawData;
                     
                     document.getElementById('loading').style.display = 'none';
-                    document.getElementById('schedule-table').style.display = 'table';
+                    
+                    // FIX: Hiển thị bảng có id là "report-table" thay vì "schedule-table"
+                    document.getElementById('report-table').style.display = 'table'; 
                     
                     populateNameDropdown();
                     
