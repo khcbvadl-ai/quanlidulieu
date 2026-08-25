@@ -186,14 +186,15 @@
         }
 
         .badge {
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: bold;
+            display: inline-block;
         }
 
-        .badge-success { background-color: #d1fae5; color: #065f46; }
-        .badge-pending { background-color: #fee2e2; color: #991b1b; }
+        .badge-success { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+        .badge-pending { background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
         #loading {
             text-align: center;
@@ -246,7 +247,6 @@
             </div>
             <div class="nav-menu">
                 <a href="#" class="nav-item">Trang chủ</a>
-                <!-- Lịch giảng (Kế hoạch đào tạo) đang được chọn -->
                 <a href="#" class="nav-item active">Lịch giảng</a>
                 <a href="#" class="nav-item">Video bài giảng</a>
             </div>
@@ -265,7 +265,7 @@
             <div class="filter-group">
                 <label for="filter-cohort"><i class="fa-solid fa-graduation-cap"></i> Khóa tuyển sinh:</label>
                 <select id="filter-cohort" onchange="applyFilter()">
-                    <!-- Các khóa như 2026, 2027 sẽ tự động tải vào đây -->
+                    <!-- Dropdown sẽ hiển thị dựa vào dữ liệu N7->T7 -->
                 </select>
             </div>
         </div>
@@ -295,14 +295,15 @@
     </div>
 
     <script>
-        // Cập nhật ID API và GID của sheet "Khoa QL môn học"
         const SHEET_ID = "1zBWVtpmygOEgq-5AlM4V9N02twcp9Moi";
         const GID = "1909578552"; 
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
-        const CACHE_KEY = "TRAINING_PLAN_CACHE_V2"; 
+        
+        // Đổi key cache để tránh xung đột với code cũ
+        const CACHE_KEY = "TRAINING_PLAN_CACHE_V3"; 
 
         let allPlanData = [];
-        let availableCohorts = []; // Danh sách khóa (2026, 2027...)
+        let availableCohorts = [];
 
         window.onload = function() {
             const cachedDataString = localStorage.getItem(CACHE_KEY);
@@ -366,49 +367,48 @@
                         if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         
-                        // 1. Tự động lấy các "Khóa tuyển sinh" ở hàng số 7 (có chữ 'T' ở ô đầu tiên)
+                        // 1. Quét Dòng 7 (Khóa tuyển sinh) từ Cột N(13) đến T(19)
                         if (cols[0] && cols[0].trim().toUpperCase() === 'T') {
-                            // Cột N là index 13, Cột T là index 19
                             for(let c = 13; c <= 19; c++) {
                                 if (c < cols.length) {
                                     let header = cols[c].trim();
-                                    if(header && header !== "") { // Có dữ liệu khóa
+                                    if(header && header !== "") {
                                         cohortsList.push(header);
-                                        cohortIndices[header] = c;
+                                        cohortIndices[header] = c; // Lưu lại vị trí cột của khóa này
                                     }
                                 }
                             }
-                            continue; // Chuyển sang hàng dữ liệu
+                            continue;
                         }
 
-                        // 2. Lấy dữ liệu môn học bắt đầu từ STT số 1
+                        // 2. Quét Dòng 8 trở đi (Dữ liệu môn học)
                         let stt = parseInt(cols[0]);
                         if (!isNaN(stt) && stt > 0 && cols.length >= 13) {
                             
-                            // Tìm Kì học (Quét từ cột E->L / Tức là index 4 -> 11)
+                            // Tìm Kì học (Quét từ cột E->L / Index 4->11)
                             let kiHoc = "";
                             for(let k = 4; k <= 11; k++) {
-                                if(cols[k] && cols[k].trim() !== "") {
+                                if(k < cols.length && cols[k] && cols[k].trim() !== "") {
                                     kiHoc = cols[k].trim();
                                     break;
                                 }
                             }
                             
-                            // Xác định tình trạng cho từng Khóa (quét theo các index đã lưu từ N->T)
+                            // Đánh giá tình trạng cho TỪNG khóa tuyển sinh có ở dòng 7
                             let statuses = {};
                             cohortsList.forEach(year => {
                                 let idx = cohortIndices[year];
-                                let val = cols[idx] ? cols[idx].trim() : "";
-                                // 1 = Đã giảng dạy, còn lại = Chưa giảng dạy
-                                statuses[year] = (val === "1") ? "Đã giảng dạy" : "Chưa giảng dạy";
+                                let val = (idx < cols.length && cols[idx]) ? cols[idx].trim() : "";
+                                // Trọng tâm logic: Nếu ô này chứa "1" thì là Đã dạy, còn lại (trống, số 0...) là Chưa dạy
+                                statuses[year] = (val === "1") ? "Đã dạy" : "Chưa dạy";
                             });
 
                             rawData.push({
                                 stt: stt,
-                                maHP: cols[1].trim(),
-                                tenHP: cols[2].trim(),
+                                maHP: cols[1] ? cols[1].trim() : "",
+                                tenHP: cols[2] ? cols[2].trim() : "",
                                 kiHoc: kiHoc,
-                                khoaQL: cols[12].trim(),
+                                khoaQL: cols[12] ? cols[12].trim() : "",
                                 statuses: statuses
                             });
                         }
@@ -432,7 +432,6 @@
                         
                         populateFilterDropdowns();
                         
-                        // Giữ lại bộ lọc cũ hoặc đặt mặc định
                         if(currentKi) document.getElementById('filter-ki').value = currentKi;
                         if(currentCohort && availableCohorts.includes(currentCohort)) {
                             document.getElementById('filter-cohort').value = currentCohort;
@@ -459,11 +458,9 @@
             const kiSelect = document.getElementById('filter-ki');
             const cohortSelect = document.getElementById('filter-cohort');
             
-            // Xóa cũ
             kiSelect.innerHTML = '<option value="ALL">-- Tất cả kì học --</option>';
-            cohortSelect.innerHTML = ''; // Khóa bắt buộc phải chọn 1 cái
+            cohortSelect.innerHTML = '';
             
-            // Lọc ra các Kì học hiện có
             let kis = new Set();
             allPlanData.forEach(item => {
                 if (item.kiHoc) kis.add(parseInt(item.kiHoc));
@@ -476,7 +473,6 @@
                 kiSelect.appendChild(option);
             });
 
-            // Tạo danh sách Khóa tuyển sinh
             availableCohorts.forEach(year => {
                 let option = document.createElement('option');
                 option.value = year;
@@ -495,9 +491,8 @@
             }
 
             dataArray.forEach((item, index) => {
-                // Lấy tình trạng theo khóa đang được chọn ở bộ lọc
-                let statusText = item.statuses[selectedCohort] || "Chưa giảng dạy";
-                let badgeClass = statusText === "Đã giảng dạy" ? "badge-success" : "badge-pending";
+                let statusText = item.statuses[selectedCohort] || "Chưa dạy";
+                let badgeClass = statusText === "Đã dạy" ? "badge-success" : "badge-pending";
 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -518,12 +513,13 @@
             let selectedKi = document.getElementById('filter-ki').value;
             let selectedCohort = document.getElementById('filter-cohort').value;
 
-            // Lọc theo kì học
+            // Nếu người dùng chưa có khóa nào trong dropdown, bỏ qua
+            if (!selectedCohort) return;
+
             let filteredData = allPlanData.filter(item => {
                 return (selectedKi === "ALL") || (item.kiHoc === selectedKi);
             });
 
-            // Hiển thị ra bảng kèm theo lựa chọn khóa (để biết tình trạng)
             renderTable(filteredData, selectedCohort);
         }
     </script>
