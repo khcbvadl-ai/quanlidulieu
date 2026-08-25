@@ -1,1 +1,528 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kế Hoạch Đào Tạo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a4d2e;
+            --teacher-color: #0b694a;
+            --secondary-color: #f4f6f9;
+            --text-color: #333;
+            --border-color: #e2e8f0;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #ffffff;
+            color: var(--text-color);
+            padding: 20px;
+            font-size: 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* --- HEADER & NAVBAR --- */
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--secondary-color);
+            margin-bottom: 30px;
+            padding: 0 10px 0 20px;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-img {
+            height: 45px;
+            object-fit: contain;
+            margin: 10px 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            height: 100%;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: #333;
+            padding: 22px 25px;
+            font-weight: 500;
+            font-size: 15px;
+            transition: background-color 0.2s;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover {
+            background-color: #e2e8f0;
+        }
+
+        .nav-item.active {
+            background-color: #ffffff;
+            border-bottom: 3px solid #000000;
+            font-weight: bold;
+        }
+
+        .header-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            font-size: 22px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* --- VÙNG LỌC DỮ LIỆU --- */
+        .filter-section {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 25px;
+            background: var(--secondary-color);
+            padding: 15px 25px;
+            border-radius: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .filter-group select {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e0;
+            outline: none;
+            font-size: 14px;
+            min-width: 140px;
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .filter-group select:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* --- BẢNG DỮ LIỆU --- */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        th, td {
+            padding: 14px 15px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        th:nth-child(2), td:nth-child(2),
+        th:nth-child(3), td:nth-child(3) {
+            text-align: left; /* Căn trái Mã và Tên HP */
+        }
+
+        tbody tr {
+            background-color: #ffffff;
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fbfbfb;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .badge-success { background-color: #d1fae5; color: #065f46; }
+        .badge-pending { background-color: #fee2e2; color: #991b1b; }
+
+        #loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 16px;
+            display: none;
+        }
+        
+        #sync-indicator {
+            text-align: center;
+            font-size: 12px;
+            color: #718096;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .top-navbar {
+                flex-direction: column;
+                padding: 15px;
+                gap: 15px;
+            }
+            .nav-menu {
+                width: 100%;
+                justify-content: space-around;
+            }
+            .nav-item {
+                padding: 10px;
+                font-size: 14px;
+            }
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-group {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER NAVBAR -->
+        <div class="top-navbar">
+            <div class="logo-box">
+                <img src="https://raw.githubusercontent.com/khcbvadl-ai/quanlidulieu/main/logo.%20KHCB%20trong.png" alt="KHCB LOGO" class="logo-img">
+            </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-item">Trang chủ</a>
+                <!-- Lịch giảng (Kế hoạch đào tạo) đang được chọn -->
+                <a href="#" class="nav-item active">Lịch giảng</a>
+                <a href="#" class="nav-item">Video bài giảng</a>
+            </div>
+        </div>
+
+        <h2 class="header-title"><i class="fa-solid fa-book-open"></i> KẾ HOẠCH ĐÀO TẠO KHOA</h2>
+
+        <!-- BỘ LỌC -->
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="filter-ki"><i class="fa-solid fa-list-ol"></i> Chọn Kì học:</label>
+                <select id="filter-ki" onchange="applyFilter()">
+                    <option value="ALL">-- Tất cả kì học --</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-cohort"><i class="fa-solid fa-graduation-cap"></i> Khóa tuyển sinh:</label>
+                <select id="filter-cohort" onchange="applyFilter()">
+                    <!-- Các khóa như 2026, 2027 sẽ tự động tải vào đây -->
+                </select>
+            </div>
+        </div>
+
+        <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
+
+        <!-- BẢNG HIỂN THỊ DỮ LIỆU -->
+        <div class="table-responsive">
+            <table id="schedule-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th>MÃ HP</th>
+                        <th>TÊN HỌC PHẦN</th>
+                        <th style="text-align: center;">KÌ HỌC</th>
+                        <th>KHOA QUẢN LÍ</th>
+                        <th style="text-align: center;">TÌNH TRẠNG</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Dữ liệu từ Sheet sẽ được vẽ vào đây -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="sync-indicator"></div>
+    </div>
+
+    <script>
+        // Cập nhật ID API và GID của sheet "Khoa QL môn học"
+        const SHEET_ID = "1zBWVtpmygOEgq-5AlM4V9N02twcp9Moi";
+        const GID = "1909578552"; 
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
+        const CACHE_KEY = "TRAINING_PLAN_CACHE_V1"; // Đổi key cache để tránh đụng độ web cũ
+
+        let allPlanData = [];
+        let availableCohorts = []; // Danh sách khóa (2026, 2027...)
+
+        window.onload = function() {
+            const cachedDataString = localStorage.getItem(CACHE_KEY);
+            const cachedCohortsString = localStorage.getItem(CACHE_KEY + "_COHORTS");
+            let hasCache = false;
+
+            if (cachedDataString && cachedCohortsString) {
+                try {
+                    allPlanData = JSON.parse(cachedDataString);
+                    availableCohorts = JSON.parse(cachedCohortsString);
+                    hasCache = true;
+                    
+                    document.getElementById('schedule-table').style.display = 'table';
+                    populateFilterDropdowns();
+                    applyFilter();
+                    
+                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Đang kiểm tra dữ liệu mới...';
+                } catch (e) {
+                    console.error("Lỗi đọc cache:", e);
+                }
+            }
+
+            fetchDataFromSheet(hasCache);
+        };
+
+        function parseCSVLine(text) {
+            let result = [];
+            let entry = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                if (inQuotes) {
+                    if (c === '"') {
+                        if (i + 1 < text.length && text[i + 1] === '"') { entry += '"'; i++; }
+                        else { inQuotes = false; }
+                    } else { entry += c; }
+                } else {
+                    if (c === '"') { inQuotes = true; }
+                    else if (c === ',') { result.push(entry); entry = ''; }
+                    else { entry += c; }
+                }
+            }
+            result.push(entry);
+            return result;
+        }
+
+        function fetchDataFromSheet(isBackgroundSync) {
+            if (!isBackgroundSync) {
+                document.getElementById('loading').style.display = 'block';
+            }
+
+            fetch(CSV_URL)
+                .then(response => response.text())
+                .then(text => {
+                    let lines = text.split(/\r?\n/);
+                    let rawData = [];
+                    let cohortsList = [];
+                    let cohortIndices = {}; // Lưu vị trí cột của Khóa 2026, 2027...
+                    
+                    for (let i = 0; i < lines.length; i++) {
+                        if (!lines[i].trim()) continue;
+                        let cols = parseCSVLine(lines[i]);
+                        
+                        // 1. Tự động lấy các "Khóa tuyển sinh" ở hàng số 7 (có chữ 'T' ở ô đầu tiên)
+                        if (cols[0] && cols[0].trim().toUpperCase() === 'T') {
+                            for(let c = 13; c < cols.length; c++) {
+                                let header = cols[c].trim();
+                                if(header && !isNaN(parseInt(header))) { // Nhận diện năm (2026, 2027)
+                                    cohortsList.push(header);
+                                    cohortIndices[header] = c;
+                                }
+                            }
+                            continue; // Chuyển sang hàng dữ liệu
+                        }
+
+                        // 2. Lấy dữ liệu môn học bắt đầu từ STT số 1
+                        let stt = parseInt(cols[0]);
+                        if (!isNaN(stt) && stt > 0 && cols.length >= 13) {
+                            
+                            // Tìm Kì học (Quét từ cột E->L / Tức là index 4 -> 11)
+                            let kiHoc = "";
+                            for(let k = 4; k <= 11; k++) {
+                                if(cols[k] && cols[k].trim() !== "") {
+                                    kiHoc = cols[k].trim();
+                                    break;
+                                }
+                            }
+                            
+                            // Xác định tình trạng cho từng Khóa
+                            let statuses = {};
+                            cohortsList.forEach(year => {
+                                let idx = cohortIndices[year];
+                                let val = cols[idx] ? cols[idx].trim() : "";
+                                // 1 = Đã dạy, còn lại = Chưa dạy
+                                statuses[year] = (val === "1") ? "Đã dạy" : "Chưa dạy";
+                            });
+
+                            rawData.push({
+                                stt: stt,
+                                maHP: cols[1].trim(),
+                                tenHP: cols[2].trim(),
+                                kiHoc: kiHoc,
+                                khoaQL: cols[12].trim(),
+                                statuses: statuses
+                            });
+                        }
+                    }
+
+                    const newDataString = JSON.stringify(rawData);
+                    const oldDataString = localStorage.getItem(CACHE_KEY);
+
+                    if (newDataString !== oldDataString) {
+                        localStorage.setItem(CACHE_KEY, newDataString);
+                        localStorage.setItem(CACHE_KEY + "_COHORTS", JSON.stringify(cohortsList));
+                        
+                        allPlanData = rawData;
+                        availableCohorts = cohortsList;
+                        
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('schedule-table').style.display = 'table';
+                        
+                        let currentKi = document.getElementById('filter-ki').value;
+                        let currentCohort = document.getElementById('filter-cohort').value;
+                        
+                        populateFilterDropdowns();
+                        
+                        // Giữ lại bộ lọc cũ hoặc đặt mặc định
+                        if(currentKi) document.getElementById('filter-ki').value = currentKi;
+                        if(currentCohort && availableCohorts.includes(currentCohort)) {
+                            document.getElementById('filter-cohort').value = currentCohort;
+                        }
+                        
+                        applyFilter();
+                    } else if (!isBackgroundSync) {
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('schedule-table').style.display = 'table';
+                    }
+                    
+                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-check-circle" style="color: green;"></i> Kế hoạch đào tạo đã được đồng bộ mới nhất';
+                })
+                .catch(err => {
+                    console.error("Lỗi đồng bộ:", err);
+                    if (!isBackgroundSync) {
+                        document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu. Vui lòng kiểm tra quyền truy cập link Google Sheet.</span>';
+                    }
+                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: orange;"></i> Đang dùng dữ liệu cũ (Ngoại tuyến)';
+                });
+        }
+
+        function populateFilterDropdowns() {
+            const kiSelect = document.getElementById('filter-ki');
+            const cohortSelect = document.getElementById('filter-cohort');
+            
+            // Xóa cũ
+            kiSelect.innerHTML = '<option value="ALL">-- Tất cả kì học --</option>';
+            cohortSelect.innerHTML = ''; // Khóa bắt buộc phải chọn 1 cái
+            
+            // Lọc ra các Kì học hiện có
+            let kis = new Set();
+            allPlanData.forEach(item => {
+                if (item.kiHoc) kis.add(parseInt(item.kiHoc));
+            });
+
+            Array.from(kis).sort((a,b)=>a-b).forEach(k => {
+                let option = document.createElement('option');
+                option.value = k;
+                option.textContent = "Kì " + k;
+                kiSelect.appendChild(option);
+            });
+
+            // Tạo danh sách Khóa tuyển sinh
+            availableCohorts.forEach(year => {
+                let option = document.createElement('option');
+                option.value = year;
+                option.textContent = "Khóa " + year;
+                cohortSelect.appendChild(option);
+            });
+        }
+
+        function renderTable(dataArray, selectedCohort) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            if (dataArray.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-message">Không tìm thấy dữ liệu học phần phù hợp</td></tr>';
+                return;
+            }
+
+            dataArray.forEach((item, index) => {
+                // Lấy tình trạng theo khóa đang được chọn ở bộ lọc
+                let statusText = item.statuses[selectedCohort] || "Chưa dạy";
+                let badgeClass = statusText === "Đã dạy" ? "badge-success" : "badge-pending";
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: bold; text-align: center;">${index + 1}</td>
+                    <td style="font-weight: bold; color: var(--primary-color);">${item.maHP}</td>
+                    <td style="font-weight: 500;">${item.tenHP}</td>
+                    <td style="text-align: center; font-weight: bold;">${item.kiHoc}</td>
+                    <td>${item.khoaQL}</td>
+                    <td style="text-align: center;">
+                        <span class="badge ${badgeClass}">${statusText}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyFilter() {
+            let selectedKi = document.getElementById('filter-ki').value;
+            let selectedCohort = document.getElementById('filter-cohort').value;
+
+            // Lọc theo kì học
+            let filteredData = allPlanData.filter(item => {
+                return (selectedKi === "ALL") || (item.kiHoc === selectedKi);
+            });
+
+            // Hiển thị ra bảng kèm theo lựa chọn khóa (để biết tình trạng)
+            renderTable(filteredData, selectedCohort);
+        }
+    </script>
+</body>
+</html>
