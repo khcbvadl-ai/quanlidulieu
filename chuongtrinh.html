@@ -130,6 +130,14 @@
 
         <!-- BỘ LỌC -->
         <div class="filter-section">
+            
+            <div class="filter-group">
+                <label for="filter-cohort"><i class="fa-solid fa-graduation-cap"></i> Khóa tuyển sinh:</label>
+                <select id="filter-cohort" onchange="applyFilter()">
+                    <!-- Dropdown sẽ hiển thị dựa vào dữ liệu -->
+                </select>
+            </div>
+
             <div class="filter-group">
                 <label for="filter-ki"><i class="fa-solid fa-list-ol"></i> Kì học:</label>
                 <select id="filter-ki" onchange="applyFilter()">
@@ -140,12 +148,6 @@
                 <label for="filter-khoa"><i class="fa-solid fa-building-user"></i> Khoa quản lí:</label>
                 <select id="filter-khoa" onchange="applyFilter()">
                     <option value="ALL">-- Tất cả các Khoa --</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="filter-cohort"><i class="fa-solid fa-graduation-cap"></i> Khóa tuyển sinh:</label>
-                <select id="filter-cohort" onchange="applyFilter()">
-                    <!-- Dropdown sẽ hiển thị dựa vào dữ liệu -->
                 </select>
             </div>
         </div>
