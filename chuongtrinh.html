@@ -355,6 +355,14 @@
                 if (item.khoaQL) khoas.add(item.khoaQL);
             });
 
+                 // Đổ danh sách Khóa tuyển sinh
+            availableCohorts.forEach(year => {
+                let option = document.createElement('option');
+                option.value = year;
+                option.textContent = "Khóa " + year;
+                cohortSelect.appendChild(option);
+            });
+            
             // Đổ danh sách Kì học
             Array.from(kis).sort((a,b)=>a-b).forEach(k => {
                 let option = document.createElement('option');
@@ -371,13 +379,7 @@
                 khoaSelect.appendChild(option);
             });
 
-            // Đổ danh sách Khóa tuyển sinh
-            availableCohorts.forEach(year => {
-                let option = document.createElement('option');
-                option.value = year;
-                option.textContent = "Khóa " + year;
-                cohortSelect.appendChild(option);
-            });
+          
         }
 
         function renderTable(dataArray, selectedCohort) {
