@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+/* tên file dữ liệu: Phan_cong_KPI_Chi_tiet_Khoa.xlsx */
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -12,6 +13,7 @@
             --secondary-color: #f4f6f9;
             --text-color: #333;
             --border-color: #e2e8f0;
+            --link-color: #2563eb;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -68,21 +70,35 @@
             -webkit-overflow-scrolling: touch;
         }
         
-        table { width: 100%; border-collapse: collapse; background-color: white; min-width: 800px; }
+        table { width: 100%; border-collapse: collapse; background-color: white; min-width: 900px; }
         thead { background-color: var(--primary-color); color: white; }
         th, td { padding: 14px 15px; border-bottom: 1px solid var(--border-color); }
         th { font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; text-align: center; white-space: nowrap; }
         
         /* Căn chỉnh các cột */
         td { font-size: 14px; line-height: 1.5; }
-        th:nth-child(2), td:nth-child(2), /* Công việc chi tiết */
-        th:nth-child(3), td:nth-child(3)  /* Người phụ trách */
-        { text-align: left; }
+        th:nth-child(2), td:nth-child(2) { text-align: center; font-weight: bold; color: #475569; } /* Mã công việc */
+        th:nth-child(3), td:nth-child(3) { text-align: left; } /* Công việc chi tiết */
+        th:nth-child(4), td:nth-child(4) { text-align: left; } /* Người phụ trách */
+        th:nth-child(5), td:nth-child(5) { text-align: center; } /* Minh chứng */
 
         /* Highlight tên người phụ trách */
-        td:nth-child(3) { font-weight: 600; color: var(--teacher-color); }
+        td:nth-child(4) { font-weight: 600; color: var(--teacher-color); }
 
-        /* Cố định cột STT khi vuốt ngang trên điện thoại */
+        /* Nút và Badge cho phần Minh chứng */
+        .btn-evidence {
+            display: inline-block; padding: 6px 12px; background-color: #e0f2fe; color: var(--link-color);
+            border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 13px;
+            border: 1px solid #bae6fd; transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-evidence:hover { background-color: #bae6fd; color: #1d4ed8; }
+        
+        .badge-missing {
+            display: inline-block; padding: 6px 12px; background-color: #fee2e2; color: #991b1b;
+            border-radius: 20px; font-size: 13px; font-weight: bold; border: 1px solid #fecaca; white-space: nowrap;
+        }
+
+        /* Cố định cột STT và Mã CV khi vuốt ngang trên điện thoại */
         @media (max-width: 768px) {
             th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; background-color: inherit; z-index: 2; border-right: 1px solid #e2e8f0; }
             th:nth-child(1) { background-color: var(--primary-color); color: white; border-right: none;}
@@ -118,7 +134,6 @@
             <div class="nav-menu">
                 <a href="#" class="nav-item">Trang chủ</a>
                 <a href="#" class="nav-item">Lịch giảng</a>
-                <!-- Thẻ Active chuyển thành Phân công KPI -->
                 <a href="#" class="nav-item active">Phân công KPI</a>
             </div>
         </div>
@@ -129,7 +144,6 @@
         <div class="filter-section">
             <div class="filter-group">
                 <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học:</label>
-                <!-- Thêm năm học vào đây nếu sau này Khoa có thêm các sheet 2028-2029, v.v. -->
                 <select id="filter-year" onchange="changeYear()">
                     <option value="2026-2027">Năm học 2026-2027</option>
                     <option value="2027-2028">Năm học 2027-2028</option>
@@ -151,8 +165,10 @@
                 <thead>
                     <tr>
                         <th style="width: 60px;">STT</th>
+                        <th style="width: 120px;">MÃ CÔNG VIỆC</th>
                         <th>CÔNG VIỆC CHI TIẾT</th>
-                        <th style="width: 350px;">NGƯỜI PHỤ TRÁCH</th>
+                        <th style="width: 300px;">NGƯỜI PHỤ TRÁCH</th>
+                        <th style="width: 150px;">MINH CHỨNG</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
@@ -167,26 +183,19 @@
     <script>
         const SHEET_ID = "1vWJ_bkiGPEHQyTKhmwDPfsU3YT_ldIhZ";
         let allKPIData = [];
-        let currentYear = "2026-2027"; // Năm mặc định khi mở web
+        let currentYear = "2026-2027"; 
 
         window.onload = function() {
-            // Khi mở web, tải dữ liệu của năm mặc định
             document.getElementById('filter-year').value = currentYear;
             loadDataForYear(currentYear, false);
         };
 
-        // Hàm được gọi khi người dùng chuyển đổi dropdown Năm học
         function changeYear() {
             currentYear = document.getElementById('filter-year').value;
-            
-            // Reset dropdown giảng viên về mặc định
             document.getElementById('filter-teacher').innerHTML = '<option value="ALL">-- Tất cả người phụ trách --</option>'; 
-            
-            // Tải lại dữ liệu tương ứng với Sheet vừa chọn
             loadDataForYear(currentYear, false);
         }
 
-        // Tự động phân tách CSV an toàn
         function parseCSVLine(text) {
             let result = [];
             let entry = '';
@@ -209,8 +218,8 @@
         }
 
         function loadDataForYear(year, isBackgroundSync) {
-            // Khởi tạo bộ nhớ đệm riêng biệt cho từng năm
-            const CACHE_KEY = "KPI_CACHE_" + year;
+            // Nâng cấp bộ nhớ đệm lên V2 do thay đổi cấu trúc số cột
+            const CACHE_KEY = "KPI_CACHE_V2_" + year;
             const cachedDataString = localStorage.getItem(CACHE_KEY);
             let hasCache = false;
 
@@ -235,7 +244,6 @@
                 document.getElementById('table-body').innerHTML = '';
             }
 
-            // Gắn thêm param &sheet=NămHọc để API bốc đúng tab
             const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${year}`;
 
             fetch(CSV_URL)
@@ -244,7 +252,7 @@
                     let lines = text.split(/\r?\n/);
                     let rawData = [];
                     
-                    for (let i = 1; i < lines.length; i++) { // Bỏ qua dòng 1 là tiêu đề
+                    for (let i = 1; i < lines.length; i++) { // Bỏ qua dòng tiêu đề
                         if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         
@@ -252,8 +260,10 @@
                         if (!isNaN(stt) && stt > 0) {
                             rawData.push({
                                 stt: stt,
-                                jobDetail: (cols.length > 1 && cols[1]) ? cols[1].trim() : "",
-                                inCharge: (cols.length > 2 && cols[2]) ? cols[2].trim() : ""
+                                maCV: (cols.length > 1 && cols[1]) ? cols[1].trim() : "",
+                                jobDetail: (cols.length > 2 && cols[2]) ? cols[2].trim() : "",
+                                inCharge: (cols.length > 3 && cols[3]) ? cols[3].trim() : "",
+                                evidenceLink: (cols.length > 4 && cols[4]) ? cols[4].trim() : ""
                             });
                         }
                     }
@@ -330,16 +340,28 @@
             tbody.innerHTML = '';
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="empty-message">Không tìm thấy công việc KPI nào phù hợp.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không tìm thấy công việc KPI nào phù hợp.</td></tr>';
                 return;
             }
 
             dataArray.forEach(item => {
+                // Xử lý logic cột Minh chứng
+                let evidenceHTML = '';
+                if (item.evidenceLink && item.evidenceLink !== "") {
+                    // Nếu có link, hiển thị nút bấm chuyển hướng
+                    evidenceHTML = `<a href="${item.evidenceLink}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Xem minh chứng</a>`;
+                } else {
+                    // Nếu không có link, hiển thị nhãn báo chưa có
+                    evidenceHTML = `<span class="badge-missing">Chưa có</span>`;
+                }
+
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight: bold; text-align: center;">${item.stt}</td>
+                    <td>${item.maCV}</td>
                     <td>${item.jobDetail}</td>
                     <td>${item.inCharge}</td>
+                    <td style="text-align: center;">${evidenceHTML}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -350,8 +372,6 @@
 
             let filteredData = allKPIData.filter(item => {
                 if (selectedTeacher === "ALL") return true;
-                
-                // Thuật toán: Nếu tên người phụ trách đang tìm nằm bên trong đoạn text của cột (bao gồm cả trường hợp có nhiều người)
                 return item.inCharge && item.inCharge.includes(selectedTeacher);
             });
 
