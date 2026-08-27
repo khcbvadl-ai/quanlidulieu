@@ -12,6 +12,8 @@
             --secondary-color: #f4f6f9;
             --text-color: #333;
             --border-color: #e2e8f0;
+            --btn-blue: #2563eb;
+            --btn-blue-hover: #1d4ed8;
         }
 
         * {
@@ -76,7 +78,6 @@
             background-color: #e2e8f0;
         }
 
-        /* Trạng thái được chọn (Active) */
         .nav-item.active {
             background-color: #ffffff;
             border-bottom: 3px solid #000000;
@@ -92,14 +93,22 @@
             font-weight: 700;
         }
 
-        /* --- VÙNG LỌC DỮ LIỆU --- */
+        /* --- VÙNG LỌC DỮ LIỆU & NÚT TẢI LỊCH --- */
         .filter-section {
             display: flex;
-            gap: 25px;
+            gap: 15px;
             margin-bottom: 25px;
             background: var(--secondary-color);
-            padding: 15px 25px;
+            padding: 15px 20px;
             border-radius: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .filter-container-left {
+            display: flex;
+            gap: 15px;
             align-items: center;
             flex-wrap: wrap;
         }
@@ -107,28 +116,61 @@
         .filter-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .filter-group label {
             font-weight: 500;
             color: #4a5568;
             font-size: 14px;
+            white-space: nowrap;
         }
 
-        .filter-group select {
-            padding: 6px 10px;
-            border-radius: 4px;
+        .filter-group select, .filter-group input {
+            padding: 8px 12px;
+            border-radius: 6px;
             border: 1px solid #cbd5e0;
             outline: none;
             font-size: 14px;
-            min-width: 130px;
-            cursor: pointer;
             background-color: white;
         }
 
-        .filter-group select:focus {
+        .filter-group select {
+            min-width: 120px;
+            cursor: pointer;
+        }
+
+        .filter-group input {
+            width: 200px;
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
             border-color: var(--primary-color);
+        }
+
+        /* Nút Tải Lịch tương tự thiết kế ảnh mẫu */
+        .btn-download {
+            background-color: var(--btn-blue);
+            color: #ffffff;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-download:hover {
+            background-color: var(--btn-blue-hover);
+        }
+
+        .btn-download:active {
+            transform: scale(0.98);
         }
 
         /* --- BẢNG DỮ LIỆU --- */
@@ -161,9 +203,8 @@
             text-align: center;
         }
 
-        /* Căn chỉnh cột riêng biệt giống thiết kế */
         th:nth-child(2), td:nth-child(2) {
-            text-align: left; /* Cột Giảng viên căn trái */
+            text-align: left;
         }
 
         tbody tr {
@@ -172,7 +213,7 @@
         }
 
         tbody tr:nth-child(even) {
-            background-color: #fbfbfb; /* Màu xám rất nhạt cho hàng chẵn */
+            background-color: #fbfbfb;
         }
 
         tbody tr:hover {
@@ -221,8 +262,16 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            .filter-group {
-                justify-content: space-between;
+            .filter-container-left {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-group input {
+                width: 100%;
+            }
+            .btn-download {
+                justify-content: center;
+                width: 100%;
             }
         }
     </style>
@@ -236,31 +285,42 @@
                 <img src="https://raw.githubusercontent.com/khcbvadl-ai/quanlidulieu/main/logo.%20KHCB%20trong.png" alt="KHCB LOGO" class="logo-img">
             </div>
             <div class="nav-menu">
-                <div class="nav-menu">
-                    <!-- Trỏ về file giao diện Trang chủ của bạn -->
-                    <a href="index.html" class="nav-item">Trang chủ</a>
-                    <a href="#" class="nav-item active">Lịch giảng</a>
-                    <a href="video-kho.html" class="nav-item">Video bài giảng</a>
-                </div>
+                <a href="index.html" class="nav-item">Trang chủ</a>
+                <a href="#" class="nav-item active">Lịch giảng</a>
+                <a href="video-kho.html" class="nav-item">Video bài giảng</a>
             </div>
         </div>
 
         <h2 class="header-title"><i class="fa-solid fa-calendar-days"></i> LỊCH GIẢNG DẠY TOÀN KHOA</h2>
 
-        <!-- BỘ LỌC -->
+        <!-- BỘ LỌC VÀ NÚT TẢI LỊCH -->
         <div class="filter-section">
-            <div class="filter-group">
-                <label for="filter-day"><i class="fa-solid fa-filter"></i> Chọn Thứ:</label>
-                <select id="filter-day" onchange="applyFilter()">
-                    <option value="ALL">-- Tất cả --</option>
-                </select>
+            <div class="filter-container-left">
+                <!-- Lọc Giảng viên -->
+                <div class="filter-group">
+                    <label for="filter-teacher"><i class="fa-solid fa-user-tie"></i> Giảng viên:</label>
+                    <input type="text" id="filter-teacher" placeholder="Nhập tên giảng viên..." oninput="applyFilter()">
+                </div>
+                <!-- Lọc Thứ -->
+                <div class="filter-group">
+                    <label for="filter-day"><i class="fa-solid fa-filter"></i> Chọn Thứ:</label>
+                    <select id="filter-day" onchange="applyFilter()">
+                        <option value="ALL">-- Tất cả --</option>
+                    </select>
+                </div>
+                <!-- Lọc Ca -->
+                <div class="filter-group">
+                    <label for="filter-shift"><i class="fa-regular fa-clock"></i> Chọn Ca:</label>
+                    <select id="filter-shift" onchange="applyFilter()">
+                        <option value="ALL">-- Tất cả --</option>
+                    </select>
+                </div>
             </div>
-            <div class="filter-group">
-                <label for="filter-shift"><i class="fa-regular fa-clock"></i> Chọn Ca:</label>
-                <select id="filter-shift" onchange="applyFilter()">
-                    <option value="ALL">-- Tất cả --</option>
-                </select>
-            </div>
+
+            <!-- Nút Tải Lịch Word -->
+            <button class="btn-download" onclick="exportToWord()">
+                <i class="fa-solid fa-file-word"></i> Tải Lịch
+            </button>
         </div>
 
         <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
@@ -295,8 +355,9 @@
         const CACHE_KEY = "SCHEDULE_DATA_CACHE_V2";
 
         let allScheduleData = [];
+        let currentlyDisplayedData = [];
 
-        // LẮNG NGHE SỰ KIỆN PHÍM F2 ĐỂ BẬT NÚT "TRUY CẬP"
+        // KÍCH HOẠT NÚT TRUY CẬP KHI BẤM F2
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
@@ -401,7 +462,6 @@
                         }
                     }
 
-                    // Sắp xếp Thứ -> Ca -> Giảng viên
                     rawData.sort((a, b) => {
                         if (a.day !== b.day) return a.day - b.day;
                         if (a.shift !== b.shift) return a.shift - b.shift;
@@ -473,6 +533,38 @@
             });
         }
 
+        // HÀM CHUẨN HÓA CHUỖI ĐỂ TÌM KIẾM CHỊU LỖI (KHÔNG DẤU, CHỮ THƯỜNG)
+        function normalizeStr(str) {
+            if (!str) return '';
+            return str.toLowerCase()
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .replace(/đ/g, "d")
+                      .replace(/\s+/g, ' ')
+                      .trim();
+        }
+
+        function applyFilter() {
+            let teacherKeyword = normalizeStr(document.getElementById('filter-teacher').value);
+            let selectedDay = document.getElementById('filter-day').value;
+            let selectedShift = document.getElementById('filter-shift').value;
+
+            currentlyDisplayedData = allScheduleData.filter(item => {
+                let matchTeacher = true;
+                if (teacherKeyword) {
+                    let normTeacherName = normalizeStr(item.teacher);
+                    matchTeacher = normTeacherName.includes(teacherKeyword);
+                }
+
+                let matchDay = (selectedDay === "ALL") || (item.day.toString() === selectedDay);
+                let matchShift = (selectedShift === "ALL") || (item.shift.toString() === selectedShift);
+
+                return matchTeacher && matchDay && matchShift;
+            });
+
+            renderTable(currentlyDisplayedData);
+        }
+
         function renderTable(dataArray) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
@@ -497,17 +589,67 @@
             });
         }
 
-        function applyFilter() {
-            let selectedDay = document.getElementById('filter-day').value;
-            let selectedShift = document.getElementById('filter-shift').value;
+        // HÀM TẢI FILE WORD (.DOCX) DỰA TRÊN DỮ LIỆU ĐANG LỌC
+        function exportToWord() {
+            if (!currentlyDisplayedData || currentlyDisplayedData.length === 0) {
+                alert("Không có dữ liệu để xuất file Word!");
+                return;
+            }
 
-            let filteredData = allScheduleData.filter(item => {
-                let matchDay = (selectedDay === "ALL") || (item.day.toString() === selectedDay);
-                let matchShift = (selectedShift === "ALL") || (item.shift.toString() === selectedShift);
-                return matchDay && matchShift;
+            let tableRows = currentlyDisplayedData.map((item, index) => `
+                <tr>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #333;">${index + 1}</td>
+                    <td style="padding: 8px; border: 1px solid #333; font-weight: bold;">${item.teacher}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #333;">${item.shift}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #333;">${item.className}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #333; font-weight: bold;">${item.room}</td>
+                </tr>
+            `).join('');
+
+            let htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset='utf-8'>
+                    <title>Báo cáo Lịch Giảng Dạy</title>
+                    <style>
+                        body { font-family: 'Times New Roman', serif; font-size: 12pt; }
+                        h2 { text-align: center; color: #1a4d2e; text-transform: uppercase; margin-bottom: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th { background-color: #1a4d2e; color: white; padding: 10px; border: 1px solid #333; font-size: 11pt; }
+                    </style>
+                </head>
+                <body>
+                    <h2>BÁO CÁO LỊCH GIẢNG DẠY KHOA</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 8%;">STT</th>
+                                <th style="width: 35%;">HỌ VÀ TÊN GIẢNG VIÊN</th>
+                                <th style="width: 15%;">CA</th>
+                                <th style="width: 22%;">LỚP</th>
+                                <th style="width: 20%;">PHÒNG</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            let blob = new Blob(['\ufeff' + htmlContent], {
+                type: 'application/msword'
             });
 
-            renderTable(filteredData);
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'Lich_Giang_Day.docx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>
