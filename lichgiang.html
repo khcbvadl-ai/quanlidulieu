@@ -6,10 +6,6 @@
     <title>Lịch Giảng Dạy Khoa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Nhúng thư viện tạo file .docx chuẩn OpenXML và lưu file -->
-    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
     <style>
         :root {
             --primary-color: #1a4d2e;
@@ -319,12 +315,11 @@
                     <label for="filter-teacher"><i class="fa-solid fa-user-tie"></i> Giảng viên:</label>
                     <input type="text" id="filter-teacher" list="teacher-list" placeholder="-- Tất cả giảng viên --" oninput="applyFilter()" onchange="applyFilter()">
                     <datalist id="teacher-list">
-                        <!-- Danh sách tên tự động thêm bằng JS -->
                     </datalist>
                 </div>
             </div>
 
-            <!-- Nút Tải Lịch -->
+            <!-- Nút Tải Lịch (.doc) -->
             <button class="btn-download" onclick="exportToWord()">
                 <i class="fa-solid fa-file-word"></i> Tải Lịch
             </button>
@@ -347,7 +342,7 @@
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    <!-- Dữ liệu từ Sheet sẽ được vẽ vào đây -->
+                    <!-- Dữ liệu vẽ vào đây -->
                 </tbody>
             </table>
         </div>
@@ -364,11 +359,9 @@
         let allScheduleData = [];
         let currentlyDisplayedData = [];
 
-        // LẮNG NGHE F2
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
-                
                 if (!document.getElementById('api-redirect-btn')) {
                     const apiBtn = document.createElement('a');
                     apiBtn.id = 'api-redirect-btn';
@@ -441,6 +434,24 @@
             return result;
         }
 
+        // HÀM TÍNH TRỌNG SỐ ĐỂ SẮP XẾP ĐÚNG (Thứ 2->7, rồi Chủ nhật)
+        function getDayWeight(d) {
+            if (!d) return 99;
+            let upper = d.toUpperCase();
+            if (upper === 'CN') return 8; 
+            let n = parseInt(d);
+            return isNaN(n) ? 99 : n;
+        }
+
+        function compareShifts(a, b) {
+            let nA = parseInt(a);
+            let nB = parseInt(b);
+            if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+            if (!isNaN(nA)) return -1;
+            if (!isNaN(nB)) return 1;
+            return a.localeCompare(b, 'vi');
+        }
+
         function fetchDataFromSheet(isBackgroundSync) {
             if (!isBackgroundSync) {
                 document.getElementById('loading').style.display = 'block';
@@ -460,8 +471,8 @@
                             rawData.push({
                                 stt: cols[0].trim(),
                                 teacher: cols[1].trim(),
-                                day: parseInt(cols[2].trim()) || 99, 
-                                shift: parseInt(cols[3].trim()) || 99,
+                                day: cols[2].trim(), // Lấy văn bản gốc (Không ép thành int)
+                                shift: cols[3].trim(), // Lấy văn bản gốc
                                 className: cols[4].trim(),
                                 room: cols[5].trim(),
                                 time: cols[6].trim()
@@ -469,10 +480,16 @@
                         }
                     }
 
+                    // Sắp xếp dữ liệu thông minh
                     rawData.sort((a, b) => {
-                        if (a.day !== b.day) return a.day - b.day;
-                        if (a.shift !== b.shift) return a.shift - b.shift;
-                        return a.teacher.localeCompare(b.teacher, 'vi');
+                        let wA = getDayWeight(a.day);
+                        let wB = getDayWeight(b.day);
+                        if (wA !== wB) return wA - wB;
+                        
+                        let shiftCompare = compareShifts(a.shift, b.shift);
+                        if (shiftCompare !== 0) return shiftCompare;
+
+                        return (a.teacher || "").localeCompare(b.teacher || "", 'vi');
                     });
 
                     const newDataString = JSON.stringify(rawData);
@@ -492,12 +509,12 @@
                         document.getElementById('schedule-table').style.display = 'table';
                     }
                     
-                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu lịch giảng của khoa KHCB và Dữ liệu';
+                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu đã được đồng bộ mới nhất';
                 })
                 .catch(err => {
                     console.error("Lỗi đồng bộ dữ liệu:", err);
                     if (!isBackgroundSync) {
-                        document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu. Vui lòng kiểm tra lại kết nối mạng hoặc Google Sheet.</span>';
+                        document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu.</span>';
                     }
                     document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: orange;"></i> Đang sử dụng dữ liệu cũ (Ngoại tuyến)';
                 });
@@ -517,22 +534,35 @@
             let teachers = new Set();
 
             allScheduleData.forEach(item => {
-                if (item.day !== 99) days.add(item.day);
-                if (item.shift !== 99) shifts.add(item.shift);
+                if (item.day) days.add(item.day);
+                if (item.shift) shifts.add(item.shift);
                 if (item.teacher) teachers.add(item.teacher);
             });
 
-            Array.from(days).sort((a,b)=>a-b).forEach(d => {
+            // Gán dữ liệu cho hộp chọn THỨ (Xử lý thông minh chữ "CN")
+            Array.from(days).sort((a,b) => getDayWeight(a) - getDayWeight(b)).forEach(d => {
                 let option = document.createElement('option');
                 option.value = d;
-                option.textContent = "Thứ " + d;
+                
+                if (d.toUpperCase() === 'CN') {
+                    option.textContent = "Chủ nhật";
+                } else if (!isNaN(parseInt(d))) {
+                    option.textContent = "Thứ " + d;
+                } else {
+                    option.textContent = d;
+                }
                 daySelect.appendChild(option);
             });
 
-            Array.from(shifts).sort((a,b)=>a-b).forEach(s => {
+            // Gán dữ liệu cho hộp chọn CA
+            Array.from(shifts).sort(compareShifts).forEach(s => {
                 let option = document.createElement('option');
                 option.value = s;
-                option.textContent = "Ca " + s;
+                if (!isNaN(parseInt(s))) {
+                    option.textContent = "Ca " + s;
+                } else {
+                    option.textContent = s; 
+                }
                 shiftSelect.appendChild(option);
             });
 
@@ -566,8 +596,8 @@
                     matchTeacher = normTeacherName.includes(teacherKeyword);
                 }
 
-                let matchDay = (selectedDay === "ALL") || (item.day.toString() === selectedDay);
-                let matchShift = (selectedShift === "ALL") || (item.shift.toString() === selectedShift);
+                let matchDay = (selectedDay === "ALL") || (item.day === selectedDay);
+                let matchShift = (selectedShift === "ALL") || (item.shift === selectedShift);
 
                 return matchTeacher && matchDay && matchShift;
             });
@@ -585,11 +615,14 @@
             }
 
             dataArray.forEach((item, index) => {
+                // Xử lý hiển thị Chủ nhật trên bảng
+                let displayDay = (item.day.toUpperCase() === 'CN') ? 'Chủ nhật' : item.day;
+
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight: bold; text-align: center;">${index + 1}</td>
                     <td style="font-weight: bold; color: var(--teacher-color);">${item.teacher}</td>
-                    <td style="text-align: center;">${item.day}</td>
+                    <td style="text-align: center;">${displayDay}</td>
                     <td style="text-align: center;">${item.shift}</td>
                     <td style="text-align: center;">${item.className}</td>
                     <td style="font-weight: bold; text-align: center;">${item.room}</td>
@@ -599,101 +632,84 @@
             });
         }
 
-        // TẢI FILE WORD (.DOCX) CHUẨN OPENXML BẰNG THƯ VIỆN DOCX.JS
+        // TẢI FILE WORD ĐUÔI .DOC MỞ CHUẨN 100% KHÔNG LỖI
         function exportToWord() {
             if (!currentlyDisplayedData || currentlyDisplayedData.length === 0) {
                 alert("Không có dữ liệu để xuất file Word!");
                 return;
             }
 
-            if (typeof docx === 'undefined') {
-                alert("Đang tải thư viện xuất Word, vui lòng thử lại sau vài giây...");
-                return;
-            }
+            let tableRows = currentlyDisplayedData.map((item, index) => {
+                let displayDay = (item.day.toUpperCase() === 'CN') ? 'Chủ nhật' : item.day;
+                return `
+                <tr>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${index + 1}</td>
+                    <td style="padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.teacher}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${displayDay}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.shift}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.className}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.room}</td>
+                </tr>
+            `}).join('');
 
-            const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, AlignmentType, WidthType, HeadingLevel } = docx;
+            let htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+                      xmlns:w='urn:schemas-microsoft-com:office:word' 
+                      xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset='utf-8'>
+                    <title>Báo cáo Lịch Giảng Dạy</title>
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <w:WordDocument>
+                            <w:View>Print</w:View>
+                            <w:Zoom>100</w:Zoom>
+                            <w:DoNotOptimizeForBrowser/>
+                        </w:WordDocument>
+                    </xml>
+                    <![endif]-->
+                    <style>
+                        @page { size: A4; margin: 2cm; }
+                        body { font-family: 'Times New Roman', serif; font-size: 12pt; color: #000; }
+                        h2 { text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 16pt; color: #1a4d2e; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th { background-color: #f2f2f2; padding: 10px; border: 1px solid #000000; font-size: 11pt; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <h2>BÁO CÁO LỊCH GIẢNG DẠY KHOA</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">STT</th>
+                                <th style="width: 25%;">HỌ VÀ TÊN GIẢNG VIÊN</th>
+                                <th style="width: 15%;">THỨ</th>
+                                <th style="width: 15%;">CA</th>
+                                <th style="width: 20%;">LỚP</th>
+                                <th style="width: 20%;">PHÒNG</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
 
-            // Ô tạo Bảng trợ giúp
-            const createCell = (text, isHeader = false, align = AlignmentType.LEFT, widthPct = 20) => {
-                return new TableCell({
-                    width: { size: widthPct, type: WidthType.PERCENTAGE },
-                    shading: isHeader ? { fill: "F2F2F2" } : undefined,
-                    children: [
-                        new Paragraph({
-                            alignment: align,
-                            children: [
-                                new TextRun({
-                                    text: text ? String(text) : '',
-                                    bold: isHeader,
-                                    font: "Times New Roman",
-                                    size: 22 // 11pt
-                                })
-                            ]
-                        })
-                    ]
-                });
-            };
-
-            // Hàng Tiêu Đề Bảng
-            const headerRow = new TableRow({
-                children: [
-                    createCell("STT", true, AlignmentType.CENTER, 8),
-                    createCell("HỌ VÀ TÊN GIẢNG VIÊN", true, AlignmentType.LEFT, 37),
-                    createCell("CA", true, AlignmentType.CENTER, 15),
-                    createCell("LỚP", true, AlignmentType.CENTER, 20),
-                    createCell("PHÒNG", true, AlignmentType.CENTER, 20)
-                ]
+            // Lưu dưới dạng .doc (Legacy Word format)
+            let blob = new Blob(['\ufeff' + htmlContent], {
+                type: 'application/msword'
             });
 
-            // Các Hàng Dữ Liệu
-            const dataRows = currentlyDisplayedData.map((item, index) => {
-                return new TableRow({
-                    children: [
-                        createCell(index + 1, false, AlignmentType.CENTER, 8),
-                        createCell(item.teacher, false, AlignmentType.LEFT, 37),
-                        createCell(item.shift, false, AlignmentType.CENTER, 15),
-                        createCell(item.className, false, AlignmentType.CENTER, 20),
-                        createCell(item.room, false, AlignmentType.CENTER, 20)
-                    ]
-                });
-            });
-
-            // Bảng chính
-            const table = new Table({
-                width: { size: 100, type: WidthType.PERCENTAGE },
-                rows: [headerRow, ...dataRows]
-            });
-
-            // Tiêu đề văn bản
-            const title = new Paragraph({
-                alignment: AlignmentType.CENTER,
-                space: { after: 300 },
-                children: [
-                    new TextRun({
-                        text: "BÁO CÁO LỊCH GIẢNG DẠY KHOA",
-                        bold: true,
-                        size: 32, // 16pt
-                        font: "Times New Roman",
-                        color: "1A4D2E"
-                    })
-                ]
-            });
-
-            // Tạo Document
-            const doc = new Document({
-                sections: [{
-                    properties: {},
-                    children: [title, table]
-                }]
-            });
-
-            // Đóng gói và tải file .docx thật
-            Packer.toBlob(doc).then(blob => {
-                saveAs(blob, "Lich_Giang_Day.docx");
-            }).catch(err => {
-                console.error("Lỗi xuất file Word:", err);
-                alert("Có lỗi xảy ra khi tạo file Word. Vui lòng thử lại!");
-            });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'Lich_Giang_Day.doc'; // GIỮ ĐUÔI .DOC ĐỂ KHÔNG BỊ LỖI
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>
