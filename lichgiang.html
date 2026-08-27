@@ -55,7 +55,6 @@
         tbody tr:hover { background-color: #f1f5f9; }
         .empty-message { text-align: center; padding: 30px; color: #718096; font-style: italic; }
         #loading { text-align: center; padding: 20px; color: var(--primary-color); font-weight: bold; font-size: 16px; display: none; }
-        #sync-indicator { text-align: center; font-size: 12px; color: #718096; margin-top: 20px; font-style: italic; }
 
         @media (max-width: 768px) {
             .top-navbar { flex-direction: column; padding: 15px; gap: 15px; }
@@ -128,19 +127,19 @@
                         <th>CA</th>
                         <th>LỚP</th>
                         <th>PHÒNG</th>
+                        <th>SĨ SỐ</th>
                         <th>THỜI GIAN</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
             </table>
         </div>
-        
-        <div id="sync-indicator"></div>
     </div>
 
     <script>
         const SHEET_ID = "1yyBsezsZlOYwGfAfavDvptB-KEiWo2gZu9Go3PE8zRU";
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+        const CACHE_KEY = "schedule_data_cache";
 
         let allScheduleData = [];
         let currentlyDisplayedData = [];
@@ -177,6 +176,19 @@
         });
 
         window.onload = function() {
+            // Đọc dữ liệu từ bộ nhớ đệm LocalStorage trước nếu có
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            if (cachedData) {
+                try {
+                    allScheduleData = JSON.parse(cachedData);
+                    document.getElementById('schedule-table').style.display = 'table';
+                    populateFilterDropdowns();
+                    applyFilter();
+                } catch(e) {
+                    console.error("Lỗi đọc bộ nhớ đệm:", e);
+                }
+            }
+            // Gọi hàm cập nhật dữ liệu mới từ Sheet
             fetchDataFromSheet();
         };
 
@@ -206,7 +218,6 @@
             return String(str).replace(/^["'\s]+|["'\s]+$/g, '').trim();
         }
 
-        // HÀM CHUYỂN ĐỔI: Nhận giá trị số 8 từ Sheet -> Đổi thành CN để hiển thị
         function formatDayForDisplay(val) {
             let clean = cleanText(val);
             if (clean === "8" || clean.toUpperCase() === "CN") {
@@ -216,7 +227,9 @@
         }
 
         function fetchDataFromSheet() {
-            document.getElementById('loading').style.display = 'block';
+            if (allScheduleData.length === 0) {
+                document.getElementById('loading').style.display = 'block';
+            }
 
             fetch(CSV_URL)
                 .then(response => response.text())
@@ -228,30 +241,31 @@
                         if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         
-                        if (cols.length >= 7) {
+                        if (cols.length >= 8) {
                             let teacher = cleanText(cols[1]);
-                            let rawDay = cleanText(cols[2]); // Cột C (Thứ) trên Google Sheet
+                            let rawDay = cleanText(cols[2]);
                             let shift = cleanText(cols[3]);
                             let className = cleanText(cols[4]);
                             let room = cleanText(cols[5]);
-                            let time = cleanText(cols[6]);
+                            let studentCount = cleanText(cols[6]); // Cột G (Sĩ số)
+                            let time = cleanText(cols[7]);         // Cột H (Thời gian)
 
                             if (teacher || className || room) {
                                 rawData.push({
                                     stt: cleanText(cols[0]),
                                     teacher: teacher,
-                                    rawDayNum: parseInt(rawDay) || 99, // Dùng số để sắp xếp
-                                    dayDisplay: formatDayForDisplay(rawDay), // Chuyển số 8 thành CN
+                                    rawDayNum: parseInt(rawDay) || 99,
+                                    dayDisplay: formatDayForDisplay(rawDay),
                                     shift: shift,
                                     className: className,
                                     room: room,
+                                    studentCount: studentCount,
                                     time: time
                                 });
                             }
                         }
                     }
 
-                    // SẮP XẾP CHUẨN MỰC: Thứ 2 -> 7 -> Số 8 (CN)
                     rawData.sort((a, b) => {
                         if (a.rawDayNum !== b.rawDayNum) return a.rawDayNum - b.rawDayNum;
                         
@@ -264,17 +278,22 @@
 
                     allScheduleData = rawData;
                     
+                    // Lưu dữ liệu mới vào bộ nhớ đệm
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(allScheduleData));
+
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('schedule-table').style.display = 'table';
                     
                     populateFilterDropdowns();
                     applyFilter();
-                    
-                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu đã đồng bộ hoàn toàn!';
                 })
                 .catch(err => {
-                    console.error("Lỗi:", err);
-                    document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu từ Google Sheet.</span>';
+                    console.error("Lỗi tải Sheet:", err);
+                    document.getElementById('loading').style.display = 'none';
+                    if (allScheduleData.length === 0) {
+                        document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu từ Google Sheet.</span>';
+                        document.getElementById('loading').style.display = 'block';
+                    }
                 });
         }
 
@@ -282,6 +301,9 @@
             const daySelect = document.getElementById('filter-day');
             const shiftSelect = document.getElementById('filter-shift');
             const teacherDatalist = document.getElementById('teacher-list');
+            
+            let currentDayVal = daySelect.value;
+            let currentShiftVal = shiftSelect.value;
             
             daySelect.innerHTML = '<option value="ALL">-- Tất cả --</option>';
             shiftSelect.innerHTML = '<option value="ALL">-- Tất cả --</option>';
@@ -299,7 +321,6 @@
                 if (item.teacher) teachers.add(item.teacher);
             });
 
-            // Thêm các Thứ vào Dropdown Lọc
             Object.keys(daysObj)
                 .sort((a, b) => daysObj[a] - daysObj[b])
                 .forEach(d => {
@@ -309,7 +330,6 @@
                     daySelect.appendChild(option);
                 });
 
-            // Thêm Ca
             Array.from(shifts).sort((a,b) => (parseInt(a)||0) - (parseInt(b)||0)).forEach(s => {
                 let option = document.createElement('option');
                 option.value = s;
@@ -317,12 +337,14 @@
                 shiftSelect.appendChild(option);
             });
 
-            // Thêm Giảng viên
             Array.from(teachers).sort((a,b)=>a.localeCompare(b, 'vi')).forEach(t => {
                 let option = document.createElement('option');
                 option.value = t;
                 teacherDatalist.appendChild(option);
             });
+
+            daySelect.value = currentDayVal || "ALL";
+            shiftSelect.value = currentShiftVal || "ALL";
         }
 
         function normalizeStr(str) {
@@ -352,7 +374,7 @@
             tbody.innerHTML = '';
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-message">Không tìm thấy lịch giảng dạy phù hợp</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-message">Không tìm thấy lịch giảng dạy phù hợp</td></tr>';
                 return;
             }
 
@@ -365,6 +387,7 @@
                     <td style="text-align: center;">${item.shift}</td>
                     <td style="text-align: center;">${item.className}</td>
                     <td style="font-weight: bold; text-align: center;">${item.room}</td>
+                    <td style="text-align: center;">${item.studentCount || ''}</td>
                     <td style="font-size: 13px; text-align: center; color: #555;">${item.time}</td>
                 `;
                 tbody.appendChild(tr);
@@ -385,6 +408,8 @@
                     <td style="text-align: center; padding: 8px; border: 1px solid #000;">${item.shift}</td>
                     <td style="text-align: center; padding: 8px; border: 1px solid #000;">${item.className}</td>
                     <td style="text-align: center; padding: 8px; border: 1px solid #000; font-weight: bold;">${item.room}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000;">${item.studentCount || ''}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000;">${item.time}</td>
                 </tr>
             `).join('');
 
@@ -396,7 +421,7 @@
                     <table border="1" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="background-color: #f2f2f2;">
-                                <th>STT</th><th>HỌ VÀ TÊN GIẢNG VIÊN</th><th>THỨ</th><th>CA</th><th>LỚP</th><th>PHÒNG</th>
+                                <th>STT</th><th>HỌ VÀ TÊN GIẢNG VIÊN</th><th>THỨ</th><th>CA</th><th>LỚP</th><th>PHÒNG</th><th>SĨ SỐ</th><th>THỜI GIAN</th>
                             </tr>
                         </thead>
                         <tbody>${tableRows}</tbody>
