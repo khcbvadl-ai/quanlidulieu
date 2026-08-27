@@ -141,14 +141,13 @@
         }
 
         .filter-group input {
-            width: 200px;
+            width: 220px;
         }
 
         .filter-group select:focus, .filter-group input:focus {
             border-color: var(--primary-color);
         }
 
-        /* Nút Tải Lịch tương tự thiết kế ảnh mẫu */
         .btn-download {
             background-color: var(--btn-blue);
             color: #ffffff;
@@ -296,28 +295,31 @@
         <!-- BỘ LỌC VÀ NÚT TẢI LỊCH -->
         <div class="filter-section">
             <div class="filter-container-left">
-                <!-- Lọc Giảng viên -->
-                <div class="filter-group">
-                    <label for="filter-teacher"><i class="fa-solid fa-user-tie"></i> Giảng viên:</label>
-                    <input type="text" id="filter-teacher" placeholder="Nhập tên giảng viên..." oninput="applyFilter()">
-                </div>
-                <!-- Lọc Thứ -->
+                <!-- 1. Lọc Thứ -->
                 <div class="filter-group">
                     <label for="filter-day"><i class="fa-solid fa-filter"></i> Chọn Thứ:</label>
                     <select id="filter-day" onchange="applyFilter()">
                         <option value="ALL">-- Tất cả --</option>
                     </select>
                 </div>
-                <!-- Lọc Ca -->
+                <!-- 2. Lọc Ca -->
                 <div class="filter-group">
                     <label for="filter-shift"><i class="fa-regular fa-clock"></i> Chọn Ca:</label>
                     <select id="filter-shift" onchange="applyFilter()">
                         <option value="ALL">-- Tất cả --</option>
                     </select>
                 </div>
+                <!-- 3. Lọc Giảng viên (Đã chuyển về cuối) -->
+                <div class="filter-group">
+                    <label for="filter-teacher"><i class="fa-solid fa-user-tie"></i> Giảng viên:</label>
+                    <input type="text" id="filter-teacher" list="teacher-list" placeholder="-- Tất cả giảng viên --" oninput="applyFilter()" onchange="applyFilter()">
+                    <datalist id="teacher-list">
+                        <!-- Danh sách tên tự động thêm bằng JS -->
+                    </datalist>
+                </div>
             </div>
 
-            <!-- Nút Tải Lịch Word -->
+            <!-- Nút Tải Lịch -->
             <button class="btn-download" onclick="exportToWord()">
                 <i class="fa-solid fa-file-word"></i> Tải Lịch
             </button>
@@ -357,7 +359,7 @@
         let allScheduleData = [];
         let currentlyDisplayedData = [];
 
-        // KÍCH HOẠT NÚT TRUY CẬP KHI BẤM F2
+        // LẮNG NGHE F2
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
@@ -478,14 +480,7 @@
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('schedule-table').style.display = 'table';
                         
-                        let currentDay = document.getElementById('filter-day').value;
-                        let currentShift = document.getElementById('filter-shift').value;
-                        
                         populateFilterDropdowns();
-                        
-                        document.getElementById('filter-day').value = currentDay || "ALL";
-                        document.getElementById('filter-shift').value = currentShift || "ALL";
-                        
                         applyFilter();
                     } else if (!isBackgroundSync) {
                         document.getElementById('loading').style.display = 'none';
@@ -506,16 +501,20 @@
         function populateFilterDropdowns() {
             const daySelect = document.getElementById('filter-day');
             const shiftSelect = document.getElementById('filter-shift');
+            const teacherDatalist = document.getElementById('teacher-list');
             
             daySelect.innerHTML = '<option value="ALL">-- Tất cả --</option>';
             shiftSelect.innerHTML = '<option value="ALL">-- Tất cả --</option>';
+            teacherDatalist.innerHTML = '';
             
             let days = new Set();
             let shifts = new Set();
+            let teachers = new Set();
 
             allScheduleData.forEach(item => {
                 if (item.day !== 99) days.add(item.day);
                 if (item.shift !== 99) shifts.add(item.shift);
+                if (item.teacher) teachers.add(item.teacher);
             });
 
             Array.from(days).sort((a,b)=>a-b).forEach(d => {
@@ -531,9 +530,15 @@
                 option.textContent = "Ca " + s;
                 shiftSelect.appendChild(option);
             });
+
+            Array.from(teachers).sort((a,b)=>a.localeCompare(b, 'vi')).forEach(t => {
+                let option = document.createElement('option');
+                option.value = t;
+                teacherDatalist.appendChild(option);
+            });
         }
 
-        // HÀM CHUẨN HÓA CHUỖI ĐỂ TÌM KIẾM CHỊU LỖI (KHÔNG DẤU, CHỮ THƯỜNG)
+        // HÀM CHUẨN HÓA TÌM KIẾM CHỊU LỖI
         function normalizeStr(str) {
             if (!str) return '';
             return str.toLowerCase()
@@ -545,18 +550,23 @@
         }
 
         function applyFilter() {
-            let teacherKeyword = normalizeStr(document.getElementById('filter-teacher').value);
+            let teacherInput = document.getElementById('filter-teacher').value;
+            let teacherKeyword = normalizeStr(teacherInput);
             let selectedDay = document.getElementById('filter-day').value;
             let selectedShift = document.getElementById('filter-shift').value;
 
             currentlyDisplayedData = allScheduleData.filter(item => {
+                // Lọc theo Giảng viên
                 let matchTeacher = true;
-                if (teacherKeyword) {
+                if (teacherKeyword !== '') {
                     let normTeacherName = normalizeStr(item.teacher);
                     matchTeacher = normTeacherName.includes(teacherKeyword);
                 }
 
+                // Lọc theo Thứ
                 let matchDay = (selectedDay === "ALL") || (item.day.toString() === selectedDay);
+
+                // Lọc theo Ca
                 let matchShift = (selectedShift === "ALL") || (item.shift.toString() === selectedShift);
 
                 return matchTeacher && matchDay && matchShift;
@@ -589,7 +599,7 @@
             });
         }
 
-        // HÀM TẢI FILE WORD (.DOCX) DỰA TRÊN DỮ LIỆU ĐANG LỌC
+        // TẢI FILE .DOCX ĐÃ ĐƯỢC CHUẨN HÓA KHÔNG LỖI
         function exportToWord() {
             if (!currentlyDisplayedData || currentlyDisplayedData.length === 0) {
                 alert("Không có dữ liệu để xuất file Word!");
@@ -598,24 +608,36 @@
 
             let tableRows = currentlyDisplayedData.map((item, index) => `
                 <tr>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #333;">${index + 1}</td>
-                    <td style="padding: 8px; border: 1px solid #333; font-weight: bold;">${item.teacher}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #333;">${item.shift}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #333;">${item.className}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #333; font-weight: bold;">${item.room}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${index + 1}</td>
+                    <td style="padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.teacher}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.shift}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.className}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.room}</td>
                 </tr>
             `).join('');
 
-            let htmlContent = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            let fileContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+                      xmlns:w='urn:schemas-microsoft-com:office:word' 
+                      xmlns='http://www.w3.org/TR/REC-html40'>
                 <head>
                     <meta charset='utf-8'>
-                    <title>Báo cáo Lịch Giảng Dạy</title>
+                    <title>Lịch Giảng Dạy Khoa</title>
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <w:WordDocument>
+                            <w:View>Print</w:View>
+                            <w:Zoom>100</w:Zoom>
+                            <w:DoNotOptimizeForBrowser/>
+                        </w:WordDocument>
+                    </xml>
+                    <![endif]-->
                     <style>
-                        body { font-family: 'Times New Roman', serif; font-size: 12pt; }
-                        h2 { text-align: center; color: #1a4d2e; text-transform: uppercase; margin-bottom: 20px; }
+                        @page { size: A4; margin: 2cm; }
+                        body { font-family: 'Times New Roman', serif; font-size: 12pt; color: #000; }
+                        h2 { text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 16pt; }
                         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                        th { background-color: #1a4d2e; color: white; padding: 10px; border: 1px solid #333; font-size: 11pt; }
+                        th { background-color: #f2f2f2; padding: 10px; border: 1px solid #000000; font-size: 11pt; font-weight: bold; }
                     </style>
                 </head>
                 <body>
@@ -638,7 +660,7 @@
                 </html>
             `;
 
-            let blob = new Blob(['\ufeff' + htmlContent], {
+            let blob = new Blob(['\ufeff' + fileContent], {
                 type: 'application/msword'
             });
 
