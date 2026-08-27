@@ -353,12 +353,11 @@
     <script>
         const SHEET_ID = "1yyBsezsZlOYwGfAfavDvptB-KEiWo2gZu9Go3PE8zRU";
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-        const CACHE_KEY = "SCHEDULE_DATA_CACHE_V6_STABLE";
+        const CACHE_KEY = "SCHEDULE_DATA_CACHE_V8_EXACT_CN";
 
         let allScheduleData = [];
         let currentlyDisplayedData = [];
 
-        // Lấy nút truy cập nhanh Google Sheet khi bấm F2
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
@@ -378,7 +377,6 @@
                     apiBtn.style.borderRadius = '6px';
                     apiBtn.style.fontWeight = 'bold';
                     apiBtn.style.fontSize = '14px';
-                    apiBtn.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
 
                     const btnWrapper = document.createElement('div');
                     btnWrapper.style.textAlign = 'center';
@@ -391,36 +389,12 @@
         });
 
         window.onload = function() {
-            // Giải phóng cache cũ
-            for (let i = localStorage.length - 1; i >= 0; i--) {
-                let key = localStorage.key(i);
-                if (key && key.includes("SCHEDULE_DATA_CACHE") && key !== CACHE_KEY) {
-                    localStorage.removeItem(key);
-                }
-            }
+            // Xóa sạch bộ nhớ tạm cũ để ép trình duyệt nhận code mới ngay lập tức
+            localStorage.clear();
 
-            const cachedDataString = localStorage.getItem(CACHE_KEY);
-            let hasCache = false;
-
-            if (cachedDataString) {
-                try {
-                    allScheduleData = JSON.parse(cachedDataString);
-                    hasCache = true;
-                    
-                    document.getElementById('schedule-table').style.display = 'table';
-                    populateFilterDropdowns();
-                    applyFilter();
-                    
-                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Đang kiểm tra lịch mới...';
-                } catch (e) {
-                    console.error("Lỗi đọc cache:", e);
-                }
-            }
-
-            fetchDataFromSheet(hasCache);
+            fetchDataFromSheet(false);
         };
 
-        // Hàm đọc dòng CSV chuẩn xác
         function parseCSVLine(text) {
             let result = [];
             let entry = '';
@@ -442,26 +416,26 @@
             return result;
         }
 
-        // BƯỚC 1: Xóa toàn bộ ký tự rác ẩn
+        // Làm sạch chuỗi
         function sanitizeValue(str) {
             if (!str) return '';
             return String(str)
                 .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, '')
-                .replace(/["']/g, '')
+                .replace(/^["']|["']$/g, '')
                 .trim();
         }
 
-        // BƯỚC 1: Chuẩn hóa dữ liệu Cột Thứ -> Trả về đúng tên hiển thị "CN" hoặc "2", "3",...
+        // Nhận diện CHÍNH XÁC giá trị Cột Thứ (Giữ nguyên CN)
         function parseDayDisplayValue(str) {
             let clean = sanitizeValue(str);
             if (!clean) return '';
 
-            // Nếu ô gốc chứa CN, cn, Chủ Nhật -> ép cố định về chữ "CN"
-            if (/cn|chủ\s*nhật|chu\s*nhat/i.test(clean)) {
+            // Nếu ô có chứa CN hoặc Chủ Nhật (không phân biệt hoa thường)
+            if (/CN|Chủ\s*Nhật|Chu\s*Nhat/i.test(clean)) {
                 return 'CN';
             }
 
-            // Nếu chứa các số 2, 3, 4, 5, 6, 7
+            // Nếu là Thứ 2, 3, 4, 5, 6, 7
             let matchNum = clean.match(/\d+/);
             if (matchNum) {
                 return matchNum[0];
@@ -470,11 +444,11 @@
             return clean;
         }
 
-        // BƯỚC 2: Trọng số sắp xếp ẩn (Thứ 2->7 gán trọng số 2->7, "CN" gán trọng số 8)
+        // Gán trọng số sắp xếp: Thứ 2->7 gán 2->7; CN gán 8 (đứng sau Thứ 7)
         function getDaySortWeight(dayStr) {
             if (!dayStr) return 99;
             let upper = String(dayStr).toUpperCase().trim();
-            if (upper === 'CN') return 8; // Đứng sau Thứ 7
+            if (upper === 'CN') return 8;
             let n = parseInt(upper);
             return isNaN(n) ? 99 : n;
         }
@@ -500,14 +474,15 @@
                 .then(text => {
                     let lines = text.split(/\r?\n/);
                     let rawData = [];
-                    
+
                     for (let i = 1; i < lines.length; i++) {
                         if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         
+                        // Đúng cấu trúc cột Google Sheet của bạn (Cột C là Thứ - chỉ số 2)
                         if (cols.length >= 7) {
                             let teacher = sanitizeValue(cols[1]);
-                            let dayDisplay = parseDayDisplayValue(cols[2]); // HIỂN THỊ: Vẫn giữ chữ "CN"
+                            let dayDisplay = parseDayDisplayValue(cols[2]); // Lấy trực tiếp chữ CN từ cột C
                             let shift = sanitizeValue(cols[3]);
                             let className = sanitizeValue(cols[4]);
                             let room = sanitizeValue(cols[5]);
@@ -527,7 +502,7 @@
                         }
                     }
 
-                    // BƯỚC 2: Sắp xếp theo trọng số (Sắp xếp theo thứ tự 2->7->8(CN))
+                    // Sắp xếp theo Thứ (2 -> 7 -> CN) rồi đến Ca
                     rawData.sort((a, b) => {
                         let wA = getDaySortWeight(a.day);
                         let wB = getDaySortWeight(b.day);
@@ -539,31 +514,19 @@
                         return (a.teacher || "").localeCompare(b.teacher || "", 'vi');
                     });
 
-                    const newDataString = JSON.stringify(rawData);
-                    const oldDataString = localStorage.getItem(CACHE_KEY);
-
-                    if (newDataString !== oldDataString) {
-                        localStorage.setItem(CACHE_KEY, newDataString);
-                        allScheduleData = rawData;
-                        
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('schedule-table').style.display = 'table';
-                        
-                        populateFilterDropdowns();
-                        applyFilter();
-                    } else if (!isBackgroundSync) {
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('schedule-table').style.display = 'table';
-                    }
+                    allScheduleData = rawData;
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('schedule-table').style.display = 'table';
+                    
+                    populateFilterDropdowns();
+                    applyFilter();
                     
                     document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu đã được đồng bộ mới nhất';
                 })
                 .catch(err => {
                     console.error("Lỗi đồng bộ dữ liệu:", err);
-                    if (!isBackgroundSync) {
-                        document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu.</span>';
-                    }
-                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: orange;"></i> Đang sử dụng dữ liệu cũ (Ngoại tuyến)';
+                    document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu.</span>';
                 });
         }
 
@@ -586,7 +549,7 @@
                 if (item.teacher) teachers.add(item.teacher);
             });
 
-            // Đổ danh sách Chọn Thứ vào Dropdown
+            // Thêm danh sách Thứ vào Dropdown
             Array.from(days).sort((a,b) => getDaySortWeight(a) - getDaySortWeight(b)).forEach(d => {
                 let option = document.createElement('option');
                 option.value = d;
@@ -602,7 +565,7 @@
                 daySelect.appendChild(option);
             });
 
-            // Đổ danh sách Chọn Ca vào Dropdown
+            // Thêm Ca vào Dropdown
             Array.from(shifts).sort(compareShifts).forEach(s => {
                 let option = document.createElement('option');
                 option.value = s;
@@ -631,7 +594,6 @@
                       .trim();
         }
 
-        // BƯỚC 3: Lọc chính xác giá trị
         function applyFilter() {
             let teacherInput = document.getElementById('filter-teacher').value;
             let teacherKeyword = normalizeStr(teacherInput);
@@ -654,7 +616,6 @@
             renderTable(currentlyDisplayedData);
         }
 
-        // BƯỚC 3: Vẽ dữ liệu lên bảng (Hiển thị nguyên vẹn chữ "CN")
         function renderTable(dataArray) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
@@ -679,7 +640,6 @@
             });
         }
 
-        // TẢI FILE WORD (.DOC)
         function exportToWord() {
             if (!currentlyDisplayedData || currentlyDisplayedData.length === 0) {
                 alert("Không có dữ liệu để xuất file Word!");
@@ -705,15 +665,6 @@
                 <head>
                     <meta charset='utf-8'>
                     <title>Lịch Giảng</title>
-                    <!--[if gte mso 9]>
-                    <xml>
-                        <w:WordDocument>
-                            <w:View>Print</w:View>
-                            <w:Zoom>100</w:Zoom>
-                            <w:DoNotOptimizeForBrowser/>
-                        </w:WordDocument>
-                    </xml>
-                    <![endif]-->
                     <style>
                         @page { size: A4; margin: 2cm; }
                         body { font-family: 'Times New Roman', serif; font-size: 12pt; color: #000; }
