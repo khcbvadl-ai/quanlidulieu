@@ -303,6 +303,40 @@
             return cleaned.replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase());
         }
 
+        // LẮNG NGHE SỰ KIỆN PHÍM F2 ĐỂ BẬT NÚT "TRUY CẬP"
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                
+                if (!document.getElementById('api-redirect-btn')) {
+                    const apiBtn = document.createElement('a');
+                    apiBtn.id = 'api-redirect-btn';
+                    apiBtn.href = 'https://docs.google.com/spreadsheets/d/1jTx3rQ5G3Q8KQ3h2qy0CTtmZ725tEJ8QmAJTr6ZkOeY/edit?gid=1488221077#gid=1488221077';
+                    apiBtn.target = '_blank';
+                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
+                    
+                    apiBtn.style.display = 'inline-block';
+                    apiBtn.style.margin = '25px auto 10px auto';
+                    apiBtn.style.padding = '12px 28px';
+                    apiBtn.style.backgroundColor = '#2563eb';
+                    apiBtn.style.color = '#ffffff';
+                    apiBtn.style.textDecoration = 'none';
+                    apiBtn.style.borderRadius = '6px';
+                    apiBtn.style.fontWeight = 'bold';
+                    apiBtn.style.fontSize = '14px';
+                    apiBtn.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                    apiBtn.style.transition = 'all 0.2s ease';
+
+                    const btnWrapper = document.createElement('div');
+                    btnWrapper.style.textAlign = 'center';
+                    btnWrapper.appendChild(apiBtn);
+
+                    document.querySelector('.container').appendChild(btnWrapper);
+                    btnWrapper.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+
         window.onload = function() {
             fetchDataFromSheet();
         };
@@ -345,9 +379,38 @@
             return `${d}/${m}/${y}`;
         }
 
+        // TẢI VÀ CẬP NHẬT DỮ LIỆU NGẦM (KHÔNG HIỂN THỊ DÒNG CHỮ CẬP NHẬT)
         function fetchDataFromSheet() {
-            document.getElementById('loading').style.display = 'block';
+            const CACHE_KEY = "REPORT_DATA_CACHE_V1";
+            const cachedDataString = localStorage.getItem(CACHE_KEY);
+            let hasCache = false;
 
+            // Đọc dữ liệu từ bộ nhớ tạm (nếu có)
+            if (cachedDataString) {
+                try {
+                    let cachedData = JSON.parse(cachedDataString);
+                    // Chuyển lại dữ liệu ngày về dạng Date Object
+                    cachedData.forEach(item => {
+                        if (item.timestampObjStr) item.timestampObj = new Date(item.timestampObjStr);
+                    });
+                    
+                    allReportData = cachedData;
+                    hasCache = true;
+                    
+                    document.getElementById('report-table').style.display = 'table';
+                    populateNameDropdown();
+                    applyFilter(false);
+                } catch (e) {
+                    console.error("Lỗi đọc cache:", e);
+                }
+            }
+
+            // Chỉ hiển thị biểu tượng Spinner khi chưa có bất kỳ cache nào
+            if (!hasCache) {
+                document.getElementById('loading').style.display = 'block';
+            }
+
+            // Đồng bộ ngầm dữ liệu từ Google Sheets
             fetch(CSV_URL)
                 .then(response => response.text())
                 .then(text => {
@@ -369,6 +432,7 @@
                             let dateReportObj = parseGoogleDate(rawTimestamp);
 
                             rawData.push({
+                                timestampObjStr: dateReportObj ? dateReportObj.toISOString() : null,
                                 timestampObj: dateReportObj,
                                 timestampUI: formatDateUI(dateReportObj),
                                 name: sanitizeName(rawName),
@@ -381,26 +445,34 @@
                     // Sắp xếp báo cáo mới nhất lên đầu
                     rawData.sort((a, b) => b.timestampObj - a.timestampObj);
 
-                    allReportData = rawData;
+                    const newDataString = JSON.stringify(rawData);
                     
                     document.getElementById('loading').style.display = 'none';
-                    
-                    // FIX: Hiển thị bảng có id là "report-table" thay vì "schedule-table"
-                    document.getElementById('report-table').style.display = 'table'; 
-                    
-                    populateNameDropdown();
-                    
-                    // Lần đầu mở trang web: isUserAction = false -> Hiển thị 10 mục
-                    applyFilter(false); 
+                    document.getElementById('report-table').style.display = 'table';
+
+                    // So sánh và tự động cập nhật lại bảng nếu có dữ liệu mới
+                    if (newDataString !== cachedDataString) {
+                        localStorage.setItem(CACHE_KEY, newDataString);
+                        allReportData = rawData;
+                        
+                        populateNameDropdown();
+                        applyFilter(false);
+                    }
                 })
                 .catch(err => {
-                    console.error("Lỗi tải dữ liệu:", err);
-                    document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu. Hãy chắc chắn Sheet đã được cấp quyền Chia sẻ (Anyone with the link).</span>';
+                    console.error("Lỗi tải dữ liệu ngầm:", err);
+                    document.getElementById('loading').style.display = 'none';
+                    if (!hasCache) {
+                        document.getElementById('loading').style.display = 'block';
+                        document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu. Hãy chắc chắn Sheet đã được cấp quyền Chia sẻ (Anyone with the link).</span>';
+                    }
                 });
         }
 
         function populateNameDropdown() {
             const nameSelect = document.getElementById('filter-name');
+            const currentSelected = nameSelect.value;
+            
             nameSelect.innerHTML = '<option value="ALL">-- Tất cả nhân sự --</option>';
             
             let names = new Set();
@@ -414,6 +486,8 @@
                 option.textContent = name;
                 nameSelect.appendChild(option);
             });
+
+            if (currentSelected) nameSelect.value = currentSelected;
         }
 
         // isUserAction = false (Lúc mới vào trang), isUserAction = true (Khi bấm Lọc & Tải)
