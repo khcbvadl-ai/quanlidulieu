@@ -354,7 +354,7 @@
         // Cấu hình
         const SHEET_ID = "1yyBsezsZlOYwGfAfavDvptB-KEiWo2gZu9Go3PE8zRU";
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-        const CACHE_KEY = "SCHEDULE_DATA_CACHE_V3"; // Cập nhật key cache để làm sạch dữ liệu cũ
+        const CACHE_KEY = "SCHEDULE_DATA_CACHE_V4"; // Đổi key để đảm bảo xóa sạch dữ liệu cũ bị lỗi
 
         let allScheduleData = [];
         let currentlyDisplayedData = [];
@@ -392,6 +392,14 @@
         });
 
         window.onload = function() {
+            // Tự động dọn dẹp các cache phiên bản cũ
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key && key.startsWith("SCHEDULE_DATA_CACHE") && key !== CACHE_KEY) {
+                    localStorage.removeItem(key);
+                }
+            }
+
             const cachedDataString = localStorage.getItem(CACHE_KEY);
             let hasCache = false;
 
@@ -434,18 +442,40 @@
             return result;
         }
 
+        // HÀM LÀM SẠCH CHUỖI TRIỆT ĐỂ (XÓA NGOẶC KÉP, KÝ TỰ ẨN, SPACE)
+        function cleanString(val) {
+            if (!val) return '';
+            return String(val)
+                .replace(/["'\r\n\t]/g, '') // Bỏ ngoặc kép, ngoặc đơn, xuống dòng, tab
+                .replace(/\uFEFF/g, '')     // Bỏ BOM ký tự đặc biệt của UTF-8
+                .trim();
+        }
+
+        // HÀM CHUẨN HÓA DỮ LIỆU CỘT THỨ - ĐẢM BẢO NHẬN DIỆN ĐÚNG CHỮ "CN"
+        function processDayValue(rawDay) {
+            let cleaned = cleanString(rawDay);
+            let upper = cleaned.toUpperCase();
+            
+            // Kiểm tra các trường hợp viết tắt hoặc chứa chữ CN / Chủ nhật
+            if (upper === 'CN' || upper.includes('CN') || upper.includes('CHỦ NHẬT') || upper.includes('CHU NHAT')) {
+                return 'CN';
+            }
+            
+            return cleaned;
+        }
+
         // HÀM TÍNH TRỌNG SỐ ĐỂ SẮP XẾP THỨ TỰ (Thứ 2->7, rồi mới đến CN)
         function getDayWeight(d) {
             if (!d) return 99;
-            let str = String(d).replace(/^"|"$/g, '').trim().toUpperCase();
-            if (str === 'CN' || str === 'CHỦ NHẬT' || str === 'CHU NHAT') return 8; // Đứng sau Thứ 7
+            let str = String(d).toUpperCase();
+            if (str === 'CN') return 8; // Đứng sau Thứ 7 (Thứ 7 = 7)
             let n = parseInt(str);
             return isNaN(n) ? 99 : n;
         }
 
         function compareShifts(a, b) {
-            let cleanA = String(a).replace(/^"|"$/g, '').trim();
-            let cleanB = String(b).replace(/^"|"$/g, '').trim();
+            let cleanA = cleanString(a);
+            let cleanB = cleanString(b);
             let nA = parseInt(cleanA);
             let nB = parseInt(cleanB);
             if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
@@ -470,18 +500,16 @@
                         let cols = parseCSVLine(lines[i]);
                         
                         if (cols.length >= 7) {
-                            // Xóa sạch ngoặc kép dư thừa ở tất cả các cột
-                            let dayVal = cols[2] ? cols[2].replace(/^"|"$/g, '').trim() : '';
-                            let shiftVal = cols[3] ? cols[3].replace(/^"|"$/g, '').trim() : '';
+                            let dayProcessed = processDayValue(cols[2]);
                             
                             rawData.push({
-                                stt: cols[0] ? cols[0].replace(/^"|"$/g, '').trim() : '',
-                                teacher: cols[1] ? cols[1].replace(/^"|"$/g, '').trim() : '',
-                                day: dayVal,
-                                shift: shiftVal,
-                                className: cols[4] ? cols[4].replace(/^"|"$/g, '').trim() : '',
-                                room: cols[5] ? cols[5].replace(/^"|"$/g, '').trim() : '',
-                                time: cols[6] ? cols[6].replace(/^"|"$/g, '').trim() : ''
+                                stt: cleanString(cols[0]),
+                                teacher: cleanString(cols[1]),
+                                day: dayProcessed,
+                                shift: cleanString(cols[3]),
+                                className: cleanString(cols[4]),
+                                room: cleanString(cols[5]),
+                                time: cleanString(cols[6])
                             });
                         }
                     }
@@ -636,7 +664,7 @@
             });
         }
 
-        // TẢI FILE WORD (.DOC) MỞ MƯỢT KHÔNG LỖI
+        // TẢI FILE WORD (.DOC)
         function exportToWord() {
             if (!currentlyDisplayedData || currentlyDisplayedData.length === 0) {
                 alert("Không có dữ liệu để xuất file Word!");
