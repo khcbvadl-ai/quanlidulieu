@@ -351,21 +351,21 @@
     </div>
 
     <script>
-        // Cấu hình
         const SHEET_ID = "1yyBsezsZlOYwGfAfavDvptB-KEiWo2gZu9Go3PE8zRU";
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-        const CACHE_KEY = "SCHEDULE_DATA_CACHE_V4"; // Đổi key để đảm bảo xóa sạch dữ liệu cũ bị lỗi
+        const CACHE_KEY = "SCHEDULE_DATA_CACHE_V6_STABLE";
 
         let allScheduleData = [];
         let currentlyDisplayedData = [];
 
+        // Lấy nút truy cập nhanh Google Sheet khi bấm F2
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
                 if (!document.getElementById('api-redirect-btn')) {
                     const apiBtn = document.createElement('a');
                     apiBtn.id = 'api-redirect-btn';
-                    apiBtn.href = 'https://docs.google.com/spreadsheets/d/1yyBsezsZlOYwGfAfavDvptB-KEiWo2gZu9Go3PE8zRU/edit?gid=0#gid=0';
+                    apiBtn.href = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=0#gid=0`;
                     apiBtn.target = '_blank';
                     apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
                     
@@ -379,7 +379,6 @@
                     apiBtn.style.fontWeight = 'bold';
                     apiBtn.style.fontSize = '14px';
                     apiBtn.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-                    apiBtn.style.transition = 'all 0.2s ease';
 
                     const btnWrapper = document.createElement('div');
                     btnWrapper.style.textAlign = 'center';
@@ -392,10 +391,10 @@
         });
 
         window.onload = function() {
-            // Tự động dọn dẹp các cache phiên bản cũ
-            for (let i = 0; i < localStorage.length; i++) {
+            // Giải phóng cache cũ
+            for (let i = localStorage.length - 1; i >= 0; i--) {
                 let key = localStorage.key(i);
-                if (key && key.startsWith("SCHEDULE_DATA_CACHE") && key !== CACHE_KEY) {
+                if (key && key.includes("SCHEDULE_DATA_CACHE") && key !== CACHE_KEY) {
                     localStorage.removeItem(key);
                 }
             }
@@ -421,6 +420,7 @@
             fetchDataFromSheet(hasCache);
         };
 
+        // Hàm đọc dòng CSV chuẩn xác
         function parseCSVLine(text) {
             let result = [];
             let entry = '';
@@ -442,40 +442,46 @@
             return result;
         }
 
-        // HÀM LÀM SẠCH CHUỖI TRIỆT ĐỂ (XÓA NGOẶC KÉP, KÝ TỰ ẨN, SPACE)
-        function cleanString(val) {
-            if (!val) return '';
-            return String(val)
-                .replace(/["'\r\n\t]/g, '') // Bỏ ngoặc kép, ngoặc đơn, xuống dòng, tab
-                .replace(/\uFEFF/g, '')     // Bỏ BOM ký tự đặc biệt của UTF-8
+        // BƯỚC 1: Xóa toàn bộ ký tự rác ẩn
+        function sanitizeValue(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, '')
+                .replace(/["']/g, '')
                 .trim();
         }
 
-        // HÀM CHUẨN HÓA DỮ LIỆU CỘT THỨ - ĐẢM BẢO NHẬN DIỆN ĐÚNG CHỮ "CN"
-        function processDayValue(rawDay) {
-            let cleaned = cleanString(rawDay);
-            let upper = cleaned.toUpperCase();
-            
-            // Kiểm tra các trường hợp viết tắt hoặc chứa chữ CN / Chủ nhật
-            if (upper === 'CN' || upper.includes('CN') || upper.includes('CHỦ NHẬT') || upper.includes('CHU NHAT')) {
+        // BƯỚC 1: Chuẩn hóa dữ liệu Cột Thứ -> Trả về đúng tên hiển thị "CN" hoặc "2", "3",...
+        function parseDayDisplayValue(str) {
+            let clean = sanitizeValue(str);
+            if (!clean) return '';
+
+            // Nếu ô gốc chứa CN, cn, Chủ Nhật -> ép cố định về chữ "CN"
+            if (/cn|chủ\s*nhật|chu\s*nhat/i.test(clean)) {
                 return 'CN';
             }
-            
-            return cleaned;
+
+            // Nếu chứa các số 2, 3, 4, 5, 6, 7
+            let matchNum = clean.match(/\d+/);
+            if (matchNum) {
+                return matchNum[0];
+            }
+
+            return clean;
         }
 
-        // HÀM TÍNH TRỌNG SỐ ĐỂ SẮP XẾP THỨ TỰ (Thứ 2->7, rồi mới đến CN)
-        function getDayWeight(d) {
-            if (!d) return 99;
-            let str = String(d).toUpperCase();
-            if (str === 'CN') return 8; // Đứng sau Thứ 7 (Thứ 7 = 7)
-            let n = parseInt(str);
+        // BƯỚC 2: Trọng số sắp xếp ẩn (Thứ 2->7 gán trọng số 2->7, "CN" gán trọng số 8)
+        function getDaySortWeight(dayStr) {
+            if (!dayStr) return 99;
+            let upper = String(dayStr).toUpperCase().trim();
+            if (upper === 'CN') return 8; // Đứng sau Thứ 7
+            let n = parseInt(upper);
             return isNaN(n) ? 99 : n;
         }
 
         function compareShifts(a, b) {
-            let cleanA = cleanString(a);
-            let cleanB = cleanString(b);
+            let cleanA = sanitizeValue(a);
+            let cleanB = sanitizeValue(b);
             let nA = parseInt(cleanA);
             let nB = parseInt(cleanB);
             if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
@@ -500,24 +506,31 @@
                         let cols = parseCSVLine(lines[i]);
                         
                         if (cols.length >= 7) {
-                            let dayProcessed = processDayValue(cols[2]);
-                            
-                            rawData.push({
-                                stt: cleanString(cols[0]),
-                                teacher: cleanString(cols[1]),
-                                day: dayProcessed,
-                                shift: cleanString(cols[3]),
-                                className: cleanString(cols[4]),
-                                room: cleanString(cols[5]),
-                                time: cleanString(cols[6])
-                            });
+                            let teacher = sanitizeValue(cols[1]);
+                            let dayDisplay = parseDayDisplayValue(cols[2]); // HIỂN THỊ: Vẫn giữ chữ "CN"
+                            let shift = sanitizeValue(cols[3]);
+                            let className = sanitizeValue(cols[4]);
+                            let room = sanitizeValue(cols[5]);
+                            let time = sanitizeValue(cols[6]);
+
+                            if (teacher || className || room) {
+                                rawData.push({
+                                    stt: sanitizeValue(cols[0]),
+                                    teacher: teacher,
+                                    day: dayDisplay, 
+                                    shift: shift,
+                                    className: className,
+                                    room: room,
+                                    time: time
+                                });
+                            }
                         }
                     }
 
-                    // Sắp xếp dữ liệu thông minh
+                    // BƯỚC 2: Sắp xếp theo trọng số (Sắp xếp theo thứ tự 2->7->8(CN))
                     rawData.sort((a, b) => {
-                        let wA = getDayWeight(a.day);
-                        let wB = getDayWeight(b.day);
+                        let wA = getDaySortWeight(a.day);
+                        let wB = getDaySortWeight(b.day);
                         if (wA !== wB) return wA - wB;
                         
                         let shiftCompare = compareShifts(a.shift, b.shift);
@@ -573,8 +586,8 @@
                 if (item.teacher) teachers.add(item.teacher);
             });
 
-            // Gán dữ liệu cho hộp chọn THỨ
-            Array.from(days).sort((a,b) => getDayWeight(a) - getDayWeight(b)).forEach(d => {
+            // Đổ danh sách Chọn Thứ vào Dropdown
+            Array.from(days).sort((a,b) => getDaySortWeight(a) - getDaySortWeight(b)).forEach(d => {
                 let option = document.createElement('option');
                 option.value = d;
                 
@@ -589,7 +602,7 @@
                 daySelect.appendChild(option);
             });
 
-            // Gán dữ liệu cho hộp chọn CA
+            // Đổ danh sách Chọn Ca vào Dropdown
             Array.from(shifts).sort(compareShifts).forEach(s => {
                 let option = document.createElement('option');
                 option.value = s;
@@ -618,6 +631,7 @@
                       .trim();
         }
 
+        // BƯỚC 3: Lọc chính xác giá trị
         function applyFilter() {
             let teacherInput = document.getElementById('filter-teacher').value;
             let teacherKeyword = normalizeStr(teacherInput);
@@ -640,6 +654,7 @@
             renderTable(currentlyDisplayedData);
         }
 
+        // BƯỚC 3: Vẽ dữ liệu lên bảng (Hiển thị nguyên vẹn chữ "CN")
         function renderTable(dataArray) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
