@@ -172,6 +172,43 @@
         let allData = [];
         let tableHeaders = [];
 
+        // LẮNG NGHE SỰ KIỆN BẤM PHÍM F2 ĐỂ HIỆN NÚT CHUYỂN HƯỚNG TỚI API
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F2') {
+                e.preventDefault(); // Ngăn chặn hành vi mặc định của F2
+                
+                // Nếu chưa có nút thì mới tạo thêm
+                if (!document.getElementById('api-redirect-btn')) {
+                    const apiBtn = document.createElement('a');
+                    apiBtn.id = 'api-redirect-btn';
+                    apiBtn.href = 'https://script.google.com/macros/s/1vWJ_bkiGPEHQyTKhmwDPfsU3YT_ldIhZ/exec';
+                    apiBtn.target = '_blank';
+                    apiBtn.innerHTML = '<i class="fa-solid fa-code"></i> Truy cập API Hệ thống';
+                    
+                    // Style cho nút chuyển hướng
+                    apiBtn.style.display = 'inline-block';
+                    apiBtn.style.margin = '25px auto 10px auto';
+                    apiBtn.style.padding = '12px 24px';
+                    apiBtn.style.backgroundColor = '#2563eb';
+                    apiBtn.style.color = '#ffffff';
+                    apiBtn.style.textDecoration = 'none';
+                    apiBtn.style.borderRadius = '6px';
+                    apiBtn.style.fontWeight = 'bold';
+                    apiBtn.style.fontSize = '14px';
+                    apiBtn.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                    apiBtn.style.transition = 'all 0.2s ease';
+
+                    // Khối căn giữa nút ở cuối container
+                    const btnWrapper = document.createElement('div');
+                    btnWrapper.style.textAlign = 'center';
+                    btnWrapper.appendChild(apiBtn);
+
+                    document.querySelector('.container').appendChild(btnWrapper);
+                    btnWrapper.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+
         window.onload = function() {
             loadConfigAndInit();
         };
