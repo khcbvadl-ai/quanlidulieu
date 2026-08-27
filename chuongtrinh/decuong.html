@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phân Công KPI Chi Tiết</title>
+    <title>Đề cương Chi Tiết</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -144,8 +144,8 @@
             <div class="filter-group">
                 <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học:</label>
                 <select id="filter-year" onchange="changeYear()">
-                    <option value="2026-2027">Năm học 2026-2027</option>
-                    <option value="2027-2028">Năm học 2027-2028</option>
+                    <option value="2024">Chương trình năm 2024</option>
+                    <option value="2026">Chương trình năm 2026</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -182,7 +182,7 @@
     <script>
         const SHEET_ID = "1hByGaZZYvJPju07thcxeqjchmm_-2kXs";
         let allKPIData = [];
-        let currentYear = "2026-2027"; 
+        let currentYear = "2024"; 
 
         window.onload = function() {
             document.getElementById('filter-year').value = currentYear;
