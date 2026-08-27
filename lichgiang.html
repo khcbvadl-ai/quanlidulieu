@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lịch Giảng Dạy Khoa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Nhúng thư viện tạo file .docx chuẩn OpenXML và lưu file -->
+    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
     <style>
         :root {
             --primary-color: #1a4d2e;
@@ -309,7 +314,7 @@
                         <option value="ALL">-- Tất cả --</option>
                     </select>
                 </div>
-                <!-- 3. Lọc Giảng viên (Đã chuyển về cuối) -->
+                <!-- 3. Lọc Giảng viên -->
                 <div class="filter-group">
                     <label for="filter-teacher"><i class="fa-solid fa-user-tie"></i> Giảng viên:</label>
                     <input type="text" id="filter-teacher" list="teacher-list" placeholder="-- Tất cả giảng viên --" oninput="applyFilter()" onchange="applyFilter()">
@@ -538,7 +543,6 @@
             });
         }
 
-        // HÀM CHUẨN HÓA TÌM KIẾM CHỊU LỖI
         function normalizeStr(str) {
             if (!str) return '';
             return str.toLowerCase()
@@ -556,17 +560,13 @@
             let selectedShift = document.getElementById('filter-shift').value;
 
             currentlyDisplayedData = allScheduleData.filter(item => {
-                // Lọc theo Giảng viên
                 let matchTeacher = true;
                 if (teacherKeyword !== '') {
                     let normTeacherName = normalizeStr(item.teacher);
                     matchTeacher = normTeacherName.includes(teacherKeyword);
                 }
 
-                // Lọc theo Thứ
                 let matchDay = (selectedDay === "ALL") || (item.day.toString() === selectedDay);
-
-                // Lọc theo Ca
                 let matchShift = (selectedShift === "ALL") || (item.shift.toString() === selectedShift);
 
                 return matchTeacher && matchDay && matchShift;
@@ -599,79 +599,101 @@
             });
         }
 
-        // TẢI FILE .DOCX ĐÃ ĐƯỢC CHUẨN HÓA KHÔNG LỖI
+        // TẢI FILE WORD (.DOCX) CHUẨN OPENXML BẰNG THƯ VIỆN DOCX.JS
         function exportToWord() {
             if (!currentlyDisplayedData || currentlyDisplayedData.length === 0) {
                 alert("Không có dữ liệu để xuất file Word!");
                 return;
             }
 
-            let tableRows = currentlyDisplayedData.map((item, index) => `
-                <tr>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${index + 1}</td>
-                    <td style="padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.teacher}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.shift}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.className}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.room}</td>
-                </tr>
-            `).join('');
+            if (typeof docx === 'undefined') {
+                alert("Đang tải thư viện xuất Word, vui lòng thử lại sau vài giây...");
+                return;
+            }
 
-            let fileContent = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-                      xmlns:w='urn:schemas-microsoft-com:office:word' 
-                      xmlns='http://www.w3.org/TR/REC-html40'>
-                <head>
-                    <meta charset='utf-8'>
-                    <title>Lịch Giảng Dạy Khoa</title>
-                    <!--[if gte mso 9]>
-                    <xml>
-                        <w:WordDocument>
-                            <w:View>Print</w:View>
-                            <w:Zoom>100</w:Zoom>
-                            <w:DoNotOptimizeForBrowser/>
-                        </w:WordDocument>
-                    </xml>
-                    <![endif]-->
-                    <style>
-                        @page { size: A4; margin: 2cm; }
-                        body { font-family: 'Times New Roman', serif; font-size: 12pt; color: #000; }
-                        h2 { text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 16pt; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                        th { background-color: #f2f2f2; padding: 10px; border: 1px solid #000000; font-size: 11pt; font-weight: bold; }
-                    </style>
-                </head>
-                <body>
-                    <h2>BÁO CÁO LỊCH GIẢNG DẠY KHOA</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 8%;">STT</th>
-                                <th style="width: 35%;">HỌ VÀ TÊN GIẢNG VIÊN</th>
-                                <th style="width: 15%;">CA</th>
-                                <th style="width: 22%;">LỚP</th>
-                                <th style="width: 20%;">PHÒNG</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
-                </body>
-                </html>
-            `;
+            const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, AlignmentType, WidthType, HeadingLevel } = docx;
 
-            let blob = new Blob(['\ufeff' + fileContent], {
-                type: 'application/msword'
+            // Ô tạo Bảng trợ giúp
+            const createCell = (text, isHeader = false, align = AlignmentType.LEFT, widthPct = 20) => {
+                return new TableCell({
+                    width: { size: widthPct, type: WidthType.PERCENTAGE },
+                    shading: isHeader ? { fill: "F2F2F2" } : undefined,
+                    children: [
+                        new Paragraph({
+                            alignment: align,
+                            children: [
+                                new TextRun({
+                                    text: text ? String(text) : '',
+                                    bold: isHeader,
+                                    font: "Times New Roman",
+                                    size: 22 // 11pt
+                                })
+                            ]
+                        })
+                    ]
+                });
+            };
+
+            // Hàng Tiêu Đề Bảng
+            const headerRow = new TableRow({
+                children: [
+                    createCell("STT", true, AlignmentType.CENTER, 8),
+                    createCell("HỌ VÀ TÊN GIẢNG VIÊN", true, AlignmentType.LEFT, 37),
+                    createCell("CA", true, AlignmentType.CENTER, 15),
+                    createCell("LỚP", true, AlignmentType.CENTER, 20),
+                    createCell("PHÒNG", true, AlignmentType.CENTER, 20)
+                ]
             });
 
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = 'Lich_Giang_Day.docx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // Các Hàng Dữ Liệu
+            const dataRows = currentlyDisplayedData.map((item, index) => {
+                return new TableRow({
+                    children: [
+                        createCell(index + 1, false, AlignmentType.CENTER, 8),
+                        createCell(item.teacher, false, AlignmentType.LEFT, 37),
+                        createCell(item.shift, false, AlignmentType.CENTER, 15),
+                        createCell(item.className, false, AlignmentType.CENTER, 20),
+                        createCell(item.room, false, AlignmentType.CENTER, 20)
+                    ]
+                });
+            });
+
+            // Bảng chính
+            const table = new Table({
+                width: { size: 100, type: WidthType.PERCENTAGE },
+                rows: [headerRow, ...dataRows]
+            });
+
+            // Tiêu đề văn bản
+            const title = new Paragraph({
+                alignment: AlignmentType.CENTER,
+                space: { after: 300 },
+                children: [
+                    new TextRun({
+                        text: "BÁO CÁO LỊCH GIẢNG DẠY KHOA",
+                        bold: true,
+                        size: 32, // 16pt
+                        font: "Times New Roman",
+                        color: "1A4D2E"
+                    })
+                ]
+            });
+
+            // Tạo Document
+            const doc = new Document({
+                sections: [{
+                    properties: {},
+                    children: [title, table]
+                }]
+            });
+
+            // Đóng gói và tải file .docx thật
+            Packer.toBlob(doc).then(blob => {
+                saveAs(blob, "Lich_Giang_Day.docx");
+            }).catch(err => {
+                console.error("Lỗi xuất file Word:", err);
+                alert("Có lỗi xảy ra khi tạo file Word. Vui lòng thử lại!");
+            });
         }
     </script>
 </body>
