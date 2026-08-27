@@ -271,21 +271,25 @@
             let hasCache = false;
 
             if (cachedDataString && cachedHeadersString) {
-                try {
-                    allData = JSON.parse(cachedDataString);
-                    tableHeaders = JSON.parse(cachedHeadersString);
-                    hasCache = true;
-                    
-                    renderHeaders(tableHeaders);
-                    document.getElementById('data-table').style.display = 'table';
-                    populateFilterDropdown();
-                    applyFilter();
-                    
-                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Đang kiểm tra dữ liệu mới...';
-                } catch (e) {
-                    console.error("Lỗi đọc cache:", e);
-                }
-            }
+    try {
+        allData = JSON.parse(cachedDataString);
+        tableHeaders = JSON.parse(cachedHeadersString);
+        hasCache = true;
+        
+        renderHeaders(tableHeaders);
+        
+        // --- ẨN LOADING VÀ HIỂN THỊ BẢNG NGHAY KHI CÓ CACHE ---
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('data-table').style.display = 'table';
+        
+        populateFilterDropdown();
+        applyFilter();
+        
+        document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Đang kiểm tra dữ liệu mới...';
+    } catch (e) {
+        console.error("Lỗi đọc cache:", e);
+    }
+}
 
             if (!isBackgroundSync && !hasCache) {
                 document.getElementById('loading').style.display = 'block';
@@ -350,9 +354,9 @@
                         renderHeaders(tableHeaders);
                         populateFilterDropdown();
                         applyFilter();
-                    } else if (!isBackgroundSync && !hasCache) {
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('data-table').style.display = 'table';
+                    } else {
+                            document.getElementById('loading').style.display = 'none';
+                            document.getElementById('data-table').style.display = 'table';
                     }
                     
                     document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu tab ${year} đã được đồng bộ`;
