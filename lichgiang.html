@@ -434,12 +434,12 @@
             return result;
         }
 
-        // HÀM TÍNH TRỌNG SỐ ĐỂ SẮP XẾP ĐÚNG (Thứ 2->7, rồi Chủ nhật)
+        // HÀM TÍNH TRỌNG SỐ ĐỂ SẮP XẾP THỨ TỰ (Thứ 2->7, rồi mới đến CN)
         function getDayWeight(d) {
             if (!d) return 99;
-            let upper = d.toUpperCase();
-            if (upper === 'CN') return 8; 
-            let n = parseInt(d);
+            let str = String(d).trim().toUpperCase();
+            if (str === 'CN') return 8; // Đứng sau thứ 7 (thứ 7 = 7)
+            let n = parseInt(str);
             return isNaN(n) ? 99 : n;
         }
 
@@ -449,7 +449,7 @@
             if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
             if (!isNaN(nA)) return -1;
             if (!isNaN(nB)) return 1;
-            return a.localeCompare(b, 'vi');
+            return String(a).localeCompare(String(b), 'vi');
         }
 
         function fetchDataFromSheet(isBackgroundSync) {
@@ -471,8 +471,8 @@
                             rawData.push({
                                 stt: cols[0].trim(),
                                 teacher: cols[1].trim(),
-                                day: cols[2].trim(), // Lấy văn bản gốc (Không ép thành int)
-                                shift: cols[3].trim(), // Lấy văn bản gốc
+                                day: cols[2].trim(), // Giữ nguyên giá trị văn bản từ Sheet
+                                shift: cols[3].trim(),
                                 className: cols[4].trim(),
                                 room: cols[5].trim(),
                                 time: cols[6].trim()
@@ -539,13 +539,14 @@
                 if (item.teacher) teachers.add(item.teacher);
             });
 
-            // Gán dữ liệu cho hộp chọn THỨ (Xử lý thông minh chữ "CN")
+            // Gán dữ liệu cho hộp chọn THỨ (Xử lý chữ CN và số)
             Array.from(days).sort((a,b) => getDayWeight(a) - getDayWeight(b)).forEach(d => {
                 let option = document.createElement('option');
                 option.value = d;
                 
-                if (d.toUpperCase() === 'CN') {
-                    option.textContent = "Chủ nhật";
+                let strD = String(d).trim().toUpperCase();
+                if (strD === 'CN') {
+                    option.textContent = "CN";
                 } else if (!isNaN(parseInt(d))) {
                     option.textContent = "Thứ " + d;
                 } else {
@@ -615,14 +616,11 @@
             }
 
             dataArray.forEach((item, index) => {
-                // Xử lý hiển thị Chủ nhật trên bảng
-                let displayDay = (item.day.toUpperCase() === 'CN') ? 'Chủ nhật' : item.day;
-
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight: bold; text-align: center;">${index + 1}</td>
                     <td style="font-weight: bold; color: var(--teacher-color);">${item.teacher}</td>
-                    <td style="text-align: center;">${displayDay}</td>
+                    <td style="text-align: center;">${item.day}</td>
                     <td style="text-align: center;">${item.shift}</td>
                     <td style="text-align: center;">${item.className}</td>
                     <td style="font-weight: bold; text-align: center;">${item.room}</td>
@@ -632,7 +630,7 @@
             });
         }
 
-        // TẢI FILE WORD ĐUÔI .DOC MỞ CHUẨN 100% KHÔNG LỖI
+        // TẢI FILE WORD (.DOC) CHUẨN MỞ MƯỢT MÀ
         function exportToWord() {
             if (!currentlyDisplayedData || currentlyDisplayedData.length === 0) {
                 alert("Không có dữ liệu để xuất file Word!");
@@ -640,12 +638,11 @@
             }
 
             let tableRows = currentlyDisplayedData.map((item, index) => {
-                let displayDay = (item.day.toUpperCase() === 'CN') ? 'Chủ nhật' : item.day;
                 return `
                 <tr>
                     <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${index + 1}</td>
                     <td style="padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.teacher}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${displayDay}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.day}</td>
                     <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.shift}</td>
                     <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.className}</td>
                     <td style="text-align: center; padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.room}</td>
@@ -658,7 +655,7 @@
                       xmlns='http://www.w3.org/TR/REC-html40'>
                 <head>
                     <meta charset='utf-8'>
-                    <title>Báo cáo Lịch Giảng Dạy</title>
+                    <title>Lịch Giảng</title>
                     <!--[if gte mso 9]>
                     <xml>
                         <w:WordDocument>
@@ -677,7 +674,7 @@
                     </style>
                 </head>
                 <body>
-                    <h2>BÁO CÁO LỊCH GIẢNG DẠY KHOA</h2>
+                    <h2>LỊCH GIẢNG</h2>
                     <table>
                         <thead>
                             <tr>
@@ -697,7 +694,6 @@
                 </html>
             `;
 
-            // Lưu dưới dạng .doc (Legacy Word format)
             let blob = new Blob(['\ufeff' + htmlContent], {
                 type: 'application/msword'
             });
@@ -705,7 +701,7 @@
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = 'Lich_Giang_Day.doc'; // GIỮ ĐUÔI .DOC ĐỂ KHÔNG BỊ LỖI
+            a.download = 'Lich_Giang.doc';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
