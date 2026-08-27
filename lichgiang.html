@@ -17,262 +17,54 @@
             --btn-blue-hover: #1d4ed8;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #ffffff; color: var(--text-color); padding: 20px; font-size: 15px; }
+        .container { max-width: 1200px; margin: 0 auto; }
 
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #ffffff;
-            color: var(--text-color);
-            padding: 20px;
-            font-size: 15px;
-        }
+        /* HEADER NAVBAR */
+        .top-navbar { display: flex; justify-content: space-between; align-items: center; background-color: var(--secondary-color); margin-bottom: 30px; padding: 0 10px 0 20px; }
+        .logo-box { display: flex; align-items: center; }
+        .logo-img { height: 45px; object-fit: contain; margin: 10px 0; }
+        .nav-menu { display: flex; list-style: none; height: 100%; }
+        .nav-item { text-decoration: none; color: #333; padding: 22px 25px; font-weight: 500; font-size: 15px; transition: background-color 0.2s; border-bottom: 3px solid transparent; display: flex; align-items: center; }
+        .nav-item:hover { background-color: #e2e8f0; }
+        .nav-item.active { background-color: #ffffff; border-bottom: 3px solid #000000; font-weight: bold; }
+        .header-title { text-align: center; color: var(--primary-color); margin-bottom: 25px; font-size: 22px; text-transform: uppercase; font-weight: 700; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        /* FILTER & BUTTON */
+        .filter-section { display: flex; gap: 15px; margin-bottom: 25px; background: var(--secondary-color); padding: 15px 20px; border-radius: 8px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+        .filter-container-left { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .filter-group { display: flex; align-items: center; gap: 8px; }
+        .filter-group label { font-weight: 500; color: #4a5568; font-size: 14px; white-space: nowrap; }
+        .filter-group select, .filter-group input { padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e0; outline: none; font-size: 14px; background-color: white; }
+        .filter-group select { min-width: 120px; cursor: pointer; }
+        .filter-group input { width: 220px; }
+        .filter-group select:focus, .filter-group input:focus { border-color: var(--primary-color); }
+        .btn-download { background-color: var(--btn-blue); color: #ffffff; border: none; padding: 9px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background-color 0.2s, transform 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-download:hover { background-color: var(--btn-blue-hover); }
 
-        /* --- HEADER & NAVBAR --- */
-        .top-navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--secondary-color);
-            margin-bottom: 30px;
-            padding: 0 10px 0 20px;
-        }
-
-        .logo-box {
-            display: flex;
-            align-items: center;
-        }
-
-        .logo-img {
-            height: 45px;
-            object-fit: contain;
-            margin: 10px 0;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            height: 100%;
-        }
-
-        .nav-item {
-            text-decoration: none;
-            color: #333;
-            padding: 22px 25px;
-            font-weight: 500;
-            font-size: 15px;
-            transition: background-color 0.2s;
-            border-bottom: 3px solid transparent;
-            display: flex;
-            align-items: center;
-        }
-
-        .nav-item:hover {
-            background-color: #e2e8f0;
-        }
-
-        .nav-item.active {
-            background-color: #ffffff;
-            border-bottom: 3px solid #000000;
-            font-weight: bold;
-        }
-
-        .header-title {
-            text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 25px;
-            font-size: 22px;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        /* --- VÙNG LỌC DỮ LIỆU & NÚT TẢI LỊCH --- */
-        .filter-section {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            background: var(--secondary-color);
-            padding: 15px 20px;
-            border-radius: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: space-between;
-        }
-
-        .filter-container-left {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .filter-group label {
-            font-weight: 500;
-            color: #4a5568;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-
-        .filter-group select, .filter-group input {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e0;
-            outline: none;
-            font-size: 14px;
-            background-color: white;
-        }
-
-        .filter-group select {
-            min-width: 120px;
-            cursor: pointer;
-        }
-
-        .filter-group input {
-            width: 220px;
-        }
-
-        .filter-group select:focus, .filter-group input:focus {
-            border-color: var(--primary-color);
-        }
-
-        .btn-download {
-            background-color: var(--btn-blue);
-            color: #ffffff;
-            border: none;
-            padding: 9px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.2s, transform 0.1s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .btn-download:hover {
-            background-color: var(--btn-blue-hover);
-        }
-
-        .btn-download:active {
-            transform: scale(0.98);
-        }
-
-        /* --- BẢNG DỮ LIỆU --- */
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        thead {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        th, td {
-            padding: 14px 15px;
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
-        }
-
-        th {
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            text-align: center;
-        }
-
-        th:nth-child(2), td:nth-child(2) {
-            text-align: left;
-        }
-
-        tbody tr {
-            background-color: #ffffff;
-            transition: background-color 0.2s ease;
-        }
-
-        tbody tr:nth-child(even) {
-            background-color: #fbfbfb;
-        }
-
-        tbody tr:hover {
-            background-color: #f1f5f9;
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 30px;
-            color: #718096;
-            font-style: italic;
-        }
-
-        #loading {
-            text-align: center;
-            padding: 20px;
-            color: var(--primary-color);
-            font-weight: bold;
-            font-size: 16px;
-            display: none;
-        }
-        
-        #sync-indicator {
-            text-align: center;
-            font-size: 12px;
-            color: #718096;
-            margin-top: 20px;
-            font-style: italic;
-        }
+        /* TABLE */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        thead { background-color: var(--primary-color); color: white; }
+        th, td { padding: 14px 15px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        th { font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; text-align: center; }
+        th:nth-child(2), td:nth-child(2) { text-align: left; }
+        tbody tr { background-color: #ffffff; transition: background-color 0.2s ease; }
+        tbody tr:nth-child(even) { background-color: #fbfbfb; }
+        tbody tr:hover { background-color: #f1f5f9; }
+        .empty-message { text-align: center; padding: 30px; color: #718096; font-style: italic; }
+        #loading { text-align: center; padding: 20px; color: var(--primary-color); font-weight: bold; font-size: 16px; display: none; }
+        #sync-indicator { text-align: center; font-size: 12px; color: #718096; margin-top: 20px; font-style: italic; }
 
         @media (max-width: 768px) {
-            .top-navbar {
-                flex-direction: column;
-                padding: 15px;
-                gap: 15px;
-            }
-            .nav-menu {
-                width: 100%;
-                justify-content: space-around;
-            }
-            .nav-item {
-                padding: 10px;
-                font-size: 14px;
-            }
-            .filter-section {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .filter-container-left {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .filter-group input {
-                width: 100%;
-            }
-            .btn-download {
-                justify-content: center;
-                width: 100%;
-            }
+            .top-navbar { flex-direction: column; padding: 15px; gap: 15px; }
+            .nav-menu { width: 100%; justify-content: space-around; }
+            .nav-item { padding: 10px; font-size: 14px; }
+            .filter-section { flex-direction: column; align-items: stretch; }
+            .filter-container-left { flex-direction: column; align-items: stretch; }
+            .filter-group input { width: 100%; }
+            .btn-download { justify-content: center; width: 100%; }
         }
     </style>
 </head>
@@ -314,12 +106,10 @@
                 <div class="filter-group">
                     <label for="filter-teacher"><i class="fa-solid fa-user-tie"></i> Giảng viên:</label>
                     <input type="text" id="filter-teacher" list="teacher-list" placeholder="-- Tất cả giảng viên --" oninput="applyFilter()" onchange="applyFilter()">
-                    <datalist id="teacher-list">
-                    </datalist>
+                    <datalist id="teacher-list"></datalist>
                 </div>
             </div>
 
-            <!-- Nút Tải Lịch (.doc) -->
             <button class="btn-download" onclick="exportToWord()">
                 <i class="fa-solid fa-file-word"></i> Tải Lịch
             </button>
@@ -327,7 +117,7 @@
 
         <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
 
-        <!-- BẢNG HIỂN THỊ LỊCH -->
+        <!-- BẢNG LỊCH -->
         <div class="table-responsive">
             <table id="schedule-table" style="display: none;">
                 <thead>
@@ -341,9 +131,7 @@
                         <th>THỜI GIAN</th>
                     </tr>
                 </thead>
-                <tbody id="table-body">
-                    <!-- Dữ liệu vẽ vào đây -->
-                </tbody>
+                <tbody id="table-body"></tbody>
             </table>
         </div>
         
@@ -357,6 +145,7 @@
         let allScheduleData = [];
         let currentlyDisplayedData = [];
 
+        // Nhấn F2 mở nhanh Sheet
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
@@ -365,7 +154,7 @@
                     apiBtn.id = 'api-redirect-btn';
                     apiBtn.href = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=0#gid=0`;
                     apiBtn.target = '_blank';
-                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
+                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập Sheet';
                     
                     apiBtn.style.display = 'inline-block';
                     apiBtn.style.margin = '25px auto 10px auto';
@@ -388,11 +177,9 @@
         });
 
         window.onload = function() {
-            localStorage.clear(); // Xóa sạch đệm để ép nhận dữ liệu chuẩn
             fetchDataFromSheet();
         };
 
-        // Hàm bóc tách dòng CSV siêu sạch
         function parseCSVLine(text) {
             let result = [];
             let entry = '';
@@ -414,52 +201,18 @@
             return result;
         }
 
-        // BỚC TÁCH & LÀM SẠCH KÝ TỰ ẨN UNICODE TỪ GOOGLE SHEET
-        function sanitizeValue(str) {
+        function cleanText(str) {
             if (!str) return '';
-            return String(str)
-                .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF\uA82C]/g, '') // Xóa toàn bộ byte ẩn
-                .replace(/^["'\s]+|["'\s]+$/g, '') // Trim triệt để ngoặc và khoảng trắng
-                .trim();
+            return String(str).replace(/^["'\s]+|["'\s]+$/g, '').trim();
         }
 
-        // BỘ NHẬN DIỆN "CN" CHÍNH XÁC 100%
-        function parseDayDisplayValue(str) {
-            let clean = sanitizeValue(str).toUpperCase();
-            if (!clean) return '';
-
-            // Nếu ô là CN, 8, CHỦ NHẬT -> Quy về đúng chữ hiển thị "CN"
-            if (clean === 'CN' || clean === '8' || clean.includes('CHỦ') || clean.includes('CHU')) {
-                return 'CN';
+        // HÀM CHUYỂN ĐỔI: Nhận giá trị số 8 từ Sheet -> Đổi thành CN để hiển thị
+        function formatDayForDisplay(val) {
+            let clean = cleanText(val);
+            if (clean === "8" || clean.toUpperCase() === "CN") {
+                return "CN";
             }
-
-            // Lấy các số 2, 3, 4, 5, 6, 7
-            let matchNum = clean.match(/\d+/);
-            if (matchNum) {
-                return matchNum[0];
-            }
-
             return clean;
-        }
-
-        // BỘ TRỌNG SỐ SẮP XẾP: CN gán bằng 8 (Xếp sau Thứ 7)
-        function getDaySortWeight(dayStr) {
-            if (!dayStr) return 99;
-            let upper = String(dayStr).toUpperCase().trim();
-            if (upper === 'CN' || upper === '8') return 8;
-            let n = parseInt(upper);
-            return isNaN(n) ? 99 : n;
-        }
-
-        function compareShifts(a, b) {
-            let cleanA = sanitizeValue(a);
-            let cleanB = sanitizeValue(b);
-            let nA = parseInt(cleanA);
-            let nB = parseInt(cleanB);
-            if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
-            if (!isNaN(nA)) return -1;
-            if (!isNaN(nB)) return 1;
-            return cleanA.localeCompare(cleanB, 'vi');
         }
 
         function fetchDataFromSheet() {
@@ -476,18 +229,19 @@
                         let cols = parseCSVLine(lines[i]);
                         
                         if (cols.length >= 7) {
-                            let teacher = sanitizeValue(cols[1]);
-                            let dayDisplay = parseDayDisplayValue(cols[2]); // Cột C (Thứ)
-                            let shift = sanitizeValue(cols[3]);
-                            let className = sanitizeValue(cols[4]);
-                            let room = sanitizeValue(cols[5]);
-                            let time = sanitizeValue(cols[6]);
+                            let teacher = cleanText(cols[1]);
+                            let rawDay = cleanText(cols[2]); // Cột C (Thứ) trên Google Sheet
+                            let shift = cleanText(cols[3]);
+                            let className = cleanText(cols[4]);
+                            let room = cleanText(cols[5]);
+                            let time = cleanText(cols[6]);
 
                             if (teacher || className || room) {
                                 rawData.push({
-                                    stt: sanitizeValue(cols[0]),
+                                    stt: cleanText(cols[0]),
                                     teacher: teacher,
-                                    day: dayDisplay, 
+                                    rawDayNum: parseInt(rawDay) || 99, // Dùng số để sắp xếp
+                                    dayDisplay: formatDayForDisplay(rawDay), // Chuyển số 8 thành CN
                                     shift: shift,
                                     className: className,
                                     room: room,
@@ -497,14 +251,13 @@
                         }
                     }
 
-                    // SẮP XẾP THEO TRỌNG SỐ: 2 -> 7 -> 8 (CN)
+                    // SẮP XẾP CHUẨN MỰC: Thứ 2 -> 7 -> Số 8 (CN)
                     rawData.sort((a, b) => {
-                        let wA = getDaySortWeight(a.day);
-                        let wB = getDaySortWeight(b.day);
-                        if (wA !== wB) return wA - wB;
+                        if (a.rawDayNum !== b.rawDayNum) return a.rawDayNum - b.rawDayNum;
                         
-                        let shiftCompare = compareShifts(a.shift, b.shift);
-                        if (shiftCompare !== 0) return shiftCompare;
+                        let nA = parseInt(a.shift) || 0;
+                        let nB = parseInt(b.shift) || 0;
+                        if (nA !== nB) return nA - nB;
 
                         return (a.teacher || "").localeCompare(b.teacher || "", 'vi');
                     });
@@ -517,11 +270,11 @@
                     populateFilterDropdowns();
                     applyFilter();
                     
-                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu đã được đồng bộ mới nhất';
+                    document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu đã đồng bộ hoàn toàn!';
                 })
                 .catch(err => {
-                    console.error("Lỗi đồng bộ dữ liệu:", err);
-                    document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu.</span>';
+                    console.error("Lỗi:", err);
+                    document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu từ Google Sheet.</span>';
                 });
         }
 
@@ -534,43 +287,37 @@
             shiftSelect.innerHTML = '<option value="ALL">-- Tất cả --</option>';
             teacherDatalist.innerHTML = '';
             
-            let days = new Set();
+            let daysObj = {};
             let shifts = new Set();
             let teachers = new Set();
 
             allScheduleData.forEach(item => {
-                if (item.day) days.add(item.day);
+                if (item.dayDisplay) {
+                    daysObj[item.dayDisplay] = item.rawDayNum;
+                }
                 if (item.shift) shifts.add(item.shift);
                 if (item.teacher) teachers.add(item.teacher);
             });
 
-            // TẠO DROPDOWN LỌC THỨ
-            Array.from(days).sort((a,b) => getDaySortWeight(a) - getDaySortWeight(b)).forEach(d => {
-                let option = document.createElement('option');
-                option.value = d;
-                
-                let strD = String(d).toUpperCase();
-                if (strD === 'CN') {
-                    option.textContent = "CN";
-                } else if (!isNaN(parseInt(d))) {
-                    option.textContent = "Thứ " + d;
-                } else {
-                    option.textContent = d;
-                }
-                daySelect.appendChild(option);
-            });
+            // Thêm các Thứ vào Dropdown Lọc
+            Object.keys(daysObj)
+                .sort((a, b) => daysObj[a] - daysObj[b])
+                .forEach(d => {
+                    let option = document.createElement('option');
+                    option.value = d;
+                    option.textContent = (d === 'CN') ? "CN" : ("Thứ " + d);
+                    daySelect.appendChild(option);
+                });
 
-            Array.from(shifts).sort(compareShifts).forEach(s => {
+            // Thêm Ca
+            Array.from(shifts).sort((a,b) => (parseInt(a)||0) - (parseInt(b)||0)).forEach(s => {
                 let option = document.createElement('option');
                 option.value = s;
-                if (!isNaN(parseInt(s))) {
-                    option.textContent = "Ca " + s;
-                } else {
-                    option.textContent = s; 
-                }
+                option.textContent = (!isNaN(parseInt(s))) ? "Ca " + s : s;
                 shiftSelect.appendChild(option);
             });
 
+            // Thêm Giảng viên
             Array.from(teachers).sort((a,b)=>a.localeCompare(b, 'vi')).forEach(t => {
                 let option = document.createElement('option');
                 option.value = t;
@@ -580,12 +327,7 @@
 
         function normalizeStr(str) {
             if (!str) return '';
-            return str.toLowerCase()
-                      .normalize("NFD")
-                      .replace(/[\u0300-\u036f]/g, "")
-                      .replace(/đ/g, "d")
-                      .replace(/\s+/g, ' ')
-                      .trim();
+            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").trim();
         }
 
         function applyFilter() {
@@ -595,13 +337,8 @@
             let selectedShift = document.getElementById('filter-shift').value;
 
             currentlyDisplayedData = allScheduleData.filter(item => {
-                let matchTeacher = true;
-                if (teacherKeyword !== '') {
-                    let normTeacherName = normalizeStr(item.teacher);
-                    matchTeacher = normTeacherName.includes(teacherKeyword);
-                }
-
-                let matchDay = (selectedDay === "ALL") || (item.day === selectedDay);
+                let matchTeacher = (teacherKeyword === '') || normalizeStr(item.teacher).includes(teacherKeyword);
+                let matchDay = (selectedDay === "ALL") || (item.dayDisplay === selectedDay);
                 let matchShift = (selectedShift === "ALL") || (item.shift === selectedShift);
 
                 return matchTeacher && matchDay && matchShift;
@@ -610,7 +347,6 @@
             renderTable(currentlyDisplayedData);
         }
 
-        // RENDER DỮ LIỆU LÊN BẢNG WEB (VẪN LÀ CHỮ CN BÌNH THƯỜNG)
         function renderTable(dataArray) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
@@ -625,7 +361,7 @@
                 tr.innerHTML = `
                     <td style="font-weight: bold; text-align: center;">${index + 1}</td>
                     <td style="font-weight: bold; color: var(--teacher-color);">${item.teacher}</td>
-                    <td style="text-align: center; font-weight: bold;">${item.day}</td>
+                    <td style="text-align: center; font-weight: bold; color: ${item.dayDisplay === 'CN' ? '#d97706' : 'inherit'};">${item.dayDisplay}</td>
                     <td style="text-align: center;">${item.shift}</td>
                     <td style="text-align: center;">${item.className}</td>
                     <td style="font-weight: bold; text-align: center;">${item.room}</td>
@@ -641,58 +377,35 @@
                 return;
             }
 
-            let tableRows = currentlyDisplayedData.map((item, index) => {
-                return `
+            let tableRows = currentlyDisplayedData.map((item, index) => `
                 <tr>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${index + 1}</td>
-                    <td style="padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.teacher}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.day}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.shift}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000;">${item.className}</td>
-                    <td style="text-align: center; padding: 8px; border: 1px solid #000000; font-weight: bold;">${item.room}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000;">${index + 1}</td>
+                    <td style="padding: 8px; border: 1px solid #000; font-weight: bold;">${item.teacher}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000; font-weight: bold;">${item.dayDisplay}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000;">${item.shift}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000;">${item.className}</td>
+                    <td style="text-align: center; padding: 8px; border: 1px solid #000; font-weight: bold;">${item.room}</td>
                 </tr>
-            `}).join('');
+            `).join('');
 
             let htmlContent = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-                      xmlns:w='urn:schemas-microsoft-com:office:word' 
-                      xmlns='http://www.w3.org/TR/REC-html40'>
-                <head>
-                    <meta charset='utf-8'>
-                    <title>Lịch Giảng</title>
-                    <style>
-                        @page { size: A4; margin: 2cm; }
-                        body { font-family: 'Times New Roman', serif; font-size: 12pt; color: #000; }
-                        h2 { text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 16pt; color: #1a4d2e; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                        th { background-color: #f2f2f2; padding: 10px; border: 1px solid #000000; font-size: 11pt; font-weight: bold; }
-                    </style>
-                </head>
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Lịch Giảng</title></head>
                 <body>
-                    <h2>LỊCH GIẢNG</h2>
-                    <table>
+                    <h2 style="text-align: center;">LỊCH GIẢNG DẠY</h2>
+                    <table border="1" style="width: 100%; border-collapse: collapse;">
                         <thead>
-                            <tr>
-                                <th style="width: 5%;">STT</th>
-                                <th style="width: 25%;">HỌ VÀ TÊN GIẢNG VIÊN</th>
-                                <th style="width: 15%;">THỨ</th>
-                                <th style="width: 15%;">CA</th>
-                                <th style="width: 20%;">LỚP</th>
-                                <th style="width: 20%;">PHÒNG</th>
+                            <tr style="background-color: #f2f2f2;">
+                                <th>STT</th><th>HỌ VÀ TÊN GIẢNG VIÊN</th><th>THỨ</th><th>CA</th><th>LỚP</th><th>PHÒNG</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
+                        <tbody>${tableRows}</tbody>
                     </table>
                 </body>
                 </html>
             `;
 
-            let blob = new Blob(['\ufeff' + htmlContent], {
-                type: 'application/msword'
-            });
-
+            let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
@@ -700,7 +413,6 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            URL.revokeObjectURL(url);
         }
     </script>
 </body>
