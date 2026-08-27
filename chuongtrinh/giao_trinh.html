@@ -167,8 +167,11 @@
     </div>
 
     <script>
+        // CẬP NHẬT SHEET_ID MỚI
         const SHEET_ID = "1lHh_ksG9Dik_zVPabGKuvk1hrJJwsCXyWoJIUL8d73A";
-        const CONFIG_CACHE_KEY = "SYLLABUS_CONFIG_YEARS";
+        
+        // ĐỔI CACHE KEY ĐỂ DỰ DỮ LIỆU CŨ KHÔNG BỊ TRỘN LẪN
+        const CONFIG_CACHE_KEY = "GIAO_TRINH_CONFIG_YEARS_V2";
         let currentYear = ""; 
         let allData = [];
         let tableHeaders = [];
@@ -182,7 +185,7 @@
                     const apiBtn = document.createElement('a');
                     apiBtn.id = 'api-redirect-btn';
                     
-                    apiBtn.href = 'https://docs.google.com/spreadsheets/d/1lHh_ksG9Dik_zVPabGKuvk1hrJJwsCXyWoJIUL8d73A/edit?gid=0#gid=0';
+                    apiBtn.href = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
                     apiBtn.target = '_blank';
                     
                     apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
@@ -235,12 +238,11 @@
             return result;
         }
 
-        // TẢI DANH SÁCH TỪ TAB CONFIG (ÁP DỤNG CACHE-FIRST)
+        // TẢI DANH SÁCH TỪ TAB CONFIG
         function loadConfigAndInit() {
             const cachedYearsString = localStorage.getItem(CONFIG_CACHE_KEY);
             let cachedYears = [];
 
-            // 1. Đọc từ bộ nhớ đệm hiển thị ngay lập tức nếu có
             if (cachedYearsString) {
                 try {
                     cachedYears = JSON.parse(cachedYearsString);
@@ -255,11 +257,13 @@
                 }
             }
 
-            // 2. Fetch ngầm từ Google Sheet để cập nhật mới nhất
             const configUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
             
             fetch(configUrl)
-                .then(res => res.text())
+                .then(res => {
+                    if (!res.ok) throw new Error("Không thể kết nối đến Google Sheet");
+                    return res.text();
+                })
                 .then(text => {
                     let lines = text.split(/\r?\n/);
                     let years = [];
@@ -274,12 +278,10 @@
                     
                     if(years.length > 0) {
                         const newYearsString = JSON.stringify(years);
-                        // Nếu dữ liệu Config có sự thay đổi hoặc chưa có Cache
                         if (newYearsString !== cachedYearsString) {
                             localStorage.setItem(CONFIG_CACHE_KEY, newYearsString);
                             populateYearDropdown(years);
                             
-                            // Nếu chưa có year được chọn hoặc danh sách thay đổi
                             if (!currentYear || !years.includes(currentYear)) {
                                 currentYear = years[0];
                                 document.getElementById('filter-year').value = currentYear;
@@ -289,7 +291,7 @@
                     }
                 })
                 .catch(err => {
-                    console.error("Lỗi tải ngầm tab Config:", err);
+                    console.error("Lỗi tải tab Config:", err);
                 });
         }
 
@@ -314,13 +316,13 @@
             loadDataForYear(currentYear);
         }
 
-        // TẢI DỮ LIỆU CHO NĂM (CACHE-FIRST THÔNG MINH)
+        // TẢI DỮ LIỆU THEO NĂM
         function loadDataForYear(year) {
-            const CACHE_KEY = "DYNAMIC_DATA_V1_" + year;
+            // ĐỔI CACHE KEY TƯƠNG ỨNG MỖI NĂM
+            const CACHE_KEY = "GIAO_TRINH_DATA_V2_" + year;
             const cachedDataString = localStorage.getItem(CACHE_KEY);
             const cachedHeadersString = localStorage.getItem(CACHE_KEY + "_HEADERS");
 
-            // Hiển thị ngay lập tức nếu đã có dữ liệu lưu trong cache
             if (cachedDataString && cachedHeadersString) {
                 try {
                     allData = JSON.parse(cachedDataString);
@@ -334,11 +336,13 @@
                 }
             }
 
-            const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${year}`;
+            const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(year)}`;
 
-            // Tự động tải dữ liệu mới 1 lần duy nhất từ Google Sheet bên dưới nền
             fetch(CSV_URL)
-                .then(response => response.text())
+                .then(response => {
+                    if (!response.ok) throw new Error("Lỗi tải trang dữ liệu " + year);
+                    return response.text();
+                })
                 .then(text => {
                     let lines = text.split(/\r?\n/);
                     let rawData = [];
@@ -375,7 +379,6 @@
                     const newDataString = JSON.stringify(rawData);
                     const newHeadersString = JSON.stringify(newHeaders);
                     
-                    // Nếu dữ liệu Google Sheet có cập nhật mới -> Tự đổi dữ liệu trên màn hình và lưu lại Cache
                     if (newDataString !== cachedDataString || newHeadersString !== cachedHeadersString) {
                         localStorage.setItem(CACHE_KEY, newDataString);
                         localStorage.setItem(CACHE_KEY + "_HEADERS", newHeadersString);
@@ -389,7 +392,7 @@
                     }
                 })
                 .catch(err => {
-                    console.error("Lỗi đồng bộ dữ liệu ngầm năm " + year + ":", err);
+                    console.error("Lỗi đồng bộ dữ liệu năm " + year + ":", err);
                 });
         }
 
