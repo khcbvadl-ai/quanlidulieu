@@ -168,6 +168,7 @@
 
     <script>
         const SHEET_ID = "1hByGaZZYvJPju07thcxeqjchmm_-2kXs";
+        const CONFIG_CACHE_KEY = "SYLLABUS_CONFIG_YEARS";
         let currentYear = ""; 
         let allData = [];
         let tableHeaders = [];
@@ -175,21 +176,17 @@
         // LẮNG NGHE SỰ KIỆN BẤM PHÍM F2 ĐỂ HIỆN NÚT TRUY CẬP
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
-                e.preventDefault(); // Ngăn chặn hành vi mặc định của F2
+                e.preventDefault();
                 
-                // Nếu chưa có nút thì mới tạo thêm ở cuối trang
                 if (!document.getElementById('api-redirect-btn')) {
                     const apiBtn = document.createElement('a');
                     apiBtn.id = 'api-redirect-btn';
                     
-                    // Gán link Google Sheet chính xác
                     apiBtn.href = 'https://docs.google.com/spreadsheets/d/1hByGaZZYvJPju07thcxeqjchmm_-2kXs/edit?gid=893267800#gid=893267800';
-                    apiBtn.target = '_blank'; // Mở tab mới
+                    apiBtn.target = '_blank';
                     
-                    // Nội dung chỉ gồm Icon + Chữ "Truy cập"
                     apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
                     
-                    // Style hiển thị cho nút
                     apiBtn.style.display = 'inline-block';
                     apiBtn.style.margin = '25px auto 10px auto';
                     apiBtn.style.padding = '12px 28px';
@@ -202,7 +199,6 @@
                     apiBtn.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
                     apiBtn.style.transition = 'all 0.2s ease';
 
-                    // Khối căn giữa nút ở cuối container
                     const btnWrapper = document.createElement('div');
                     btnWrapper.style.textAlign = 'center';
                     btnWrapper.appendChild(apiBtn);
@@ -239,8 +235,27 @@
             return result;
         }
 
-        // TẢI DANH SÁCH TỪ TAB CONFIG NGẦM
+        // TẢI DANH SÁCH TỪ TAB CONFIG (ÁP DỤNG CACHE-FIRST)
         function loadConfigAndInit() {
+            const cachedYearsString = localStorage.getItem(CONFIG_CACHE_KEY);
+            let cachedYears = [];
+
+            // 1. Đọc từ bộ nhớ đệm hiển thị ngay lập tức nếu có
+            if (cachedYearsString) {
+                try {
+                    cachedYears = JSON.parse(cachedYearsString);
+                    if (cachedYears.length > 0) {
+                        populateYearDropdown(cachedYears);
+                        currentYear = cachedYears[0];
+                        document.getElementById('filter-year').value = currentYear;
+                        loadDataForYear(currentYear);
+                    }
+                } catch (e) {
+                    console.error("Lỗi đọc cache Config:", e);
+                }
+            }
+
+            // 2. Fetch ngầm từ Google Sheet để cập nhật mới nhất
             const configUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
             
             fetch(configUrl)
@@ -249,6 +264,7 @@
                     let lines = text.split(/\r?\n/);
                     let years = [];
                     for(let i = 0; i < lines.length; i++) {
+                        if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         let y = cols[0] ? cols[0].trim() : "";
                         if(y && y.toLowerCase() !== "năm học" && y.toLowerCase() !== "config") {
@@ -257,19 +273,29 @@
                     }
                     
                     if(years.length > 0) {
-                        populateYearDropdown(years);
-                        currentYear = years[0];
-                        document.getElementById('filter-year').value = currentYear;
-                        loadDataForYear(currentYear);
+                        const newYearsString = JSON.stringify(years);
+                        // Nếu dữ liệu Config có sự thay đổi hoặc chưa có Cache
+                        if (newYearsString !== cachedYearsString) {
+                            localStorage.setItem(CONFIG_CACHE_KEY, newYearsString);
+                            populateYearDropdown(years);
+                            
+                            // Nếu chưa có year được chọn hoặc danh sách thay đổi
+                            if (!currentYear || !years.includes(currentYear)) {
+                                currentYear = years[0];
+                                document.getElementById('filter-year').value = currentYear;
+                                loadDataForYear(currentYear);
+                            }
+                        }
                     }
                 })
                 .catch(err => {
-                    console.error("Lỗi tải tab Config:", err);
+                    console.error("Lỗi tải ngầm tab Config:", err);
                 });
         }
 
         function populateYearDropdown(years) {
             const select = document.getElementById('filter-year');
+            const selectedVal = select.value;
             select.innerHTML = '';
             years.forEach(y => {
                 let opt = document.createElement('option');
@@ -277,6 +303,9 @@
                 opt.textContent = "Dữ liệu năm " + y;
                 select.appendChild(opt);
             });
+            if (selectedVal && years.includes(selectedVal)) {
+                select.value = selectedVal;
+            }
         }
 
         function changeYear() {
@@ -285,7 +314,7 @@
             loadDataForYear(currentYear);
         }
 
-        // TẢI DỮ LIỆU TỰ ĐỘNG CHẠY NGẦM
+        // TẢI DỮ LIỆU CHO NĂM (CACHE-FIRST THÔNG MINH)
         function loadDataForYear(year) {
             const CACHE_KEY = "DYNAMIC_DATA_V1_" + year;
             const cachedDataString = localStorage.getItem(CACHE_KEY);
@@ -301,7 +330,7 @@
                     populateFilterDropdown();
                     applyFilter();
                 } catch (e) {
-                    console.error("Lỗi đọc cache:", e);
+                    console.error("Lỗi đọc cache năm " + year + ":", e);
                 }
             }
 
@@ -360,7 +389,7 @@
                     }
                 })
                 .catch(err => {
-                    console.error("Lỗi đồng bộ dữ liệu ngầm:", err);
+                    console.error("Lỗi đồng bộ dữ liệu ngầm năm " + year + ":", err);
                 });
         }
 
