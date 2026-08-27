@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phân Công KPI Chi Tiết</title>
+    <title>Hệ Thống Dữ Liệu Đào Tạo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -74,17 +74,15 @@
         th, td { padding: 14px 15px; border-bottom: 1px solid var(--border-color); }
         th { font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; text-align: center; white-space: nowrap; }
         
-        /* Căn chỉnh các cột */
         td { font-size: 14px; line-height: 1.5; }
-        th:nth-child(2), td:nth-child(2) { text-align: left; } /* Mã công việc */
-        th:nth-child(3), td:nth-child(3) { text-align: left; } /* Công việc chi tiết */
-        th:nth-child(4), td:nth-child(4) { text-align: left; } /* Người phụ trách */
-        th:nth-child(5), td:nth-child(5) { text-align: center; } /* Minh chứng */
+        th:nth-child(2), td:nth-child(2) { text-align: left; }
+        th:nth-child(3), td:nth-child(3) { text-align: left; }
+        th:nth-child(4), td:nth-child(4) { text-align: left; }
+        th:nth-child(5), td:nth-child(5) { text-align: center; }
 
-        /* Highlight tên người phụ trách { text-align: center; font-weight: bold; color: #475569; }*/
         td:nth-child(4) { font-weight: 600; color: var(--teacher-color); }
 
-        /* Nút và Badge cho phần Minh chứng */
+        /* Nút và Badge cho phần Link/Minh chứng { text-align: center; font-weight: bold; color: #475569; } */
         .btn-evidence {
             display: inline-block; padding: 6px 12px; background-color: #e0f2fe; color: var(--link-color);
             border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 13px;
@@ -97,7 +95,6 @@
             border-radius: 20px; font-size: 13px; font-weight: bold; border: 1px solid #fecaca; white-space: nowrap;
         }
 
-        /* Cố định cột STT và Mã CV khi vuốt ngang trên điện thoại */
         @media (max-width: 768px) {
             th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; background-color: inherit; z-index: 2; border-right: 1px solid #e2e8f0; }
             th:nth-child(1) { background-color: var(--primary-color); color: white; border-right: none;}
@@ -108,7 +105,6 @@
         tbody tr:hover { background-color: #f1f5f9; }
 
         .empty-message { text-align: center; padding: 40px; color: #718096; font-style: italic; }
-
         #loading { text-align: center; padding: 20px; color: var(--primary-color); font-weight: bold; font-size: 16px; display: none; }
         #sync-indicator { text-align: center; font-size: 12px; color: #718096; margin-top: 20px; font-style: italic; }
 
@@ -133,41 +129,42 @@
             <div class="nav-menu">
                 <a href="#" class="nav-item">Trang chủ</a>
                 <a href="#" class="nav-item">Lịch giảng</a>
-                <a href="#" class="nav-item active">Phân công KPI</a>
+                <a href="#" class="nav-item active">Dữ liệu Khoa</a>
             </div>
         </div>
 
-        <h2 class="header-title"><i class="fa-solid fa-list-check"></i> PHÂN CÔNG KPI CHI TIẾT KHOA</h2>
+        <h2 class="header-title"><i class="fa-solid fa-list-check"></i> HỆ THỐNG DỮ LIỆU ĐÀO TẠO</h2>
 
         <!-- BỘ LỌC -->
         <div class="filter-section">
             <div class="filter-group">
-                <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học:</label>
+                <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học (Tab dữ liệu):</label>
+                <!-- Option sẽ được tự động tạo từ tab Config -->
                 <select id="filter-year" onchange="changeYear()">
-                    <option value="2026-2027">Năm học 2026-2027</option>
-                    <option value="2027-2028">Năm học 2027-2028</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="filter-teacher"><i class="fa-solid fa-chalkboard-user"></i> Người phụ trách:</label>
-                <select id="filter-teacher" onchange="applyFilter()">
-                    <option value="ALL">-- Tất cả người phụ trách --</option>
+                <!-- Tên nhãn này sẽ tự động thay đổi theo tiêu đề cột D1 -->
+                <label id="label-filter-col4" for="filter-col4"><i class="fa-solid fa-filter"></i> Đang tải bộ lọc...</label>
+                <select id="filter-col4" onchange="applyFilter()">
+                    <option value="ALL">-- Tất cả --</option>
                 </select>
             </div>
         </div>
 
-        <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu năm học...</div>
+        <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
 
         <!-- BẢNG HIỂN THỊ DỮ LIỆU -->
         <div class="table-responsive">
-            <table id="kpi-table" style="display: none;">
+            <table id="data-table" style="display: none;">
                 <thead>
                     <tr>
-                        <th style="width: 60px;">STT</th>
-                        <th style="width: 120px;">MÃ CÔNG VIỆC</th>
-                        <th>CÔNG VIỆC CHI TIẾT</th>
-                        <th style="width: 300px;">NGƯỜI PHỤ TRÁCH</th>
-                        <th style="width: 150px;">MINH CHỨNG</th>
+                        <!-- Tiêu đề sẽ tự động lấy từ A1, B1, C1, D1, E1 -->
+                        <th style="width: 60px;" id="header-col1">Cột A</th>
+                        <th style="width: 120px;" id="header-col2">Cột B</th>
+                        <th id="header-col3">Cột C</th>
+                        <th style="width: 300px;" id="header-col4">Cột D</th>
+                        <th style="width: 150px;" id="header-col5">Cột E</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
@@ -181,20 +178,16 @@
 
     <script>
         const SHEET_ID = "1vWJ_bkiGPEHQyTKhmwDPfsU3YT_ldIhZ";
-        let allKPIData = [];
-        let currentYear = "2026-2027"; 
+        let currentYear = ""; 
+        let allData = [];
+        let tableHeaders = [];
 
         window.onload = function() {
-            document.getElementById('filter-year').value = currentYear;
-            loadDataForYear(currentYear, false);
+            // Bước 1: Tải danh sách Năm học từ Tab Config
+            loadConfigAndInit();
         };
 
-        function changeYear() {
-            currentYear = document.getElementById('filter-year').value;
-            document.getElementById('filter-teacher').innerHTML = '<option value="ALL">-- Tất cả người phụ trách --</option>'; 
-            loadDataForYear(currentYear, false);
-        }
-
+        // Hàm đọc CSV an toàn
         function parseCSVLine(text) {
             let result = [];
             let entry = '';
@@ -216,19 +209,76 @@
             return result;
         }
 
+        // TẢI DANH SÁCH TỪ TAB CONFIG
+        function loadConfigAndInit() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải cấu hình hệ thống...';
+            
+            const configUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
+            
+            fetch(configUrl)
+                .then(res => res.text())
+                .then(text => {
+                    let lines = text.split(/\r?\n/);
+                    let years = [];
+                    for(let i = 0; i < lines.length; i++) {
+                        let cols = parseCSVLine(lines[i]);
+                        let y = cols[0] ? cols[0].trim() : "";
+                        // Bỏ qua dòng trống hoặc dòng có chữ Config/Năm học
+                        if(y && y.toLowerCase() !== "năm học" && y.toLowerCase() !== "config") {
+                            years.push(y);
+                        }
+                    }
+                    
+                    if(years.length > 0) {
+                        populateYearDropdown(years);
+                        currentYear = years[0]; // Chọn năm đầu tiên làm mặc định
+                        document.getElementById('filter-year').value = currentYear;
+                        loadDataForYear(currentYear, false); // Bước 2: Tải dữ liệu năm học tương ứng
+                    } else {
+                        document.getElementById('loading').innerHTML = '<span style="color:red">Không tìm thấy dữ liệu trong tab Config. Bạn đã tạo tab "Config" và ghi năm vào cột A chưa?</span>';
+                    }
+                })
+                .catch(err => {
+                    console.error("Lỗi tab Config:", err);
+                    document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải tab Config. Vui lòng kiểm tra quyền chia sẻ file.</span>';
+                });
+        }
+
+        function populateYearDropdown(years) {
+            const select = document.getElementById('filter-year');
+            select.innerHTML = '';
+            years.forEach(y => {
+                let opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = "Dữ liệu năm " + y;
+                select.appendChild(opt);
+            });
+        }
+
+        function changeYear() {
+            currentYear = document.getElementById('filter-year').value;
+            // Xóa bộ lọc cũ trước khi chuyển sheet
+            document.getElementById('filter-col4').innerHTML = '<option value="ALL">-- Tất cả --</option>'; 
+            loadDataForYear(currentYear, false);
+        }
+
+        // TẢI DỮ LIỆU CỦA SHEET ĐƯỢC CHỌN (KÈM CACHE)
         function loadDataForYear(year, isBackgroundSync) {
-            // Nâng cấp bộ nhớ đệm lên V2 do thay đổi cấu trúc số cột
-            const CACHE_KEY = "KPI_CACHE_V2_" + year;
+            const CACHE_KEY = "DYNAMIC_DATA_V1_" + year;
             const cachedDataString = localStorage.getItem(CACHE_KEY);
+            const cachedHeadersString = localStorage.getItem(CACHE_KEY + "_HEADERS");
             let hasCache = false;
 
-            if (cachedDataString) {
+            if (cachedDataString && cachedHeadersString) {
                 try {
-                    allKPIData = JSON.parse(cachedDataString);
+                    allData = JSON.parse(cachedDataString);
+                    tableHeaders = JSON.parse(cachedHeadersString);
                     hasCache = true;
                     
-                    document.getElementById('kpi-table').style.display = 'table';
-                    populateTeacherDropdown();
+                    renderHeaders(tableHeaders);
+                    document.getElementById('data-table').style.display = 'table';
+                    populateFilterDropdown();
                     applyFilter();
                     
                     document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Đang kiểm tra dữ liệu mới...';
@@ -239,7 +289,8 @@
 
             if (!isBackgroundSync && !hasCache) {
                 document.getElementById('loading').style.display = 'block';
-                document.getElementById('kpi-table').style.display = 'none';
+                document.getElementById('loading').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...';
+                document.getElementById('data-table').style.display = 'none';
                 document.getElementById('table-body').innerHTML = '';
             }
 
@@ -250,40 +301,61 @@
                 .then(text => {
                     let lines = text.split(/\r?\n/);
                     let rawData = [];
+                    let newHeaders = [];
+                    let isFirstRow = true;
                     
-                    for (let i = 1; i < lines.length; i++) { // Bỏ qua dòng tiêu đề
+                    for (let i = 0; i < lines.length; i++) { 
                         if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         
-                        let stt = parseInt(cols[0]);
-                        if (!isNaN(stt) && stt > 0) {
+                        // Lấy dòng đầu tiên có dữ liệu làm TIÊU ĐỀ CỘT
+                        if (isFirstRow) {
+                            newHeaders = [
+                                cols[0] ? cols[0].trim() : "CỘT A",
+                                cols[1] ? cols[1].trim() : "CỘT B",
+                                cols[2] ? cols[2].trim() : "CỘT C",
+                                cols[3] ? cols[3].trim() : "CỘT D",
+                                cols[4] ? cols[4].trim() : "CỘT E"
+                            ];
+                            isFirstRow = false;
+                            continue; // Chuyển sang đọc các dòng dữ liệu
+                        }
+
+                        // Đọc dữ liệu (Bỏ qua nếu Cột A trống để loại trừ các hàng trắng dư thừa)
+                        if (cols[0] && cols[0].trim() !== "") {
                             rawData.push({
-                                stt: stt,
-                                maCV: (cols.length > 1 && cols[1]) ? cols[1].trim() : "",
-                                jobDetail: (cols.length > 2 && cols[2]) ? cols[2].trim() : "",
-                                inCharge: (cols.length > 3 && cols[3]) ? cols[3].trim() : "",
-                                evidenceLink: (cols.length > 4 && cols[4]) ? cols[4].trim() : ""
+                                col1: cols[0].trim(),
+                                col2: (cols.length > 1 && cols[1]) ? cols[1].trim() : "",
+                                col3: (cols.length > 2 && cols[2]) ? cols[2].trim() : "",
+                                col4: (cols.length > 3 && cols[3]) ? cols[3].trim() : "",
+                                col5: (cols.length > 4 && cols[4]) ? cols[4].trim() : ""
                             });
                         }
                     }
 
                     const newDataString = JSON.stringify(rawData);
+                    const newHeadersString = JSON.stringify(newHeaders);
                     
-                    if (newDataString !== cachedDataString) {
+                    // Cập nhật nếu có sự thay đổi
+                    if (newDataString !== cachedDataString || newHeadersString !== cachedHeadersString) {
                         localStorage.setItem(CACHE_KEY, newDataString);
-                        allKPIData = rawData;
+                        localStorage.setItem(CACHE_KEY + "_HEADERS", newHeadersString);
+                        
+                        allData = rawData;
+                        tableHeaders = newHeaders;
                         
                         document.getElementById('loading').style.display = 'none';
-                        document.getElementById('kpi-table').style.display = 'table';
+                        document.getElementById('data-table').style.display = 'table';
                         
-                        populateTeacherDropdown();
+                        renderHeaders(tableHeaders);
+                        populateFilterDropdown();
                         applyFilter();
                     } else if (!isBackgroundSync && !hasCache) {
                         document.getElementById('loading').style.display = 'none';
-                        document.getElementById('kpi-table').style.display = 'table';
+                        document.getElementById('data-table').style.display = 'table';
                     }
                     
-                    document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu KPI năm học ${year} đã được đồng bộ`;
+                    document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu tab ${year} đã được đồng bộ`;
                 })
                 .catch(err => {
                     console.error("Lỗi đồng bộ:", err);
@@ -295,40 +367,50 @@
                 });
         }
 
-        // Tự động tách tên và điền vào Dropdown
-        function populateTeacherDropdown() {
-            const select = document.getElementById('filter-teacher');
+        // TỰ ĐỘNG ĐỔI TÊN TIÊU ĐỀ TRÊN HTML DỰA VÀO GOOGLE SHEET
+        function renderHeaders(headers) {
+            document.getElementById('header-col1').textContent = headers[0];
+            document.getElementById('header-col2').textContent = headers[1];
+            document.getElementById('header-col3').textContent = headers[2];
+            document.getElementById('header-col4').textContent = headers[3];
+            document.getElementById('header-col5').textContent = headers[4];
+
+            // Tự động đổi tên nhãn Bộ lọc trùng với tên của Cột D
+            document.getElementById('label-filter-col4').innerHTML = `<i class="fa-solid fa-filter"></i> Lọc theo ${headers[3]}:`;
+        }
+
+        // Tạo danh sách lọc dựa trên giá trị cột D (Index 3)
+        function populateFilterDropdown() {
+            const select = document.getElementById('filter-col4');
             const currentSelected = select.value;
             
-            select.innerHTML = '<option value="ALL">-- Tất cả người phụ trách --</option>';
+            select.innerHTML = '<option value="ALL">-- Tất cả --</option>';
             
-            let teachers = new Set();
+            let items = new Set();
             
-            // Quét cột inCharge, tách bằng dấu phẩy
-            allKPIData.forEach(item => {
-                if (item.inCharge) {
-                    let parts = item.inCharge.split(',');
+            allData.forEach(item => {
+                if (item.col4) {
+                    // Cắt bằng dấu phẩy trong trường hợp có nhiều người/nhiều tiêu chí 1 ô
+                    let parts = item.col4.split(',');
                     parts.forEach(part => {
                         let t = part.trim();
-                        if (t && t !== "") teachers.add(t);
+                        if (t && t !== "") items.add(t);
                     });
                 }
             });
 
-            // Đổ tên giảng viên vào danh sách
-            Array.from(teachers).sort((a,b) => a.localeCompare(b, 'vi')).forEach(t => {
+            Array.from(items).sort((a,b) => a.localeCompare(b, 'vi')).forEach(t => {
                 let option = document.createElement('option');
                 option.value = t;
                 option.textContent = t;
                 select.appendChild(option);
             });
 
-            // Khôi phục lại trạng thái người đang chọn (nếu có)
+            // Khôi phục bộ lọc đang chọn nếu có
             let matchFound = false;
             for(let i = 0; i < select.options.length; i++){
                 if(select.options[i].value === currentSelected){
-                    matchFound = true;
-                    break;
+                    matchFound = true; break;
                 }
             }
             if(matchFound) select.value = currentSelected;
@@ -339,39 +421,40 @@
             tbody.innerHTML = '';
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không tìm thấy công việc KPI nào phù hợp.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không tìm thấy dữ liệu nào phù hợp.</td></tr>';
                 return;
             }
 
             dataArray.forEach(item => {
-                // Xử lý logic cột Minh chứng
-                let evidenceHTML = '';
-                if (item.evidenceLink && item.evidenceLink !== "") {
-                    // Nếu có link, hiển thị nút bấm chuyển hướng
-                    evidenceHTML = `<a href="${item.evidenceLink}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Xem minh chứng</a>`;
+                // Logic hiển thị Cột E (Minh chứng/Link)
+                let linkHTML = '';
+                if (item.col5 && item.col5 !== "") {
+                    // Nếu là đường link, tạo nút bấm
+                    let url = item.col5.startsWith('http') ? item.col5 : 'https://' + item.col5;
+                    linkHTML = `<a href="${url}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`;
                 } else {
-                    // Nếu không có link, hiển thị nhãn báo chưa có
-                    evidenceHTML = `<span class="badge-missing">Chưa có</span>`;
+                    // Bỏ trống
+                    linkHTML = `<span class="badge-missing">Chưa có</span>`;
                 }
 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="font-weight: bold; text-align: center;">${item.stt}</td>
-                    <td>${item.maCV}</td>
-                    <td>${item.jobDetail}</td>
-                    <td>${item.inCharge}</td>
-                    <td style="text-align: center;">${evidenceHTML}</td>
+                    <td style="font-weight: bold; text-align: center;">${item.col1}</td>
+                    <td>${item.col2}</td>
+                    <td>${item.col3}</td>
+                    <td>${item.col4}</td>
+                    <td style="text-align: center;">${linkHTML}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
         function applyFilter() {
-            let selectedTeacher = document.getElementById('filter-teacher').value;
+            let selectedVal = document.getElementById('filter-col4').value;
 
-            let filteredData = allKPIData.filter(item => {
-                if (selectedTeacher === "ALL") return true;
-                return item.inCharge && item.inCharge.includes(selectedTeacher);
+            let filteredData = allData.filter(item => {
+                if (selectedVal === "ALL") return true;
+                return item.col4 && item.col4.includes(selectedVal);
             });
 
             renderTable(filteredData);
