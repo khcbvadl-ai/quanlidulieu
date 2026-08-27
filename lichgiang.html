@@ -353,7 +353,6 @@
     <script>
         const SHEET_ID = "1yyBsezsZlOYwGfAfavDvptB-KEiWo2gZu9Go3PE8zRU";
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-        const CACHE_KEY = "SCHEDULE_DATA_CACHE_V8_EXACT_CN";
 
         let allScheduleData = [];
         let currentlyDisplayedData = [];
@@ -389,12 +388,11 @@
         });
 
         window.onload = function() {
-            // Xóa sạch bộ nhớ tạm cũ để ép trình duyệt nhận code mới ngay lập tức
-            localStorage.clear();
-
-            fetchDataFromSheet(false);
+            localStorage.clear(); // Xóa sạch đệm để ép nhận dữ liệu chuẩn
+            fetchDataFromSheet();
         };
 
+        // Hàm bóc tách dòng CSV siêu sạch
         function parseCSVLine(text) {
             let result = [];
             let entry = '';
@@ -416,26 +414,26 @@
             return result;
         }
 
-        // Làm sạch chuỗi
+        // BỚC TÁCH & LÀM SẠCH KÝ TỰ ẨN UNICODE TỪ GOOGLE SHEET
         function sanitizeValue(str) {
             if (!str) return '';
             return String(str)
-                .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, '')
-                .replace(/^["']|["']$/g, '')
+                .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF\uA82C]/g, '') // Xóa toàn bộ byte ẩn
+                .replace(/^["'\s]+|["'\s]+$/g, '') // Trim triệt để ngoặc và khoảng trắng
                 .trim();
         }
 
-        // Nhận diện CHÍNH XÁC giá trị Cột Thứ (Giữ nguyên CN)
+        // BỘ NHẬN DIỆN "CN" CHÍNH XÁC 100%
         function parseDayDisplayValue(str) {
-            let clean = sanitizeValue(str);
+            let clean = sanitizeValue(str).toUpperCase();
             if (!clean) return '';
 
-            // Nếu ô có chứa CN hoặc Chủ Nhật (không phân biệt hoa thường)
-            if (/CN|Chủ\s*Nhật|Chu\s*Nhat/i.test(clean)) {
+            // Nếu ô là CN, 8, CHỦ NHẬT -> Quy về đúng chữ hiển thị "CN"
+            if (clean === 'CN' || clean === '8' || clean.includes('CHỦ') || clean.includes('CHU')) {
                 return 'CN';
             }
 
-            // Nếu là Thứ 2, 3, 4, 5, 6, 7
+            // Lấy các số 2, 3, 4, 5, 6, 7
             let matchNum = clean.match(/\d+/);
             if (matchNum) {
                 return matchNum[0];
@@ -444,11 +442,11 @@
             return clean;
         }
 
-        // Gán trọng số sắp xếp: Thứ 2->7 gán 2->7; CN gán 8 (đứng sau Thứ 7)
+        // BỘ TRỌNG SỐ SẮP XẾP: CN gán bằng 8 (Xếp sau Thứ 7)
         function getDaySortWeight(dayStr) {
             if (!dayStr) return 99;
             let upper = String(dayStr).toUpperCase().trim();
-            if (upper === 'CN') return 8;
+            if (upper === 'CN' || upper === '8') return 8;
             let n = parseInt(upper);
             return isNaN(n) ? 99 : n;
         }
@@ -464,10 +462,8 @@
             return cleanA.localeCompare(cleanB, 'vi');
         }
 
-        function fetchDataFromSheet(isBackgroundSync) {
-            if (!isBackgroundSync) {
-                document.getElementById('loading').style.display = 'block';
-            }
+        function fetchDataFromSheet() {
+            document.getElementById('loading').style.display = 'block';
 
             fetch(CSV_URL)
                 .then(response => response.text())
@@ -479,10 +475,9 @@
                         if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         
-                        // Đúng cấu trúc cột Google Sheet của bạn (Cột C là Thứ - chỉ số 2)
                         if (cols.length >= 7) {
                             let teacher = sanitizeValue(cols[1]);
-                            let dayDisplay = parseDayDisplayValue(cols[2]); // Lấy trực tiếp chữ CN từ cột C
+                            let dayDisplay = parseDayDisplayValue(cols[2]); // Cột C (Thứ)
                             let shift = sanitizeValue(cols[3]);
                             let className = sanitizeValue(cols[4]);
                             let room = sanitizeValue(cols[5]);
@@ -502,7 +497,7 @@
                         }
                     }
 
-                    // Sắp xếp theo Thứ (2 -> 7 -> CN) rồi đến Ca
+                    // SẮP XẾP THEO TRỌNG SỐ: 2 -> 7 -> 8 (CN)
                     rawData.sort((a, b) => {
                         let wA = getDaySortWeight(a.day);
                         let wB = getDaySortWeight(b.day);
@@ -549,7 +544,7 @@
                 if (item.teacher) teachers.add(item.teacher);
             });
 
-            // Thêm danh sách Thứ vào Dropdown
+            // TẠO DROPDOWN LỌC THỨ
             Array.from(days).sort((a,b) => getDaySortWeight(a) - getDaySortWeight(b)).forEach(d => {
                 let option = document.createElement('option');
                 option.value = d;
@@ -565,7 +560,6 @@
                 daySelect.appendChild(option);
             });
 
-            // Thêm Ca vào Dropdown
             Array.from(shifts).sort(compareShifts).forEach(s => {
                 let option = document.createElement('option');
                 option.value = s;
@@ -616,6 +610,7 @@
             renderTable(currentlyDisplayedData);
         }
 
+        // RENDER DỮ LIỆU LÊN BẢNG WEB (VẪN LÀ CHỮ CN BÌNH THƯỜNG)
         function renderTable(dataArray) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
