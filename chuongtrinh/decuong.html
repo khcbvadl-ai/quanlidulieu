@@ -172,23 +172,27 @@
         let allData = [];
         let tableHeaders = [];
 
-        // LẮNG NGHE SỰ KIỆN BẤM PHÍM F2 ĐỂ HIỆN NÚT CHUYỂN HƯỚNG TỚI API
+        // LẮNG NGHE SỰ KIỆN BẤM PHÍM F2 ĐỂ HIỆN NÚT TRUY CẬP
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault(); // Ngăn chặn hành vi mặc định của F2
                 
-                // Nếu chưa có nút thì mới tạo thêm
+                // Nếu chưa có nút thì mới tạo thêm ở cuối trang
                 if (!document.getElementById('api-redirect-btn')) {
                     const apiBtn = document.createElement('a');
                     apiBtn.id = 'api-redirect-btn';
-                    apiBtn.href = 'https://docs.google.com/spreadsheets/d/1hByGaZZYvJPju07thcxeqjchmm_-2kXs/edit?gid=893267800#gid=893267800';
-                    apiBtn.target = '_blank';
-                    apiBtn.innerHTML = '<i class="fa-solid fa-code"> </i> Truy cập';
                     
-                    // Style cho nút chuyển hướng
+                    // Gán link Google Sheet chính xác
+                    apiBtn.href = 'https://docs.google.com/spreadsheets/d/1hByGaZZYvJPju07thcxeqjchmm_-2kXs/edit?gid=893267800#gid=893267800';
+                    apiBtn.target = '_blank'; // Mở tab mới
+                    
+                    // Nội dung chỉ gồm Icon + Chữ "Truy cập"
+                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
+                    
+                    // Style hiển thị cho nút
                     apiBtn.style.display = 'inline-block';
                     apiBtn.style.margin = '25px auto 10px auto';
-                    apiBtn.style.padding = '12px 24px';
+                    apiBtn.style.padding = '12px 28px';
                     apiBtn.style.backgroundColor = '#2563eb';
                     apiBtn.style.color = '#ffffff';
                     apiBtn.style.textDecoration = 'none';
