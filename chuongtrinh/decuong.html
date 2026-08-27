@@ -82,7 +82,7 @@
 
         td:nth-child(4) { font-weight: 600; color: var(--teacher-color); }
 
-        /* Nút và Badge cho phần Link/Minh chứng { text-align: center; font-weight: bold; color: #475569; } */
+        /* Nút và Badge cho phần Link/Minh chứng */
         .btn-evidence {
             display: inline-block; padding: 6px 12px; background-color: #e0f2fe; color: var(--link-color);
             border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 13px;
@@ -105,8 +105,6 @@
         tbody tr:hover { background-color: #f1f5f9; }
 
         .empty-message { text-align: center; padding: 40px; color: #718096; font-style: italic; }
-        #loading { text-align: center; padding: 20px; color: var(--primary-color); font-weight: bold; font-size: 16px; display: none; }
-        #sync-indicator { text-align: center; font-size: 12px; color: #718096; margin-top: 20px; font-style: italic; }
 
         /* --- MOBILE TWEAKS --- */
         @media (max-width: 768px) {
@@ -139,27 +137,21 @@
         <div class="filter-section">
             <div class="filter-group">
                 <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học (Tab dữ liệu):</label>
-                <!-- Option sẽ được tự động tạo từ tab Config -->
-                <select id="filter-year" onchange="changeYear()">
-                </select>
+                <select id="filter-year" onchange="changeYear()"></select>
             </div>
             <div class="filter-group">
-                <!-- Tên nhãn này sẽ tự động thay đổi theo tiêu đề cột D1 -->
-                <label id="label-filter-col4" for="filter-col4"><i class="fa-solid fa-filter"></i> Đang tải bộ lọc...</label>
+                <label id="label-filter-col4" for="filter-col4"><i class="fa-solid fa-filter"></i> Lọc dữ liệu:</label>
                 <select id="filter-col4" onchange="applyFilter()">
                     <option value="ALL">-- Tất cả --</option>
                 </select>
             </div>
         </div>
 
-        <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
-
         <!-- BẢNG HIỂN THỊ DỮ LIỆU -->
         <div class="table-responsive">
-            <table id="data-table" style="display: none;">
+            <table id="data-table">
                 <thead>
                     <tr>
-                        <!-- Tiêu đề sẽ tự động lấy từ A1, B1, C1, D1, E1 -->
                         <th style="width: 60px;" id="header-col1">Cột A</th>
                         <th style="width: 120px;" id="header-col2">Cột B</th>
                         <th id="header-col3">Cột C</th>
@@ -172,8 +164,6 @@
                 </tbody>
             </table>
         </div>
-        
-        <div id="sync-indicator"></div>
     </div>
 
     <script>
@@ -183,7 +173,6 @@
         let tableHeaders = [];
 
         window.onload = function() {
-            // Bước 1: Tải danh sách Năm học từ Tab Config
             loadConfigAndInit();
         };
 
@@ -209,11 +198,8 @@
             return result;
         }
 
-        // TẢI DANH SÁCH TỪ TAB CONFIG
+        // TẢI DANH SÁCH TỪ TAB CONFIG NGẦM
         function loadConfigAndInit() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('loading').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải cấu hình hệ thống...';
-            
             const configUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
             
             fetch(configUrl)
@@ -224,7 +210,6 @@
                     for(let i = 0; i < lines.length; i++) {
                         let cols = parseCSVLine(lines[i]);
                         let y = cols[0] ? cols[0].trim() : "";
-                        // Bỏ qua dòng trống hoặc dòng có chữ Config/Năm học
                         if(y && y.toLowerCase() !== "năm học" && y.toLowerCase() !== "config") {
                             years.push(y);
                         }
@@ -232,16 +217,13 @@
                     
                     if(years.length > 0) {
                         populateYearDropdown(years);
-                        currentYear = years[0]; // Chọn năm đầu tiên làm mặc định
+                        currentYear = years[0];
                         document.getElementById('filter-year').value = currentYear;
-                        loadDataForYear(currentYear, false); // Bước 2: Tải dữ liệu năm học tương ứng
-                    } else {
-                        document.getElementById('loading').innerHTML = '<span style="color:red">Không tìm thấy dữ liệu trong tab Config. Bạn đã tạo tab "Config" và ghi năm vào cột A chưa?</span>';
+                        loadDataForYear(currentYear);
                     }
                 })
                 .catch(err => {
-                    console.error("Lỗi tab Config:", err);
-                    document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải tab Config. Vui lòng kiểm tra quyền chia sẻ file.</span>';
+                    console.error("Lỗi tải tab Config:", err);
                 });
         }
 
@@ -258,48 +240,33 @@
 
         function changeYear() {
             currentYear = document.getElementById('filter-year').value;
-            // Xóa bộ lọc cũ trước khi chuyển sheet
             document.getElementById('filter-col4').innerHTML = '<option value="ALL">-- Tất cả --</option>'; 
-            loadDataForYear(currentYear, false);
+            loadDataForYear(currentYear);
         }
 
-        // TẢI DỮ LIỆU CỦA SHEET ĐƯỢC CHỌN (KÈM CACHE)
-        function loadDataForYear(year, isBackgroundSync) {
+        // TẢI DỮ LIỆU TỰ ĐỘNG CHẠY NGẦM
+        function loadDataForYear(year) {
             const CACHE_KEY = "DYNAMIC_DATA_V1_" + year;
             const cachedDataString = localStorage.getItem(CACHE_KEY);
             const cachedHeadersString = localStorage.getItem(CACHE_KEY + "_HEADERS");
-            let hasCache = false;
 
+            // Hiển thị ngay lập tức nếu đã có dữ liệu lưu trong cache
             if (cachedDataString && cachedHeadersString) {
-    try {
-        allData = JSON.parse(cachedDataString);
-        tableHeaders = JSON.parse(cachedHeadersString);
-        hasCache = true;
-        
-        renderHeaders(tableHeaders);
-        
-        // --- ẨN LOADING VÀ HIỂN THỊ BẢNG NGHAY KHI CÓ CACHE ---
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('data-table').style.display = 'table';
-        
-        populateFilterDropdown();
-        applyFilter();
-        
-        document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Đang kiểm tra dữ liệu mới...';
-    } catch (e) {
-        console.error("Lỗi đọc cache:", e);
-    }
-}
-
-            if (!isBackgroundSync && !hasCache) {
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('loading').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...';
-                document.getElementById('data-table').style.display = 'none';
-                document.getElementById('table-body').innerHTML = '';
+                try {
+                    allData = JSON.parse(cachedDataString);
+                    tableHeaders = JSON.parse(cachedHeadersString);
+                    
+                    renderHeaders(tableHeaders);
+                    populateFilterDropdown();
+                    applyFilter();
+                } catch (e) {
+                    console.error("Lỗi đọc cache:", e);
+                }
             }
 
             const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${year}`;
 
+            // Tự động tải dữ liệu mới 1 lần duy nhất từ Google Sheet bên dưới nền
             fetch(CSV_URL)
                 .then(response => response.text())
                 .then(text => {
@@ -312,7 +279,6 @@
                         if (!lines[i].trim()) continue;
                         let cols = parseCSVLine(lines[i]);
                         
-                        // Lấy dòng đầu tiên có dữ liệu làm TIÊU ĐỀ CỘT
                         if (isFirstRow) {
                             newHeaders = [
                                 cols[0] ? cols[0].trim() : "CỘT A",
@@ -322,10 +288,9 @@
                                 cols[4] ? cols[4].trim() : "CỘT E"
                             ];
                             isFirstRow = false;
-                            continue; // Chuyển sang đọc các dòng dữ liệu
+                            continue;
                         }
 
-                        // Đọc dữ liệu (Bỏ qua nếu Cột A trống để loại trừ các hàng trắng dư thừa)
                         if (cols[0] && cols[0].trim() !== "") {
                             rawData.push({
                                 col1: cols[0].trim(),
@@ -340,7 +305,7 @@
                     const newDataString = JSON.stringify(rawData);
                     const newHeadersString = JSON.stringify(newHeaders);
                     
-                    // Cập nhật nếu có sự thay đổi
+                    // Nếu dữ liệu Google Sheet có cập nhật mới -> Tự đổi dữ liệu trên màn hình và lưu lại Cache
                     if (newDataString !== cachedDataString || newHeadersString !== cachedHeadersString) {
                         localStorage.setItem(CACHE_KEY, newDataString);
                         localStorage.setItem(CACHE_KEY + "_HEADERS", newHeadersString);
@@ -348,30 +313,16 @@
                         allData = rawData;
                         tableHeaders = newHeaders;
                         
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('data-table').style.display = 'table';
-                        
                         renderHeaders(tableHeaders);
                         populateFilterDropdown();
                         applyFilter();
-                    } else {
-                            document.getElementById('loading').style.display = 'none';
-                            document.getElementById('data-table').style.display = 'table';
                     }
-                    
-                    document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-check-circle" style="color: green;"></i> Dữ liệu tab ${year} đã được đồng bộ`;
                 })
                 .catch(err => {
-                    console.error("Lỗi đồng bộ:", err);
-                    if (!isBackgroundSync && !hasCache) {
-                        document.getElementById('loading').innerHTML = '<span style="color:red">Lỗi tải dữ liệu. Vui lòng kiểm tra quyền truy cập link Google Sheet.</span>';
-                    } else {
-                        document.getElementById('sync-indicator').innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: orange;"></i> Đang dùng dữ liệu cũ (Ngoại tuyến)';
-                    }
+                    console.error("Lỗi đồng bộ dữ liệu ngầm:", err);
                 });
         }
 
-        // TỰ ĐỘNG ĐỔI TÊN TIÊU ĐỀ TRÊN HTML DỰA VÀO GOOGLE SHEET
         function renderHeaders(headers) {
             document.getElementById('header-col1').textContent = headers[0];
             document.getElementById('header-col2').textContent = headers[1];
@@ -379,11 +330,9 @@
             document.getElementById('header-col4').textContent = headers[3];
             document.getElementById('header-col5').textContent = headers[4];
 
-            // Tự động đổi tên nhãn Bộ lọc trùng với tên của Cột D
             document.getElementById('label-filter-col4').innerHTML = `<i class="fa-solid fa-filter"></i> Lọc theo ${headers[3]}:`;
         }
 
-        // Tạo danh sách lọc dựa trên giá trị cột D (Index 3)
         function populateFilterDropdown() {
             const select = document.getElementById('filter-col4');
             const currentSelected = select.value;
@@ -394,7 +343,6 @@
             
             allData.forEach(item => {
                 if (item.col4) {
-                    // Cắt bằng dấu phẩy trong trường hợp có nhiều người/nhiều tiêu chí 1 ô
                     let parts = item.col4.split(',');
                     parts.forEach(part => {
                         let t = part.trim();
@@ -410,7 +358,6 @@
                 select.appendChild(option);
             });
 
-            // Khôi phục bộ lọc đang chọn nếu có
             let matchFound = false;
             for(let i = 0; i < select.options.length; i++){
                 if(select.options[i].value === currentSelected){
@@ -430,14 +377,11 @@
             }
 
             dataArray.forEach(item => {
-                // Logic hiển thị Cột E (Minh chứng/Link)
                 let linkHTML = '';
                 if (item.col5 && item.col5 !== "") {
-                    // Nếu là đường link, tạo nút bấm
                     let url = item.col5.startsWith('http') ? item.col5 : 'https://' + item.col5;
                     linkHTML = `<a href="${url}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`;
                 } else {
-                    // Bỏ trống
                     linkHTML = `<span class="badge-missing">Chưa có</span>`;
                 }
 
