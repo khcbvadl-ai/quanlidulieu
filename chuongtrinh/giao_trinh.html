@@ -137,10 +137,6 @@
         <!-- BỘ LỌC -->
         <div class="filter-section">
             <div class="filter-group">
-                <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học (Tab dữ liệu):</label>
-                <select id="filter-year" onchange="changeYear()"></select>
-            </div>
-            <div class="filter-group">
                 <label id="label-filter-col4" for="filter-col4"><i class="fa-solid fa-filter"></i> Lọc dữ liệu:</label>
                 <select id="filter-col4" onchange="applyFilter()">
                     <option value="ALL">-- Tất cả --</option>
@@ -171,8 +167,7 @@
 
     <script>
         const SHEET_ID = "1lHh_ksG9Dik_zVPabGKuvk1hrJJwsCXyWoJIUL8d73A";
-        const CONFIG_CACHE_KEY = "GIAO_TRINH_CONFIG_YEARS_V3";
-        let currentYear = ""; 
+        const CACHE_KEY = "GIAO_TRINH_DATA_FINAL";
         let allData = [];
         let tableHeaders = [];
 
@@ -210,7 +205,7 @@
         });
 
         window.onload = function() {
-            loadConfigAndInit();
+            loadData();
         };
 
         function parseCSVLine(text) {
@@ -234,85 +229,7 @@
             return result;
         }
 
-        function loadConfigAndInit() {
-            const cachedYearsString = localStorage.getItem(CONFIG_CACHE_KEY);
-            let cachedYears = [];
-
-            if (cachedYearsString) {
-                try {
-                    cachedYears = JSON.parse(cachedYearsString);
-                    if (cachedYears.length > 0) {
-                        populateYearDropdown(cachedYears);
-                        currentYear = cachedYears[0];
-                        document.getElementById('filter-year').value = currentYear;
-                        loadDataForYear(currentYear);
-                    }
-                } catch (e) {
-                    console.error("Lỗi đọc cache Config:", e);
-                }
-            }
-
-            const configUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
-            
-            fetch(configUrl)
-                .then(res => {
-                    if (!res.ok) throw new Error("Không thể kết nối đến Google Sheet");
-                    return res.text();
-                })
-                .then(text => {
-                    let lines = text.split(/\r?\n/);
-                    let years = [];
-                    for(let i = 0; i < lines.length; i++) {
-                        if (!lines[i].trim()) continue;
-                        let cols = parseCSVLine(lines[i]);
-                        let y = cols[0] ? cols[0].trim() : "";
-                        if(y && y.toLowerCase() !== "năm học" && y.toLowerCase() !== "config") {
-                            years.push(y);
-                        }
-                    }
-                    
-                    if(years.length > 0) {
-                        const newYearsString = JSON.stringify(years);
-                        if (newYearsString !== cachedYearsString) {
-                            localStorage.setItem(CONFIG_CACHE_KEY, newYearsString);
-                            populateYearDropdown(years);
-                            
-                            if (!currentYear || !years.includes(currentYear)) {
-                                currentYear = years[0];
-                                document.getElementById('filter-year').value = currentYear;
-                                loadDataForYear(currentYear);
-                            }
-                        }
-                    }
-                })
-                .catch(err => {
-                    console.error("Lỗi tải tab Config:", err);
-                });
-        }
-
-        function populateYearDropdown(years) {
-            const select = document.getElementById('filter-year');
-            const selectedVal = select.value;
-            select.innerHTML = '';
-            years.forEach(y => {
-                let opt = document.createElement('option');
-                opt.value = y;
-                opt.textContent = "Dữ liệu năm " + y;
-                select.appendChild(opt);
-            });
-            if (selectedVal && years.includes(selectedVal)) {
-                select.value = selectedVal;
-            }
-        }
-
-        function changeYear() {
-            currentYear = document.getElementById('filter-year').value;
-            document.getElementById('filter-col4').innerHTML = '<option value="ALL">-- Tất cả --</option>'; 
-            loadDataForYear(currentYear);
-        }
-
-        function loadDataForYear(year) {
-            const CACHE_KEY = "GIAO_TRINH_DATA_V3_" + year;
+        function loadData() {
             const cachedDataString = localStorage.getItem(CACHE_KEY);
             const cachedHeadersString = localStorage.getItem(CACHE_KEY + "_HEADERS");
 
@@ -325,15 +242,16 @@
                     populateFilterDropdown();
                     applyFilter();
                 } catch (e) {
-                    console.error("Lỗi đọc cache năm " + year + ":", e);
+                    console.error("Lỗi đọc cache:", e);
                 }
             }
 
-            const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(year)}`;
+            // Lấy dữ liệu từ Sheet đầu tiên mặc định
+            const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
 
             fetch(CSV_URL)
                 .then(response => {
-                    if (!response.ok) throw new Error("Lỗi tải trang dữ liệu " + year);
+                    if (!response.ok) throw new Error("Lỗi tải trang dữ liệu");
                     return response.text();
                 })
                 .then(text => {
@@ -347,7 +265,6 @@
                         let cols = parseCSVLine(lines[i]);
                         
                         if (isFirstRow) {
-                            // Lấy 7 cột cho Tiêu đề
                             newHeaders = [
                                 cols[0] ? cols[0].trim() : "CỘT A",
                                 cols[1] ? cols[1].trim() : "CỘT B",
@@ -362,7 +279,6 @@
                         }
 
                         if (cols[0] && cols[0].trim() !== "") {
-                            // Mở rộng lưu trữ dữ liệu 7 cột
                             rawData.push({
                                 col1: cols[0].trim(),
                                 col2: (cols.length > 1 && cols[1]) ? cols[1].trim() : "",
@@ -391,7 +307,7 @@
                     }
                 })
                 .catch(err => {
-                    console.error("Lỗi đồng bộ dữ liệu năm " + year + ":", err);
+                    console.error("Lỗi đồng bộ dữ liệu:", err);
                 });
         }
 
@@ -404,7 +320,6 @@
             document.getElementById('header-col6').textContent = headers[5];
             document.getElementById('header-col7').textContent = headers[6];
 
-            // Cập nhật nhãn lọc theo Cột D
             document.getElementById('label-filter-col4').innerHTML = `<i class="fa-solid fa-filter"></i> Lọc theo ${headers[3]}:`;
         }
 
@@ -417,7 +332,6 @@
             let items = new Set();
             
             allData.forEach(item => {
-                // Chỉ lấy dữ liệu từ col4 (Cột D) để tạo bộ lọc
                 if (item.col4) {
                     let parts = item.col4.split(',');
                     parts.forEach(part => {
@@ -454,7 +368,6 @@
 
             dataArray.forEach(item => {
                 let linkHTML = '';
-                // Kiểm tra col7 (Cột G) cho phần Tải Giáo Trình
                 if (item.col7 && item.col7 !== "") {
                     let url = item.col7.startsWith('http') ? item.col7 : 'https://' + item.col7;
                     linkHTML = `<a href="${url}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`;
@@ -481,7 +394,6 @@
 
             let filteredData = allData.filter(item => {
                 if (selectedVal === "ALL") return true;
-                // Đối chiếu với giá trị trong col4 (Cột D)
                 return item.col4 && item.col4.includes(selectedVal);
             });
 
