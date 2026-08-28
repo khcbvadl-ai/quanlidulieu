@@ -1,20 +1,174 @@
-// Variable global lưu thông tin cấu hình và dữ liệu
-let priceMap = {}; // Lưu thông tin Giá (F), Giới hạn số lượng (E), Tiền tối đa (G) từ sheet Thong_tin_chung
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BẢNG THỐNG KÊ ĐĂNG KÝ NƯỚC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #1b5e20;
+            margin-bottom: 20px;
+        }
+        .filter-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #f1f8e9;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        select {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #1b5e20;
+            color: white;
+            font-weight: bold;
+        }
+        .sub-header {
+            background-color: #2e7d32;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        /* Style cho 2 hàng tổng */
+        tfoot tr.row-total {
+            background-color: #e8f5e9;
+            font-weight: bold;
+        }
+        tfoot tr.row-limit {
+            background-color: #fff3e0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>BẢNG THỐNG KÊ ĐĂNG KÝ NƯỚC</h2>
+
+    <!-- Bộ lọc -->
+    <div class="filter-box">
+        <div class="filter-item">
+            <label for="unit-filter"><strong>ĐƠN VỊ:</strong></label>
+            <select id="unit-filter" onchange="applyFilter()">
+                <option value="">-- Tất cả đơn vị --</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <label for="month-filter"><strong>THÁNG:</strong></label>
+            <select id="month-filter" onchange="applyFilter()">
+                <option value="">-- Tất cả tháng --</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Bảng dữ liệu -->
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2">STT</th>
+                <th rowspan="2">Tên đơn vị</th>
+                <th rowspan="2">Tháng</th>
+                <th colspan="4" class="sub-header">Số lượng đặt (Bình/Chai)</th>
+                <th colspan="4" class="sub-header">Thành tiền từng loại (VNĐ)</th>
+                <th rowspan="2">Tổng tiền</th>
+            </tr>
+            <tr>
+                <th>Loại 1 (18.5L)</th>
+                <th>Loại 2 (19L)</th>
+                <th>Loại 3 (0.35L)</th>
+                <th>Loại 4 (0.5L)</th>
+                <th>Tiền Loại 1</th>
+                <th>Tiền Loại 2</th>
+                <th>Tiền Loại 3</th>
+                <th>Tiền Loại 4</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            <tr>
+                <td colspan="12">Đang tải dữ liệu...</td>
+            </tr>
+        </tbody>
+        <tfoot id="table-foot"></tfoot>
+    </table>
+</div>
+
+<!-- ĐOẠN CODE JAVASCRIPT XỬ LÝ DỮ LIỆU -->
+<script>
+let priceMap = {}; 
 let allData = [];
 const CACHE_KEY = "DANG_KY_NUOC_DATA_CACHE";
 
-// ID Sheet Google của bạn
+// Thay ID Sheet và GID thực tế của bạn tại đây
 const SHEET_ID = "YOUR_SPREADSHEET_ID_HERE"; 
-const GID_SO_LUONG = "0";          // Thay bằng GID thực tế của sheet So_luong_dat
-const GID_THONG_TIN = "12345678";   // Thay bằng GID thực tế của sheet Thong_tin_chung
+const GID_SO_LUONG = "0";          // GID của sheet So_luong_dat
+const GID_THONG_TIN = "12345678";   // GID của sheet Thong_tin_chung
 
-/**
- * 1. Đọc dữ liệu từ sheet Thong_tin_chung
- * Cột B (cols[1]): Mã (A1, A2, A3, A4)
- * Cột E (cols[4]): Số lượng giới hạn
- * Cột F (cols[5]): Đơn giá
- * Cột G (cols[6]): Tổng tiền tối đa
- */
+// 1. Tải dữ liệu từ Google Sheets qua liên kết xuất CSV
+function loadData() {
+    const urlSoLuong = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_SO_LUONG}`;
+    const urlThongTin = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_THONG_TIN}`;
+
+    Promise.all([
+        fetch(urlThongTin).then(res => {
+            if(!res.ok) throw new Error("Lỗi tải Thong_tin_chung");
+            return res.text();
+        }),
+        fetch(urlSoLuong).then(res => {
+            if(!res.ok) throw new Error("Lỗi tải So_luong_dat");
+            return res.text();
+        })
+    ])
+    .then(([csvThongTin, csvSoLuong]) => {
+        parsePriceData(csvThongTin);
+        parseOrderData(csvSoLuong);
+        
+        populateFilters();
+        applyFilter();
+    })
+    .catch(err => {
+        console.error("Lỗi tải dữ liệu:", err);
+        const tbody = document.getElementById('table-body');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="12" style="color:red; text-align:center; padding:20px;">Lỗi tải dữ liệu. Vui lòng kiểm tra quyền truy cập Sheet.</td></tr>';
+        }
+    });
+}
+
+// 2. Đọc bảng Thong_tin_chung (E: Giới hạn số lượng, F: Đơn giá, G: Tiền tối đa)
 function parsePriceData(csvText) {
     let lines = csvText.split(/\r?\n/);
     priceMap = {
@@ -28,15 +182,11 @@ function parsePriceData(csvText) {
         if (!lines[i].trim()) continue;
         let cols = parseCSVLine(lines[i]);
         if (cols.length >= 2) {
-            let key = cols[1] ? cols[1].trim().toUpperCase() : ""; // Mã A1, A2...
-            
+            let key = cols[1] ? cols[1].trim().toUpperCase() : ""; // Cột B: A1, A2...
             if (key && priceMap.hasOwnProperty(key)) {
-                // Cột E (cols[4]): Số lượng giới hạn
-                let limitQty = cols[4] ? parseFloat(cols[4].replace(/[^0-9.-]+/g, "")) : 0;
-                // Cột F (cols[5]): Giá tiền
-                let price = cols[5] ? parseFloat(cols[5].replace(/[^0-9.-]+/g, "")) : 0;
-                // Cột G (cols[6]): Tổng tiền tối đa
-                let maxAmount = cols[6] ? parseFloat(cols[6].replace(/[^0-9.-]+/g, "")) : 0;
+                let limitQty = cols[4] ? parseFloat(cols[4].replace(/[^0-9.-]+/g, "")) : 0; // Cột E
+                let price = cols[5] ? parseFloat(cols[5].replace(/[^0-9.-]+/g, "")) : 0;    // Cột F
+                let maxAmount = cols[6] ? parseFloat(cols[6].replace(/[^0-9.-]+/g, "")) : 0;// Cột G
 
                 priceMap[key] = {
                     price: isNaN(price) ? 0 : price,
@@ -48,36 +198,50 @@ function parsePriceData(csvText) {
     }
 }
 
-/**
- * 2. Hàm hiển thị dữ liệu bảng và chèn 2 hàng tổng vào cuối
- */
+// 3. Đọc dữ liệu đặt nước
+function parseOrderData(csvText) {
+    let lines = csvText.split(/\r?\n/);
+    allData = [];
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        let cols = parseCSVLine(lines[i]);
+        if (cols.length >= 7) {
+            allData.push({
+                unit: cols[1] ? cols[1].trim() : "",
+                month: cols[2] ? cols[2].trim() : "",
+                qty1: parseFloat(cols[3]) || 0,
+                qty2: parseFloat(cols[4]) || 0,
+                qty3: parseFloat(cols[5]) || 0,
+                qty4: parseFloat(cols[6]) || 0
+            });
+        }
+    }
+}
+
+// 4. Hiển thị bảng dữ liệu và 2 hàng tổng kết ở cuối
 function renderTable(dataArray) {
     const tbody = document.getElementById('table-body');
-    const tfoot = document.getElementById('table-foot') || createTfoot();
+    const tfoot = document.getElementById('table-foot');
     
     tbody.innerHTML = '';
     tfoot.innerHTML = '';
 
     if (!dataArray || dataArray.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" class="empty-message">Không tìm thấy dữ liệu phù hợp.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:15px;">Không tìm thấy dữ liệu phù hợp.</td></tr>';
         return;
     }
 
-    // Các biến tích lũy cho Hàng tổng 1 (Tổng đăng ký)
     let sumQty1 = 0, sumQty2 = 0, sumQty3 = 0, sumQty4 = 0;
     let sumAmt1 = 0, sumAmt2 = 0, sumAmt3 = 0, sumAmt4 = 0;
     let totalAllAmount = 0;
 
-    // Lặp qua từng dòng dữ liệu để vẽ bảng và tính tổng
     dataArray.forEach((row, index) => {
-        // Tính tiền từng loại dựa trên giá từ priceMap
         let amt1 = (row.qty1 || 0) * (priceMap['A1'] ? priceMap['A1'].price : 0);
         let amt2 = (row.qty2 || 0) * (priceMap['A2'] ? priceMap['A2'].price : 0);
         let amt3 = (row.qty3 || 0) * (priceMap['A3'] ? priceMap['A3'].price : 0);
         let amt4 = (row.qty4 || 0) * (priceMap['A4'] ? priceMap['A4'].price : 0);
         let rowTotal = amt1 + amt2 + amt3 + amt4;
 
-        // Cộng dồn Hàng 1
         sumQty1 += (row.qty1 || 0);
         sumQty2 += (row.qty2 || 0);
         sumQty3 += (row.qty3 || 0);
@@ -89,7 +253,6 @@ function renderTable(dataArray) {
         sumAmt4 += amt4;
         totalAllAmount += rowTotal;
 
-        // Vẽ hàng dữ liệu thông thường
         let tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${index + 1}</td>
@@ -108,7 +271,7 @@ function renderTable(dataArray) {
         tbody.appendChild(tr);
     });
 
-    // Lấy thông tin Giới hạn (Cột E) và Tiền tối đa (Cột G) cho Hàng 2
+    // Lấy thông tin Giới hạn số lượng (Cột E) & Tiền tối đa (Cột G)
     let limitA1 = priceMap['A1'] ? priceMap['A1'].limitQty : 0;
     let limitA2 = priceMap['A2'] ? priceMap['A2'].limitQty : 0;
     let limitA3 = priceMap['A3'] ? priceMap['A3'].limitQty : 0;
@@ -119,14 +282,12 @@ function renderTable(dataArray) {
     let maxAmtA3 = priceMap['A3'] ? priceMap['A3'].maxAmount : 0;
     let maxAmtA4 = priceMap['A4'] ? priceMap['A4'].maxAmount : 0;
 
-    // Tổng tiền tối đa ở ô cuối cùng (Cột Kế toán/Tổng tiền)
+    // TỔNG TIỀN TỐI ĐA (Tổng 4 giá trị cột G)
     let grandTotalMaxAmount = maxAmtA1 + maxAmtA2 + maxAmtA3 + maxAmtA4;
 
-    // --- HÀNG 1: TỔNG SỐ LƯỢNG VÀ TỔNG TIỀN ĐĂNG KÝ ---
+    // Hàng 1: Tổng đăng ký
     let trTotal = document.createElement('tr');
-    trTotal.className = 'row-summary-total';
-    trTotal.style.fontWeight = 'bold';
-    trTotal.style.backgroundColor = '#e8f5e9'; // Màu nền xanh nhẹ nổi bật
+    trTotal.className = 'row-total';
     trTotal.innerHTML = `
         <td colspan="3" style="text-align: center;">TỔNG CỘNG ĐĂNG KÝ</td>
         <td>${formatNumber(sumQty1)}</td>
@@ -140,24 +301,19 @@ function renderTable(dataArray) {
         <td style="color: #2e7d32;">${formatCurrency(totalAllAmount)}</td>
     `;
 
-    // --- HÀNG 2: SỐ LƯỢNG GIỚI HẠN & TỔNG TIỀN TỐI ĐA ---
+    // Hàng 2: Số lượng giới hạn / Tiền tối đa
     let trLimit = document.createElement('tr');
-    trLimit.className = 'row-summary-limit';
-    trLimit.style.fontWeight = 'bold';
-    trLimit.style.backgroundColor = '#fff3e0'; // Màu nền cam nhẹ phân biệt
+    trLimit.className = 'row-limit';
     trLimit.innerHTML = `
         <td colspan="3" style="text-align: center;">SỐ LƯỢNG GIỚI HẠN / TIỀN TỐI ĐA</td>
-        <!-- Số lượng giới hạn từ Cột E -->
         <td style="color: #d84315;">${formatNumber(limitA1)}</td>
         <td style="color: #d84315;">${formatNumber(limitA2)}</td>
         <td style="color: #d84315;">${formatNumber(limitA3)}</td>
         <td style="color: #d84315;">${formatNumber(limitA4)}</td>
-        <!-- Tiền tối đa từ Cột G -->
         <td style="color: #c62828;">${formatCurrency(maxAmtA1)}</td>
         <td style="color: #c62828;">${formatCurrency(maxAmtA2)}</td>
         <td style="color: #c62828;">${formatCurrency(maxAmtA3)}</td>
         <td style="color: #c62828;">${formatCurrency(maxAmtA4)}</td>
-        <!-- Ô cuối cùng: TỔNG TIỀN TỐI ĐA (Tổng 4 ô Cột G) -->
         <td style="color: #c62828; font-size: 1.05em;">${formatCurrency(grandTotalMaxAmount)}</td>
     `;
 
@@ -165,19 +321,35 @@ function renderTable(dataArray) {
     tfoot.appendChild(trLimit);
 }
 
-// Hàm hỗ trợ tạo thẻ <tfoot> nếu trong HTML chưa có
-function createTfoot() {
-    const table = document.querySelector('table');
-    let tfoot = table.querySelector('tfoot');
-    if (!tfoot) {
-        tfoot = document.createElement('tfoot');
-        tfoot.id = 'table-foot';
-        table.appendChild(tfoot);
-    }
-    return tfoot;
+// 5. Hàm lọc
+function applyFilter() {
+    const unitVal = document.getElementById('unit-filter').value;
+    const monthVal = document.getElementById('month-filter').value;
+
+    let filtered = allData.filter(item => {
+        let matchUnit = !unitVal || item.unit === unitVal;
+        let matchMonth = !monthVal || item.month === monthVal;
+        return matchUnit && matchMonth;
+    });
+
+    renderTable(filtered);
 }
 
-// Các hàm tiện ích định dạng dữ liệu
+function populateFilters() {
+    const unitSelect = document.getElementById('unit-filter');
+    const monthSelect = document.getElementById('month-filter');
+
+    let units = [...new Set(allData.map(item => item.unit))].filter(Boolean);
+    let months = [...new Set(allData.map(item => item.month))].filter(Boolean);
+
+    unitSelect.innerHTML = '<option value="">-- Tất cả đơn vị --</option>';
+    units.forEach(u => unitSelect.innerHTML += `<option value="${u}">${u}</option>`);
+
+    monthSelect.innerHTML = '<option value="">-- Tất cả tháng --</option>';
+    months.forEach(m => monthSelect.innerHTML += `<option value="${m}">${m}</option>`);
+}
+
+// Hàm bổ trợ định dạng
 function formatNumber(num) {
     if (!num || isNaN(num)) return '0';
     return new Intl.NumberFormat('vi-VN').format(num);
@@ -193,7 +365,6 @@ function escapeHtml(str) {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// Hàm phân tách CSV cơ bản
 function parseCSVLine(text) {
     let result = [];
     let cell = '';
@@ -212,3 +383,10 @@ function parseCSVLine(text) {
     result.push(cell.trim());
     return result;
 }
+
+// Gọi thực thi khi trang web load hoàn tất
+document.addEventListener('DOMContentLoaded', loadData);
+</script>
+
+</body>
+</html>
