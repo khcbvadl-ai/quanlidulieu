@@ -69,7 +69,7 @@
             -webkit-overflow-scrolling: touch;
         }
         
-        table { width: 100%; border-collapse: collapse; background-color: white; min-width: 900px; }
+        table { width: 100%; border-collapse: collapse; background-color: white; min-width: 1000px; }
         thead { background-color: var(--primary-color); color: white; }
         th, td { padding: 14px 15px; border-bottom: 1px solid var(--border-color); }
         th { font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; text-align: center; white-space: nowrap; }
@@ -78,7 +78,9 @@
         th:nth-child(2), td:nth-child(2) { text-align: left; }
         th:nth-child(3), td:nth-child(3) { text-align: left; }
         th:nth-child(4), td:nth-child(4) { text-align: left; }
-        th:nth-child(5), td:nth-child(5) { text-align: center; }
+        th:nth-child(5), td:nth-child(5) { text-align: left; }
+        th:nth-child(6), td:nth-child(6) { text-align: left; }
+        th:nth-child(7), td:nth-child(7) { text-align: center; }
 
         td:nth-child(4) { font-weight: 600; color: var(--teacher-color); }
 
@@ -151,11 +153,13 @@
             <table id="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 60px;" id="header-col1">Cột A</th>
-                        <th style="width: 120px;" id="header-col2">Cột B</th>
-                        <th id="header-col3">Cột C</th>
-                        <th style="width: 300px;" id="header-col4">Cột D</th>
-                        <th style="width: 150px;" id="header-col5">Cột E</th>
+                        <th style="width: 50px;" id="header-col1">Cột A</th>
+                        <th style="width: 80px;" id="header-col2">Cột B</th>
+                        <th style="width: 200px;" id="header-col3">Cột C</th>
+                        <th style="width: 180px;" id="header-col4">Cột D</th>
+                        <th style="width: 180px;" id="header-col5">Cột E</th>
+                        <th style="width: 150px;" id="header-col6">Cột F</th>
+                        <th style="width: 120px;" id="header-col7">Cột G</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
@@ -166,16 +170,12 @@
     </div>
 
     <script>
-        // CẬP NHẬT SHEET_ID MỚI
         const SHEET_ID = "1lHh_ksG9Dik_zVPabGKuvk1hrJJwsCXyWoJIUL8d73A";
-        
-        // ĐỔI CACHE KEY ĐỂ DỰ DỮ LIỆU CŨ KHÔNG BỊ TRỘN LẪN
-        const CONFIG_CACHE_KEY = "GIAO_TRINH_CONFIG_YEARS_V2";
+        const CONFIG_CACHE_KEY = "GIAO_TRINH_CONFIG_YEARS_V3";
         let currentYear = ""; 
         let allData = [];
         let tableHeaders = [];
 
-        // LẮNG NGHE SỰ KIỆN BẤM PHÍM F2 ĐỂ HIỆN NÚT TRUY CẬP
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
@@ -183,10 +183,8 @@
                 if (!document.getElementById('api-redirect-btn')) {
                     const apiBtn = document.createElement('a');
                     apiBtn.id = 'api-redirect-btn';
-                    
                     apiBtn.href = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
                     apiBtn.target = '_blank';
-                    
                     apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
                     
                     apiBtn.style.display = 'inline-block';
@@ -215,7 +213,6 @@
             loadConfigAndInit();
         };
 
-        // Hàm đọc CSV an toàn
         function parseCSVLine(text) {
             let result = [];
             let entry = '';
@@ -237,7 +234,6 @@
             return result;
         }
 
-        // TẢI DANH SÁCH TỪ TAB CONFIG
         function loadConfigAndInit() {
             const cachedYearsString = localStorage.getItem(CONFIG_CACHE_KEY);
             let cachedYears = [];
@@ -315,10 +311,8 @@
             loadDataForYear(currentYear);
         }
 
-        // TẢI DỮ LIỆU THEO NĂM
         function loadDataForYear(year) {
-            // ĐỔI CACHE KEY TƯƠNG ỨNG MỖI NĂM
-            const CACHE_KEY = "GIAO_TRINH_DATA_V2_" + year;
+            const CACHE_KEY = "GIAO_TRINH_DATA_V3_" + year;
             const cachedDataString = localStorage.getItem(CACHE_KEY);
             const cachedHeadersString = localStorage.getItem(CACHE_KEY + "_HEADERS");
 
@@ -353,24 +347,30 @@
                         let cols = parseCSVLine(lines[i]);
                         
                         if (isFirstRow) {
+                            // Lấy 7 cột cho Tiêu đề
                             newHeaders = [
                                 cols[0] ? cols[0].trim() : "CỘT A",
                                 cols[1] ? cols[1].trim() : "CỘT B",
                                 cols[2] ? cols[2].trim() : "CỘT C",
                                 cols[3] ? cols[3].trim() : "CỘT D",
-                                cols[4] ? cols[4].trim() : "CỘT E"
+                                cols[4] ? cols[4].trim() : "CỘT E",
+                                cols[5] ? cols[5].trim() : "CỘT F",
+                                cols[6] ? cols[6].trim() : "CỘT G"
                             ];
                             isFirstRow = false;
                             continue;
                         }
 
                         if (cols[0] && cols[0].trim() !== "") {
+                            // Mở rộng lưu trữ dữ liệu 7 cột
                             rawData.push({
                                 col1: cols[0].trim(),
                                 col2: (cols.length > 1 && cols[1]) ? cols[1].trim() : "",
                                 col3: (cols.length > 2 && cols[2]) ? cols[2].trim() : "",
                                 col4: (cols.length > 3 && cols[3]) ? cols[3].trim() : "",
-                                col5: (cols.length > 4 && cols[4]) ? cols[4].trim() : ""
+                                col5: (cols.length > 4 && cols[4]) ? cols[4].trim() : "",
+                                col6: (cols.length > 5 && cols[5]) ? cols[5].trim() : "",
+                                col7: (cols.length > 6 && cols[6]) ? cols[6].trim() : ""
                             });
                         }
                     }
@@ -401,7 +401,10 @@
             document.getElementById('header-col3').textContent = headers[2];
             document.getElementById('header-col4').textContent = headers[3];
             document.getElementById('header-col5').textContent = headers[4];
+            document.getElementById('header-col6').textContent = headers[5];
+            document.getElementById('header-col7').textContent = headers[6];
 
+            // Cập nhật nhãn lọc theo Cột D
             document.getElementById('label-filter-col4').innerHTML = `<i class="fa-solid fa-filter"></i> Lọc theo ${headers[3]}:`;
         }
 
@@ -414,6 +417,7 @@
             let items = new Set();
             
             allData.forEach(item => {
+                // Chỉ lấy dữ liệu từ col4 (Cột D) để tạo bộ lọc
                 if (item.col4) {
                     let parts = item.col4.split(',');
                     parts.forEach(part => {
@@ -444,14 +448,15 @@
             tbody.innerHTML = '';
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không tìm thấy dữ liệu nào phù hợp.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-message">Không tìm thấy dữ liệu nào phù hợp.</td></tr>';
                 return;
             }
 
             dataArray.forEach(item => {
                 let linkHTML = '';
-                if (item.col5 && item.col5 !== "") {
-                    let url = item.col5.startsWith('http') ? item.col5 : 'https://' + item.col5;
+                // Kiểm tra col7 (Cột G) cho phần Tải Giáo Trình
+                if (item.col7 && item.col7 !== "") {
+                    let url = item.col7.startsWith('http') ? item.col7 : 'https://' + item.col7;
                     linkHTML = `<a href="${url}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`;
                 } else {
                     linkHTML = `<span class="badge-missing">Chưa có</span>`;
@@ -463,6 +468,8 @@
                     <td>${item.col2}</td>
                     <td>${item.col3}</td>
                     <td>${item.col4}</td>
+                    <td>${item.col5}</td>
+                    <td>${item.col6}</td>
                     <td style="text-align: center;">${linkHTML}</td>
                 `;
                 tbody.appendChild(tr);
@@ -474,6 +481,7 @@
 
             let filteredData = allData.filter(item => {
                 if (selectedVal === "ALL") return true;
+                // Đối chiếu với giá trị trong col4 (Cột D)
                 return item.col4 && item.col4.includes(selectedVal);
             });
 
