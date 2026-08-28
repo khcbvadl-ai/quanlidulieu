@@ -130,17 +130,16 @@
 <script>
 let priceMap = {}; 
 let allData = [];
-const CACHE_KEY = "DANG_KY_NUOC_DATA_CACHE";
 
-// Thay ID Sheet và GID thực tế của bạn tại đây
-const SHEET_ID = "YOUR_SPREADSHEET_ID_HERE"; 
-const GID_SO_LUONG = "0";          // GID của sheet So_luong_dat
-const GID_THONG_TIN = "12345678";   // GID của sheet Thong_tin_chung
+// Đã cập nhật chính xác SHEET_ID của bạn
+const SHEET_ID = "1G2SbJcyAy1GYwe16cwaMmphRMaA609ow5l53aHwVw_w"; 
+const SHEET_SO_LUONG = "So_luong_dat";
+const SHEET_THONG_TIN = "Thong_tin_chung";
 
-// 1. Tải dữ liệu từ Google Sheets qua liên kết xuất CSV
+// 1. Tải dữ liệu từ Google Sheets
 function loadData() {
-    const urlSoLuong = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_SO_LUONG}`;
-    const urlThongTin = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_THONG_TIN}`;
+    const urlSoLuong = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_SO_LUONG)}`;
+    const urlThongTin = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_THONG_TIN)}`;
 
     Promise.all([
         fetch(urlThongTin).then(res => {
