@@ -246,21 +246,22 @@
 
         // Tách giá từ Sheet Thong_tin_chung
         function parsePriceData(csvText) {
-            let lines = csvText.split(/\r?\n/);
-            priceMap = {};
-            
-            for (let i = 1; i < lines.length; i++) { // Bỏ qua tiêu đề
-                if (!lines[i].trim()) continue;
-                let cols = parseCSVLine(lines[i]);
-                if (cols.length >= 2) {
-                    let key = cols[1] ? cols[1].trim().toUpperCase() : ""; // Cột B: A1, A2, A3, A4...
-                    let price = cols[2] ? parseFloat(cols[2].replace(/[^0-9.-]+/g, "")) : 0; // Cột C (Giá)
-                    if (key) {
-                        priceMap[key] = isNaN(price) ? 0 : price;
-                    }
-                }
+    let lines = csvText.split(/\r?\n/);
+    priceMap = {};
+    
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        let cols = parseCSVLine(lines[i]);
+        // Đổi điều kiện kiểm tra độ dài mảng để đảm bảo có đủ cột F (chỉ số 5)
+        if (cols.length >= 6) { 
+            let key = cols[1] ? cols[1].trim().toUpperCase() : ""; // Cột B (mã A1, A2...)
+            let price = cols[5] ? parseFloat(cols[5].replace(/[^0-9.-]+/g, "")) : 0; // <-- ĐỔI THÀNH cols[5] (CỘT F)
+            if (key) {
+                priceMap[key] = isNaN(price) ? 0 : price;
             }
         }
+    }
+}
 
         // Tách số lượng từ Sheet So_luong_dat và tính thành tiền
         function parseOrderData(csvText) {
