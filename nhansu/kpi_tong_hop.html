@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân công KPI Tổng Hợp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a4d2e;
+            --teacher-color: #0b694a;
+            --secondary-color: #f4f6f9;
+            --text-color: #333;
+            --border-color: #e2e8f0;
+            --link-color: #2563eb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #ffffff;
+            color: var(--text-color);
+            padding: 20px;
+            font-size: 15px;
+        }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+
+        /* --- HEADER & NAVBAR --- */
+        .top-navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: var(--secondary-color); margin-bottom: 30px; padding: 0 10px 0 20px;
+            border-radius: 8px;
+        }
+        .logo-box { display: flex; align-items: center; }
+        .logo-img { height: 45px; object-fit: contain; margin: 10px 0; }
+        .nav-menu { display: flex; list-style: none; height: 100%; }
+        .nav-item {
+            text-decoration: none; color: #333; padding: 22px 25px; font-weight: 500; font-size: 15px;
+            transition: background-color 0.2s; border-bottom: 3px solid transparent; display: flex; align-items: center;
+        }
+        .nav-item:hover { background-color: #e2e8f0; }
+        .nav-item.active { background-color: #ffffff; border-bottom: 3px solid #000000; font-weight: bold; }
+
+        .header-title {
+            text-align: center; color: var(--primary-color); margin-bottom: 25px;
+            font-size: 22px; text-transform: uppercase; font-weight: 700;
+        }
+
+        /* --- VÙNG LỌC DỮ LIỆU --- */
+        .filter-section {
+            display: flex; gap: 20px; margin-bottom: 25px; background: var(--secondary-color);
+            padding: 20px; border-radius: 8px; align-items: flex-end; flex-wrap: wrap;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 250px; }
+        .filter-group label { font-weight: 600; color: #4a5568; font-size: 13px; text-transform: uppercase; }
+        .filter-group select {
+            padding: 10px 12px; border-radius: 4px; border: 1px solid #cbd5e0; outline: none;
+            font-size: 14px; width: 100%; cursor: pointer; background-color: white; font-family: inherit;
+        }
+        .filter-group select:focus { border-color: var(--primary-color); }
+
+        /* --- BẢNG DỮ LIỆU --- */
+        .table-responsive { 
+            overflow-x: auto; 
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        table { width: 100%; border-collapse: collapse; background-color: white; min-width: 1000px; }
+        thead { background-color: var(--primary-color); color: white; }
+        th, td { padding: 14px 15px; border-bottom: 1px solid var(--border-color); }
+        th { font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; text-align: center; white-space: nowrap; }
+        
+        td { font-size: 14px; line-height: 1.5; }
+        th:nth-child(2), td:nth-child(2) { text-align: left; }
+        th:nth-child(4), td:nth-child(4) { text-align: left; }
+        th:nth-child(3), td:nth-child(3) { text-align: center; }
+        th:nth-child(5), td:nth-child(5) { text-align: center; }
+
+        .person-tag {
+            display: inline-block; padding: 3px 8px; background-color: #e2e8f0; color: var(--teacher-color);
+            border-radius: 12px; font-size: 12px; font-weight: 600; margin: 2px;
+        }
+        .task-count { font-weight: bold; color: #d97706; font-size: 15px; }
+
+        /* Nút và Badge cho phần Link/Minh chứng */
+        .btn-evidence {
+            display: inline-block; padding: 6px 12px; background-color: #e0f2fe; color: var(--link-color);
+            border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 13px;
+            border: 1px solid #bae6fd; transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-evidence:hover { background-color: #bae6fd; color: #1d4ed8; }
+        
+        .badge-missing {
+            display: inline-block; padding: 6px 12px; background-color: #fee2e2; color: #991b1b;
+            border-radius: 20px; font-size: 13px; font-weight: bold; border: 1px solid #fecaca; white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; background-color: inherit; z-index: 2; border-right: 1px solid #e2e8f0; }
+            th:nth-child(1) { background-color: var(--primary-color); color: white; border-right: none;}
+        }
+
+        tbody tr { background-color: #ffffff; transition: background-color 0.2s ease; }
+        tbody tr:nth-child(even) { background-color: #fbfbfb; }
+        tbody tr:hover { background-color: #f1f5f9; }
+
+        .empty-message { text-align: center; padding: 40px; color: #718096; font-style: italic; }
+        #loading { text-align: center; padding: 30px; color: var(--primary-color); font-weight: bold; font-size: 16px; display: none; }
+        .progress-text { font-size: 13px; font-weight: normal; color: #64748b; margin-top: 8px; display: block;}
+
+        /* --- MOBILE TWEAKS --- */
+        @media (max-width: 768px) {
+            .top-navbar { flex-direction: column; padding: 15px; gap: 15px; }
+            .nav-menu { width: 100%; justify-content: space-around; }
+            .nav-item { padding: 10px; font-size: 14px; }
+            .filter-section { flex-direction: column; align-items: stretch; gap: 15px; padding: 15px; }
+            .filter-group { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER NAVBAR -->
+        <div class="top-navbar">
+            <div class="logo-box">
+                <img src="https://raw.githubusercontent.com/khcbvadl-ai/quanlidulieu/main/logo.%20KHCB%20trong.png" alt="KHCB LOGO" class="logo-img">
+            </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-item">Trang chủ</a>
+                <a href="#" class="nav-item">Lịch giảng</a>
+                <a href="#" class="nav-item active">Dữ liệu Khoa</a>
+            </div>
+        </div>
+
+        <h2 class="header-title"><i class="fa-solid fa-network-wired"></i> TỔNG HỢP TIẾN ĐỘ & PHÂN CÔNG KPI</h2>
+
+        <!-- BỘ LỌC -->
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học (Kế hoạch):</label>
+                <select id="filter-year" onchange="changeYear()">
+                </select>
+            </div>
+            <div class="filter-group">
+                <label id="label-filter-person" for="filter-person"><i class="fa-solid fa-users"></i> Lọc theo nhân sự:</label>
+                <select id="filter-person" onchange="applyFilter()">
+                    <option value="ALL">-- Tất cả nhân sự --</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="loading">
+            <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+            <div style="margin-top: 10px;">Đang tải và tổng hợp dữ liệu...</div>
+            <span class="progress-text" id="loading-progress">Đang kết nối đến hệ thống...</span>
+        </div>
+
+        <!-- BẢNG HIỂN THỊ DỮ LIỆU -->
+        <div class="table-responsive">
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Mã KPI</th>
+                        <th style="width: 350px;">Công việc chi tiết</th>
+                        <th style="width: 120px;">Số nhiệm vụ con</th>
+                        <th style="width: 300px;">Cá nhân tham gia thực hiện</th>
+                        <th style="width: 130px;">Minh chứng</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Dữ liệu sẽ được vẽ vào đây -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // CÁC THÔNG SỐ CẤU HÌNH API
+        const MASTER_API_ID = "1n5HmlBHAjtQTKyHrjfeag6wOiwhl-4Yf";
+        const DETAIL_API_ID = "1ItHrTAL8VsSSydEf-5HkzwPAFEyCYwO3";
+        
+        // DANH SÁCH NHÂN SỰ (THÊM 22 CÁ NHÂN KHÁC VÀO MẢNG NÀY THEO TÊN SHEET)
+        const STAFF_SHEETS = [
+            "Bùi Đoan Trang",
+            "Lê Thị Duyên"
+            // "Nguyễn Văn A",
+            // "Trần Thị B"
+        ];
+
+        let currentYear = ""; 
+        let allData = []; // Mảng chứa dữ liệu đã được tổng hợp (Merge)
+
+        window.onload = function() {
+            loadConfigAndInit();
+        };
+
+        // Hàm đọc CSV an toàn
+        function parseCSVLine(text) {
+            let result = [];
+            let entry = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                if (inQuotes) {
+                    if (c === '"') {
+                        if (i + 1 < text.length && text[i + 1] === '"') { entry += '"'; i++; }
+                        else { inQuotes = false; }
+                    } else { entry += c; }
+                } else {
+                    if (c === '"') { inQuotes = true; }
+                    else if (c === ',') { result.push(entry); entry = ''; }
+                    else { entry += c; }
+                }
+            }
+            result.push(entry);
+            return result;
+        }
+
+        // 1. TẢI DANH SÁCH NĂM HỌC TỪ MASTER
+        function loadConfigAndInit() {
+            const configUrl = `https://docs.google.com/spreadsheets/d/${MASTER_API_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
+            
+            fetch(configUrl)
+                .then(res => res.text())
+                .then(text => {
+                    let lines = text.split(/\r?\n/);
+                    let years = [];
+                    for(let i = 0; i < lines.length; i++) {
+                        let cols = parseCSVLine(lines[i]);
+                        let y = cols[0] ? cols[0].trim() : "";
+                        if(y && y.toLowerCase() !== "năm học" && y.toLowerCase() !== "config") {
+                            years.push(y);
+                        }
+                    }
+                    
+                    if(years.length > 0) {
+                        populateYearDropdown(years);
+                        currentYear = years[0];
+                        document.getElementById('filter-year').value = currentYear;
+                        loadAndMergeData(currentYear);
+                    }
+                })
+                .catch(err => {
+                    console.error("Lỗi tab Config:", err);
+                    document.getElementById('loading').innerHTML = `<span style="color:red">Lỗi tải cấu hình ban đầu.</span>`;
+                });
+        }
+
+        function populateYearDropdown(years) {
+            const select = document.getElementById('filter-year');
+            select.innerHTML = '';
+            years.forEach(y => {
+                let opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = "Kế hoạch năm " + y;
+                select.appendChild(opt);
+            });
+        }
+
+        function changeYear() {
+            currentYear = document.getElementById('filter-year').value;
+            document.getElementById('filter-person').innerHTML = '<option value="ALL">-- Tất cả nhân sự --</option>'; 
+            loadAndMergeData(currentYear);
+        }
+
+        // 2. THUẬT TOÁN TẢI VÀ GỘP DỮ LIỆU TỪ NHIỀU NGUỒN
+        async function loadAndMergeData(year) {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('table-body').innerHTML = '';
+            const progressText = document.getElementById('loading-progress');
+            
+            try {
+                // BƯỚC 1: Lấy danh mục Master KPI
+                progressText.innerText = "Đang tải danh mục KPI gốc...";
+                const masterUrl = `https://docs.google.com/spreadsheets/d/${MASTER_API_ID}/gviz/tq?tqx=out:csv&sheet=${year}`;
+                const masterRes = await fetch(masterUrl);
+                const masterCsv = await masterRes.text();
+                
+                let masterLines = masterCsv.split(/\r?\n/);
+                let kpiMap = {}; 
+
+                for (let i = 1; i < masterLines.length; i++) { // Bỏ qua dòng tiêu đề
+                    if (!masterLines[i].trim()) continue;
+                    let cols = parseCSVLine(masterLines[i]);
+                    let stt = cols[0] ? cols[0].trim() : "";
+                    let maKpi = cols[1] ? cols[1].trim() : ""; 
+                    let tenCongViec = cols[2] ? cols[2].trim() : "";
+                    let minhChung = cols[4] ? cols[4].trim() : "";
+
+                    if (maKpi && maKpi.toUpperCase() !== "MÃ KPI") {
+                        kpiMap[maKpi] = {
+                            ma: maKpi,
+                            ten: tenCongViec,
+                            soNhiemVu: 0,
+                            nguoiThucHien: new Set(),
+                            minhChung: minhChung
+                        };
+                    }
+                }
+
+                // BƯỚC 2: Gọi đồng thời (Promise.all) tải dữ liệu của tất cả nhân sự
+                progressText.innerText = `Đang tổng hợp dữ liệu từ ${STAFF_SHEETS.length} cá nhân...`;
+                
+                let fetchPromises = STAFF_SHEETS.map(async (sheetName) => {
+                    try {
+                        let detailUrl = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+                        let detailRes = await fetch(detailUrl);
+                        let detailCsv = await detailRes.text();
+                        let detailLines = detailCsv.split(/\r?\n/);
+
+                        for (let r = 0; r < detailLines.length; r++) {
+                            let cols = parseCSVLine(detailLines[r]);
+                            // Dựa trên ảnh: Cột C (index 2) chứa chuỗi "DL1.03 - Xây dựng..."
+                            let kpiNhanSuFull = cols[2] ? cols[2].trim() : "";
+                            
+                            if (kpiNhanSuFull) {
+                                // Tách lấy Mã KPI ở đầu chuỗi (trước dấu cách)
+                                let extractedMaKpi = kpiNhanSuFull.split(' ')[0]; 
+                                
+                                if (kpiMap[extractedMaKpi]) {
+                                    kpiMap[extractedMaKpi].soNhiemVu += 1;
+                                    kpiMap[extractedMaKpi].nguoiThucHien.add(sheetName);
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn(`Không thể tải sheet: ${sheetName}`, e);
+                    }
+                });
+
+                await Promise.all(fetchPromises);
+
+                // BƯỚC 3: Chuyển đổi dữ liệu Map thành Mảng để hiển thị
+                allData = Object.values(kpiMap).map(item => ({
+                    maKpi: item.ma,
+                    ten: item.ten,
+                    soNhiemVu: item.soNhiemVu,
+                    nguoiThucHien: Array.from(item.nguoiThucHien).sort(),
+                    minhChung: item.minhChung
+                }));
+
+                document.getElementById('loading').style.display = 'none';
+
+                populateFilterDropdown();
+                applyFilter();
+
+            } catch (err) {
+                console.error("Lỗi tổng hợp dữ liệu:", err);
+                document.getElementById('loading').innerHTML = `<span style="color:red">Đã xảy ra lỗi khi tải dữ liệu! Vui lòng thử lại.</span>`;
+            }
+        }
+
+        // 3. XỬ LÝ LỌC & HIỂN THỊ UI
+        function populateFilterDropdown() {
+            const select = document.getElementById('filter-person');
+            const currentSelected = select.value;
+            
+            select.innerHTML = '<option value="ALL">-- Tất cả nhân sự --</option>';
+            
+            let persons = new Set();
+            allData.forEach(item => {
+                item.nguoiThucHien.forEach(p => persons.add(p));
+            });
+
+            Array.from(persons).sort((a,b) => a.localeCompare(b, 'vi')).forEach(p => {
+                let option = document.createElement('option');
+                option.value = p;
+                option.textContent = p;
+                select.appendChild(option);
+            });
+
+            let matchFound = false;
+            for(let i = 0; i < select.options.length; i++){
+                if(select.options[i].value === currentSelected){
+                    matchFound = true; break;
+                }
+            }
+            if(matchFound) select.value = currentSelected;
+        }
+
+        function renderTable(dataArray) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            if (dataArray.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không tìm thấy dữ liệu nào phù hợp.</td></tr>';
+                return;
+            }
+
+            dataArray.forEach(item => {
+                // Xử lý Minh chứng
+                let linkHTML = '';
+                if (item.minhChung && item.minhChung !== "") {
+                    let url = item.minhChung.startsWith('http') ? item.minhChung : 'https://' + item.minhChung;
+                    linkHTML = `<a href="${url}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`;
+                } else {
+                    linkHTML = `<span class="badge-missing">Chưa có</span>`;
+                }
+
+                // Xử lý Danh sách người thực hiện
+                let personHTML = item.nguoiThucHien.length > 0 
+                    ? item.nguoiThucHien.map(p => `<span class="person-tag">${p}</span>`).join(' ') + `<br><small style="color:#64748b; margin-top:5px; display:inline-block">Tổng: ${item.nguoiThucHien.length} người</small>`
+                    : '<span style="color:#94a3b8; font-style:italic">Chưa phân công</span>';
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 700; text-align: center; color: var(--primary-color)">${item.maKpi}</td>
+                    <td style="font-weight: 500;">${item.ten}</td>
+                    <td>
+                        <span class="task-count">${item.soNhiemVu}</span> <br>
+                        <span style="font-size:12px; color:#64748b">nhiệm vụ</span>
+                    </td>
+                    <td>${personHTML}</td>
+                    <td>${linkHTML}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyFilter() {
+            let selectedPerson = document.getElementById('filter-person').value;
+
+            let filteredData = allData.filter(item => {
+                if (selectedPerson === "ALL") return true;
+                return item.nguoiThucHien.includes(selectedPerson);
+            });
+
+            renderTable(filteredData);
+        }
+    </script>
+</body>
+</html>
