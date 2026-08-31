@@ -125,7 +125,6 @@
 <body>
 
     <div class="container">
-        <!-- HEADER NAVBAR -->
         <div class="top-navbar">
             <div class="logo-box">
                 <img src="https://raw.githubusercontent.com/khcbvadl-ai/quanlidulieu/main/logo.%20KHCB%20trong.png" alt="KHCB LOGO" class="logo-img">
@@ -139,7 +138,6 @@
 
         <h2 class="header-title"><i class="fa-solid fa-network-wired"></i> TỔNG HỢP TIẾN ĐỘ & PHÂN CÔNG KPI</h2>
 
-        <!-- BỘ LỌC -->
         <div class="filter-section">
             <div class="filter-group">
                 <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học (Kế hoạch):</label>
@@ -160,7 +158,6 @@
             <span class="progress-text" id="loading-progress">Đang kết nối đến hệ thống...</span>
         </div>
 
-        <!-- BẢNG HIỂN THỊ DỮ LIỆU -->
         <div class="table-responsive">
             <table id="data-table">
                 <thead>
@@ -173,8 +170,7 @@
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    <!-- Dữ liệu sẽ được vẽ vào đây -->
-                </tbody>
+                    </tbody>
             </table>
         </div>
     </div>
@@ -182,18 +178,44 @@
     <script>
         // CÁC THÔNG SỐ CẤU HÌNH API
         const MASTER_API_ID = "1n5HmlBHAjtQTKyHrjfeag6wOiwhl-4Yf";
-        const DETAIL_API_ID = "1ItHrTAL8VsSSydEf-5HkzwPAFEyCYwO3";
+        const DETAIL_API_ID = "1c1rrnXfz6f82xSuPbcngOONR4Ted41Fe";
         
-        // DANH SÁCH NHÂN SỰ (THÊM 22 CÁ NHÂN KHÁC VÀO MẢNG NÀY THEO TÊN SHEET)
-        const STAFF_SHEETS = [
-            "Bùi Đoan Trang",
-            "Lê Thị Duyên"
-            // "Nguyễn Văn A",
-            // "Trần Thị B"
-        ];
-
         let currentYear = ""; 
-        let allData = []; // Mảng chứa dữ liệu đã được tổng hợp (Merge)
+        let allData = []; 
+
+        // 0. LẮNG NGHE SỰ KIỆN PHÍM F2 ĐỂ BẬT NÚT "TRUY CẬP"
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                
+                if (!document.getElementById('api-redirect-btn')) {
+                    const apiBtn = document.createElement('a');
+                    apiBtn.id = 'api-redirect-btn';
+                    apiBtn.href = 'https://docs.google.com/spreadsheets/d/1c1rrnXfz6f82xSuPbcngOONR4Ted41Fe/edit?gid=212029541#gid=212029541';
+                    apiBtn.target = '_blank';
+                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
+                    
+                    apiBtn.style.display = 'inline-block';
+                    apiBtn.style.margin = '25px auto 10px auto';
+                    apiBtn.style.padding = '12px 28px';
+                    apiBtn.style.backgroundColor = '#2563eb';
+                    apiBtn.style.color = '#ffffff';
+                    apiBtn.style.textDecoration = 'none';
+                    apiBtn.style.borderRadius = '6px';
+                    apiBtn.style.fontWeight = 'bold';
+                    apiBtn.style.fontSize = '14px';
+                    apiBtn.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                    apiBtn.style.transition = 'all 0.2s ease';
+
+                    const btnWrapper = document.createElement('div');
+                    btnWrapper.style.textAlign = 'center';
+                    btnWrapper.appendChild(apiBtn);
+
+                    document.querySelector('.container').appendChild(btnWrapper);
+                    btnWrapper.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
 
         window.onload = function() {
             loadConfigAndInit();
@@ -246,7 +268,7 @@
                     }
                 })
                 .catch(err => {
-                    console.error("Lỗi tab Config:", err);
+                    console.error("Lỗi tab Config Master:", err);
                     document.getElementById('loading').innerHTML = `<span style="color:red">Lỗi tải cấu hình ban đầu.</span>`;
                 });
         }
@@ -268,7 +290,34 @@
             loadAndMergeData(currentYear);
         }
 
-        // 2. THUẬT TOÁN TẢI VÀ GỘP DỮ LIỆU TỪ NHIỀU NGUỒN
+        // TỰ ĐỘNG ĐỌC DANH SÁCH TÊN CÁC SHEET TỪ SHEET CONFIG CỦA DETAIL API
+        async function fetchStaffList() {
+            try {
+                const detailConfigUrl = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
+                const res = await fetch(detailConfigUrl);
+                const text = await res.text();
+                let lines = text.split(/\r?\n/);
+                let staffList = [];
+                for (let i = 0; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    let cols = parseCSVLine(lines[i]);
+                    let val = cols.find(c => c && c.trim().length > 0);
+                    if (val) {
+                        val = val.trim();
+                        let lower = val.toLowerCase();
+                        if (lower !== "nhân sự" && lower !== "họ và tên" && lower !== "tên" && lower !== "config" && lower !== "năm học" && lower !== "stt") {
+                            staffList.push(val);
+                        }
+                    }
+                }
+                return staffList;
+            } catch (e) {
+                console.error("Lỗi đọc danh sách nhân sự từ Config Detail API:", e);
+                return [];
+            }
+        }
+
+        // 2. THUẬT TOÁN TẢI VÀ GỘP DỮ LIỆU ĐỘNG TỪ NHIỀU NGUỒN
         async function loadAndMergeData(year) {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('table-body').innerHTML = '';
@@ -284,10 +333,9 @@
                 let masterLines = masterCsv.split(/\r?\n/);
                 let kpiMap = {}; 
 
-                for (let i = 1; i < masterLines.length; i++) { // Bỏ qua dòng tiêu đề
+                for (let i = 1; i < masterLines.length; i++) {
                     if (!masterLines[i].trim()) continue;
                     let cols = parseCSVLine(masterLines[i]);
-                    let stt = cols[0] ? cols[0].trim() : "";
                     let maKpi = cols[1] ? cols[1].trim() : ""; 
                     let tenCongViec = cols[2] ? cols[2].trim() : "";
                     let minhChung = cols[4] ? cols[4].trim() : "";
@@ -303,10 +351,18 @@
                     }
                 }
 
-                // BƯỚC 2: Gọi đồng thời (Promise.all) tải dữ liệu của tất cả nhân sự
-                progressText.innerText = `Đang tổng hợp dữ liệu từ ${STAFF_SHEETS.length} cá nhân...`;
+                // BƯỚC 2: Tự động tải danh sách Sheet Cá nhân từ tab Config
+                progressText.innerText = "Đang lấy danh sách nhân sự từ hệ thống...";
+                const staffSheets = await fetchStaffList();
+
+                if (staffSheets.length === 0) {
+                    console.warn("Không tìm thấy tên nhân sự nào trong sheet Config.");
+                }
+
+                // BƯỚC 3: Gọi đồng thời (Promise.all) tải dữ liệu của toàn bộ nhân sự
+                progressText.innerText = `Đang tổng hợp dữ liệu từ ${staffSheets.length} cá nhân...`;
                 
-                let fetchPromises = STAFF_SHEETS.map(async (sheetName) => {
+                let fetchPromises = staffSheets.map(async (sheetName) => {
                     try {
                         let detailUrl = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
                         let detailRes = await fetch(detailUrl);
@@ -315,11 +371,9 @@
 
                         for (let r = 0; r < detailLines.length; r++) {
                             let cols = parseCSVLine(detailLines[r]);
-                            // Dựa trên ảnh: Cột C (index 2) chứa chuỗi "DL1.03 - Xây dựng..."
                             let kpiNhanSuFull = cols[2] ? cols[2].trim() : "";
                             
                             if (kpiNhanSuFull) {
-                                // Tách lấy Mã KPI ở đầu chuỗi (trước dấu cách)
                                 let extractedMaKpi = kpiNhanSuFull.split(' ')[0]; 
                                 
                                 if (kpiMap[extractedMaKpi]) {
@@ -335,7 +389,7 @@
 
                 await Promise.all(fetchPromises);
 
-                // BƯỚC 3: Chuyển đổi dữ liệu Map thành Mảng để hiển thị
+                // BƯỚC 4: Chuyển đổi dữ liệu Map thành Mảng để hiển thị
                 allData = Object.values(kpiMap).map(item => ({
                     maKpi: item.ma,
                     ten: item.ten,
