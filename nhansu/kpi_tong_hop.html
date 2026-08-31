@@ -26,7 +26,7 @@
             font-size: 14px;
         }
 
-        .container { max-width: 1350px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
 
         /* --- HEADER & NAVBAR --- */
         .top-navbar {
@@ -70,13 +70,13 @@
             -webkit-overflow-scrolling: touch;
         }
         
-        table { width: 100%; border-collapse: collapse; background-color: white; min-width: 1050px; }
+        table { width: 100%; border-collapse: collapse; background-color: white; min-width: 1100px; }
         thead { background-color: var(--primary-color); color: white; }
         th, td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
         th { font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; text-align: center; white-space: nowrap; }
         
         /* Master Row Styling */
-        tr.master-row { background-color: #ffffff; cursor: pointer; font-weight: 600; }
+        tr.master-row { background-color: #ffffff; cursor: pointer; font-weight: 600; transition: background-color 0.2s;}
         tr.master-row:hover { background-color: #f1f5f9; }
         
         /* Child Row Styling */
@@ -87,13 +87,13 @@
             background: none; border: none; color: var(--primary-color);
             font-size: 14px; cursor: pointer; width: 24px; height: 24px;
             display: inline-flex; align-items: center; justify-content: center;
-            border-radius: 4px; transition: background 0.2s; margin-right: 4px; pointer-events: none;
+            border-radius: 4px; transition: background 0.2s; margin-right: 8px; pointer-events: none;
         }
         .master-row:hover .btn-toggle { background-color: #cbd5e1; }
 
         .person-tag {
-            display: inline-block; padding: 3px 8px; background-color: #e2e8f0; color: var(--teacher-color);
-            border-radius: 12px; font-size: 12px; font-weight: 600; margin: 2px;
+            display: inline-block; padding: 4px 10px; background-color: #e2e8f0; color: var(--teacher-color);
+            border-radius: 12px; font-size: 12px; font-weight: 600; margin: 3px; border: 1px solid #cbd5e1;
         }
 
         /* Nút và Badge cho phần Link/Minh chứng */
@@ -113,6 +113,11 @@
         #loading { text-align: center; padding: 30px; color: var(--primary-color); font-weight: bold; font-size: 16px; display: none; }
         .progress-text { font-size: 13px; font-weight: normal; color: #64748b; margin-top: 8px; display: block;}
 
+        .source-badge {
+            color: #d97706; font-size: 11px; font-weight: bold; background: #fef3c7; 
+            padding: 2px 6px; border-radius: 4px; border: 1px solid #fde68a; margin-right: 6px;
+        }
+
         @media (max-width: 768px) {
             .top-navbar { flex-direction: column; padding: 15px; gap: 15px; }
             .nav-menu { width: 100%; justify-content: space-around; }
@@ -125,6 +130,7 @@
 <body>
 
     <div class="container">
+        <!-- HEADER NAVBAR -->
         <div class="top-navbar">
             <div class="logo-box">
                 <img src="https://raw.githubusercontent.com/khcbvadl-ai/quanlidulieu/main/logo.%20KHCB%20trong.png" alt="KHCB LOGO" class="logo-img">
@@ -138,6 +144,7 @@
 
         <h2 class="header-title"><i class="fa-solid fa-sitemap"></i> HỆ THỐNG PHÂN CÔNG KPI CHI TIẾT</h2>
 
+        <!-- BỘ LỌC -->
         <div class="filter-section">
             <div class="filter-group">
                 <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học (Kế hoạch):</label>
@@ -158,19 +165,20 @@
             <span class="progress-text" id="loading-progress">Đang kết nối đến hệ thống...</span>
         </div>
 
+        <!-- BẢNG HIỂN THỊ DỮ LIỆU TREE-TABLE -->
         <div class="table-responsive">
             <table id="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 110px;">Mã KPI</th>
-                        <th style="width: 420px;">Công việc / Nhiệm vụ chi tiết</th>
-                        <th style="width: 220px;">Người thực hiện</th>
-                        <th style="width: 220px;">Minh chứng</th>
-                        <th style="width: 130px;">Link minh chứng</th>
+                        <th style="width: 500px;">Nội dung KPI (Đầu việc)</th>
+                        <th style="width: 250px;">Người thực hiện</th>
+                        <th style="width: 200px;">Minh chứng yêu cầu</th>
+                        <th style="width: 150px;">Link minh chứng</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    </tbody>
+                    <!-- Dữ liệu dạng Tree-table sẽ được vẽ vào đây -->
+                </tbody>
             </table>
         </div>
     </div>
@@ -183,17 +191,16 @@
         let currentYear = ""; 
         let allData = []; 
 
-        // 0. KHÓA PHÍM F2 MỞ LINK ĐẾN FILE SPREADSHEET
+        // KHÓA PHÍM F2 MỞ LINK ĐẾN FILE SPREADSHEET DETAIL
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
-                
                 if (!document.getElementById('api-redirect-btn')) {
                     const apiBtn = document.createElement('a');
                     apiBtn.id = 'api-redirect-btn';
-                    apiBtn.href = 'https://docs.google.com/spreadsheets/d/1c1rrnXfz6f82xSuPbcngOONR4Ted41Fe/edit?gid=212029541#gid=212029541';
+                    apiBtn.href = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/edit?gid=212029541#gid=212029541`;
                     apiBtn.target = '_blank';
-                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
+                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập File Kế hoạch chi tiết';
                     
                     apiBtn.style.display = 'inline-block';
                     apiBtn.style.margin = '25px auto 10px auto';
@@ -264,7 +271,7 @@
                         populateYearDropdown(years);
                         currentYear = years[0];
                         document.getElementById('filter-year').value = currentYear;
-                        loadAndMergeData(currentYear);
+                        loadAndMergeData(currentYear); // Bắt đầu tổng hợp dữ liệu
                     }
                 })
                 .catch(err => {
@@ -290,7 +297,7 @@
             loadAndMergeData(currentYear);
         }
 
-        // 2. ĐỌC TÊN SHEET (COL A) & TÊN GIẢNG VIÊN (COL B) TỪ TAB CONFIG
+        // 2. ĐỌC TÊN SHEET & TÊN GIẢNG VIÊN - ĐÃ CHẶN CÁC TỪ KHÓA LỖI ("Tên đầy đủ")
         async function fetchStaffConfig() {
             try {
                 const detailConfigUrl = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
@@ -298,6 +305,10 @@
                 const text = await res.text();
                 let lines = text.split(/\r?\n/);
                 let staffList = [];
+                
+                // Mảng các từ khóa rác ở dòng tiêu đề cần loại bỏ
+                const excludedWords = ["danh sách", "tên đầy đủ", "họ và tên", "tên", "nhân sự", "stt", "mã gv", "giảng viên", "sheet name", "tên sheet"];
+
                 for (let i = 0; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
                     let cols = parseCSVLine(lines[i]);
@@ -305,8 +316,11 @@
                     let teacherName = cols[1] ? cols[1].trim() : sheetName;
 
                     if (sheetName) {
-                        let lower = sheetName.toLowerCase();
-                        if (lower !== "sheet name" && lower !== "tên sheet" && lower !== "stt" && lower !== "nhân sự" && lower !== "họ và tên" && lower !== "tên" && lower !== "config" && lower !== "năm học") {
+                        let lowerA = sheetName.toLowerCase();
+                        let lowerB = teacherName.toLowerCase();
+                        
+                        // Nếu dòng này KHÔNG chứa các từ khóa rác thì mới thêm vào danh sách
+                        if (!excludedWords.includes(lowerA) && !excludedWords.includes(lowerB)) {
                             staffList.push({
                                 sheetName: sheetName,
                                 teacherName: teacherName || sheetName
@@ -321,45 +335,19 @@
             }
         }
 
-        // 3. THUẬT TOÁN ĐỌC VÀ GỘP DỮ LIỆU PHÂN CẤP (TREE-TABLE)
+        // 3. THUẬT TOÁN ĐỌC VÀ GỘP DỮ LIỆU ĐỘNG TỪ CÁC SHEET CÁ NHÂN
         async function loadAndMergeData(year) {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('table-body').innerHTML = '';
             const progressText = document.getElementById('loading-progress');
             
             try {
-                // Tải Master KPI
-                progressText.innerText = "Đang tải danh mục KPI gốc...";
-                const masterUrl = `https://docs.google.com/spreadsheets/d/${MASTER_API_ID}/gviz/tq?tqx=out:csv&sheet=${year}`;
-                const masterRes = await fetch(masterUrl);
-                const masterCsv = await masterRes.text();
-                
-                let masterLines = masterCsv.split(/\r?\n/);
-                let kpiMap = {}; 
-
-                for (let i = 1; i < masterLines.length; i++) {
-                    if (!masterLines[i].trim()) continue;
-                    let cols = parseCSVLine(masterLines[i]);
-                    let maKpi = cols[1] ? cols[1].trim() : ""; 
-                    let tenCongViec = cols[2] ? cols[2].trim() : "";
-                    let minhChungMaster = cols[4] ? cols[4].trim() : "";
-
-                    if (maKpi && maKpi.toUpperCase() !== "MÃ KPI") {
-                        kpiMap[maKpi] = {
-                            maKpi: maKpi,
-                            ten: tenCongViec,
-                            minhChungMaster: minhChungMaster,
-                            teachersSet: new Set(),
-                            tasks: [] 
-                        };
-                    }
-                }
-
-                // Đọc danh sách giảng viên từ Config
+                // Lấy danh sách giảng viên chuẩn
                 progressText.innerText = "Đang lấy danh sách giảng viên...";
                 const staffList = await fetchStaffConfig();
 
-                // Tải đồng thời tất cả các sheet cá nhân
+                let kpiMap = {}; // Dictionary để gộp nhóm các đầu việc
+
                 progressText.innerText = `Đang tổng hợp nhiệm vụ từ ${staffList.length} giảng viên...`;
                 
                 let fetchPromises = staffList.map(async (staff) => {
@@ -369,41 +357,49 @@
                         let detailCsv = await detailRes.text();
                         let detailLines = detailCsv.split(/\r?\n/);
 
-                        for (let r = 0; r < detailLines.length; r++) {
+                        for (let r = 1; r < detailLines.length; r++) { // Bỏ qua dòng tiêu đề
+                            if (!detailLines[r].trim()) continue;
                             let cols = parseCSVLine(detailLines[r]);
-                            let col1Text = cols[1] ? cols[1].trim() : "";
-                            let col2Text = cols[2] ? cols[2].trim() : "";
                             
-                            // Tìm Mã KPI phù hợp trong Master
-                            let matchedCode = null;
-                            for (let key in kpiMap) {
-                                if (col2Text.includes(key) || col1Text.includes(key)) {
-                                    matchedCode = key;
-                                    break;
-                                }
-                            }
-
-                            if (matchedCode) {
-                                let nhiemVu = cols[3] ? cols[3].trim() : "";
+                            let maNguon = cols.length > 1 && cols[1] ? cols[1].trim() : ""; // VD: KHCB-DL.1
+                            let dauViec = cols.length > 2 && cols[2] ? cols[2].trim() : ""; // VD: DL1.03 - Xây dựng...
+                            
+                            // Chỉ xử lý nếu có đầu việc và không phải dòng tiêu đề
+                            if (dauViec && dauViec.toLowerCase() !== "mã kpi/nội dung kpi khoa" && dauViec.toLowerCase() !== "mã kpi") {
                                 
-                                // Đảm bảo không bị lỗi nếu cột bỏ trống hoàn toàn
-                                let minhChungText = (cols.length > 8 && cols[8]) ? cols[8].trim() : "";
-                                let linkText = (cols.length > 9 && cols[9]) ? cols[9].trim() : "";
+                                // Dùng chính tên Đầu việc (Cột C) làm Khóa (Key) để gộp nhóm
+                                let groupKey = dauViec;
 
-                                // Nếu link bị dán nhầm vào cột Minh chứng text
+                                if (!kpiMap[groupKey]) {
+                                    // Khởi tạo nhóm mới nếu chưa tồn tại
+                                    kpiMap[groupKey] = {
+                                        id: 'kpi_' + Math.random().toString(36).substring(2, 10), // ID ngẫu nhiên an toàn cho HTML
+                                        maNguon: maNguon,
+                                        dauViec: dauViec,
+                                        teachersSet: new Set(),
+                                        tasks: []
+                                    };
+                                }
+
+                                let chiTietNhiemVu = cols.length > 3 && cols[3] ? cols[3].trim() : "";
+                                let minhChungText = cols.length > 8 && cols[8] ? cols[8].trim() : "";
+                                let linkText = cols.length > 9 && cols[9] ? cols[9].trim() : "";
+
+                                // Tự sửa lỗi nếu người dùng dán link vào nhầm cột Minh chứng chữ
                                 if (!linkText && (minhChungText.startsWith('http://') || minhChungText.startsWith('https://'))) {
                                     linkText = minhChungText;
-                                    minhChungText = "Minh chứng online";
+                                    minhChungText = "Minh chứng trực tuyến";
                                 }
 
-                                if (nhiemVu) {
-                                    kpiMap[matchedCode].tasks.push({
-                                        nhiemVu: nhiemVu,
+                                // Thêm nhiệm vụ của người này vào danh sách của nhóm
+                                if (chiTietNhiemVu || minhChungText || linkText) {
+                                    kpiMap[groupKey].tasks.push({
+                                        chiTiet: chiTietNhiemVu,
                                         teacherName: staff.teacherName,
                                         minhChungText: minhChungText,
                                         linkText: linkText
                                     });
-                                    kpiMap[matchedCode].teachersSet.add(staff.teacherName);
+                                    kpiMap[groupKey].teachersSet.add(staff.teacherName);
                                 }
                             }
                         }
@@ -412,13 +408,15 @@
                     }
                 });
 
+                // Đợi load xong toàn bộ file của tất cả cá nhân
                 await Promise.all(fetchPromises);
 
+                // Chuyển Map thành mảng để render
                 allData = Object.values(kpiMap);
 
                 document.getElementById('loading').style.display = 'none';
 
-                populateFilterDropdown(staffList);
+                populateFilterDropdown();
                 applyFilter();
 
             } catch (err) {
@@ -427,21 +425,17 @@
             }
         }
 
-        // 4. BỘ LỌC GIẢNG VIÊN
-        function populateFilterDropdown(staffList) {
+        // 4. BỘ LỌC GIẢNG VIÊN DỰA TRÊN DỮ LIỆU ĐÃ TỔNG HỢP
+        function populateFilterDropdown() {
             const select = document.getElementById('filter-person');
             const currentSelected = select.value;
             
             select.innerHTML = '<option value="ALL">-- Tất cả giảng viên --</option>';
             
             let persons = new Set();
-            if (staffList && staffList.length > 0) {
-                staffList.forEach(s => persons.add(s.teacherName));
-            } else {
-                allData.forEach(item => {
-                    item.teachersSet.forEach(p => persons.add(p));
-                });
-            }
+            allData.forEach(item => {
+                item.teachersSet.forEach(p => persons.add(p));
+            });
 
             Array.from(persons).sort((a,b) => a.localeCompare(b, 'vi')).forEach(p => {
                 let option = document.createElement('option');
@@ -455,74 +449,65 @@
             }
         }
 
-        // 5. HIỂN THỊ DỮ LIỆU DẠNG TREE-TABLE
+        // 5. HIỂN THỊ DỮ LIỆU DẠNG TREE-TABLE (DÒNG CHA - DÒNG CON)
         function renderTable(dataArray, selectedPerson) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không tìm thấy dữ liệu phù hợp.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-message">Không tìm thấy dữ liệu phù hợp.</td></tr>';
                 return;
             }
 
             dataArray.forEach(item => {
+                // Chỉ lấy những nhiệm vụ con thỏa mãn điều kiện lọc
+                let displayTasks = selectedPerson === "ALL" 
+                    ? item.tasks 
+                    : item.tasks.filter(t => t.teacherName === selectedPerson);
+
+                if (displayTasks.length === 0) return; // Nếu lọc mà không có task nào thì ẩn luôn dòng cha
+
                 let teacherArray = Array.from(item.teachersSet);
                 let teacherBadges = teacherArray.length > 0 
                     ? teacherArray.map(t => `<span class="person-tag">${t}</span>`).join(' ')
                     : '<span style="color:#94a3b8; font-style:italic">Chưa phân công</span>';
 
-                let masterLinkHTML = item.minhChungMaster && item.minhChungMaster.startsWith('http')
-                    ? `<a href="${item.minhChungMaster}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`
-                    : '<span class="badge-missing">Chưa có</span>';
+                let isExpanded = selectedPerson !== "ALL"; // Tự động mở rộng nhánh nếu đang lọc 1 người cụ thể
+                let maNguonBadge = item.maNguon ? `<span class="source-badge">${item.maNguon}</span> ` : '';
 
-                let displayTasks = selectedPerson === "ALL" 
-                    ? item.tasks 
-                    : item.tasks.filter(t => t.teacherName === selectedPerson);
-
-                let isExpanded = selectedPerson !== "ALL";
-
-                // MÃ HÓA ID CHO AN TOÀN (VD: Xóa dấu chấm trong DL1.01 -> DL1_01)
-                let safeKpiId = item.maKpi.replace(/[^a-zA-Z0-9]/g, '_');
-
-                // 1. DÒNG CHA (MASTER ROW)
+                // DÒNG CHA (GỘP ĐẦU VIỆC)
                 let masterTr = document.createElement('tr');
                 masterTr.className = 'master-row';
-                // Truyền safeKpiId thay vì item.maKpi gốc để tránh lỗi Selector
-                masterTr.onclick = function() { toggleKpi(safeKpiId); };
+                masterTr.onclick = function() { toggleKpi(item.id); };
                 
                 masterTr.innerHTML = `
-                    <td style="text-align: center; color: var(--primary-color);">
+                    <td style="font-weight: 700; color: #1e293b; padding-left:15px;">
                         <button class="btn-toggle">
-                            <i id="icon-toggle-${safeKpiId}" class="fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
+                            <i id="icon-toggle-${item.id}" class="fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
                         </button>
-                        <strong>${item.maKpi}</strong>
-                    </td>
-                    <td style="font-weight: 700; color: #1e293b;">
-                        ${item.ten} 
-                        <span style="font-size:12px; font-weight:normal; color:#64748b; margin-left:6px;">(${displayTasks.length} nhiệm vụ)</span>
+                        ${maNguonBadge} ${item.dauViec} 
+                        <span style="font-size:12px; font-weight:normal; color:#64748b; margin-left:6px;">(${displayTasks.length} tác vụ)</span>
                     </td>
                     <td>${teacherBadges}</td>
-                    <td style="color:#64748b; font-size:13px;">Theo kế hoạch Khoa</td>
-                    <td style="text-align: center;">${masterLinkHTML}</td>
+                    <td style="color:#64748b; font-size:13px; font-style:italic;">Xem chi tiết bên dưới</td>
+                    <td style="text-align: center;">—</td>
                 `;
                 tbody.appendChild(masterTr);
 
-                // 2. CÁC DÒNG CON (CHILD ROWS)
+                // CÁC DÒNG CON (CHI TIẾT NHIỆM VỤ TỪNG NGƯỜI)
                 displayTasks.forEach(task => {
                     let childLinkHTML = task.linkText && task.linkText.startsWith('http')
                         ? `<a href="${task.linkText}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`
                         : `<span class="badge-missing">Chưa có</span>`;
 
                     let childTr = document.createElement('tr');
-                    // Sử dụng class an toàn để dễ dàng GetElements
-                    childTr.className = `child-row child-of-${safeKpiId}`;
+                    childTr.className = `child-row child-of-${item.id}`;
                     if (isExpanded) childTr.style.display = 'table-row';
 
                     childTr.innerHTML = `
-                        <td style="text-align: right; color: #cbd5e1; font-weight:bold;">↳</td>
-                        <td style="padding-left: 25px; color: #334155;">
-                            <i class="fa-regular fa-circle-dot" style="font-size:10px; color:var(--primary-color); margin-right:6px;"></i>
-                            ${task.nhiemVu}
+                        <td style="padding-left: 45px; color: #334155;">
+                            <i class="fa-regular fa-circle-dot" style="font-size:10px; color:var(--primary-color); margin-right:8px;"></i>
+                            ${task.chiTiet || '<span style="color:#94a3b8; font-style:italic">Chưa có mô tả cụ thể</span>'}
                         </td>
                         <td><span class="person-tag"><i class="fa-solid fa-user-check"></i> ${task.teacherName}</span></td>
                         <td style="color: #475569;">${task.minhChungText || '—'}</td>
@@ -533,9 +518,8 @@
             });
         }
 
-        // BẬT / TẮT ẨN HIỆN DÒNG CON - ĐÃ ĐƯỢC FIX LỖI CSS SELECTOR
+        // BẬT / TẮT ẨN HIỆN CÁC DÒNG CON
         function toggleKpi(safeKpiId) {
-            // Sử dụng getElementsByClassName thay vì querySelectorAll để tránh hoàn toàn các lỗi dính ký tự đặc biệt
             const childRows = document.getElementsByClassName(`child-of-${safeKpiId}`);
             const btnIcon = document.getElementById(`icon-toggle-${safeKpiId}`);
             
@@ -552,6 +536,7 @@
             }
         }
 
+        // THỰC THI LỌC DỮ LIỆU
         function applyFilter() {
             let selectedPerson = document.getElementById('filter-person').value;
 
