@@ -87,9 +87,9 @@
             background: none; border: none; color: var(--primary-color);
             font-size: 14px; cursor: pointer; width: 24px; height: 24px;
             display: inline-flex; align-items: center; justify-content: center;
-            border-radius: 4px; transition: background 0.2s; margin-right: 4px;
+            border-radius: 4px; transition: background 0.2s; margin-right: 4px; pointer-events: none;
         }
-        .btn-toggle:hover { background-color: #cbd5e1; }
+        .master-row:hover .btn-toggle { background-color: #cbd5e1; }
 
         .person-tag {
             display: inline-block; padding: 3px 8px; background-color: #e2e8f0; color: var(--teacher-color);
@@ -350,7 +350,7 @@
                             ten: tenCongViec,
                             minhChungMaster: minhChungMaster,
                             teachersSet: new Set(),
-                            tasks: [] // Danh sách nhiệm vụ nhỏ
+                            tasks: [] 
                         };
                     }
                 }
@@ -385,10 +385,12 @@
 
                             if (matchedCode) {
                                 let nhiemVu = cols[3] ? cols[3].trim() : "";
-                                let minhChungText = cols[8] ? cols[8].trim() : "";
-                                let linkText = cols[9] ? cols[9].trim() : "";
+                                
+                                // Đảm bảo không bị lỗi nếu cột bỏ trống hoàn toàn
+                                let minhChungText = (cols.length > 8 && cols[8]) ? cols[8].trim() : "";
+                                let linkText = (cols.length > 9 && cols[9]) ? cols[9].trim() : "";
 
-                                // Nếu link dán ở cột Minh chứng
+                                // Nếu link bị dán nhầm vào cột Minh chứng text
                                 if (!linkText && (minhChungText.startsWith('http://') || minhChungText.startsWith('https://'))) {
                                     linkText = minhChungText;
                                     minhChungText = "Minh chứng online";
@@ -464,33 +466,34 @@
             }
 
             dataArray.forEach(item => {
-                // Đóng gói danh sách giảng viên tham gia
                 let teacherArray = Array.from(item.teachersSet);
                 let teacherBadges = teacherArray.length > 0 
                     ? teacherArray.map(t => `<span class="person-tag">${t}</span>`).join(' ')
                     : '<span style="color:#94a3b8; font-style:italic">Chưa phân công</span>';
 
-                // Nút bấm link cho Master nếu có
                 let masterLinkHTML = item.minhChungMaster && item.minhChungMaster.startsWith('http')
                     ? `<a href="${item.minhChungMaster}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`
                     : '<span class="badge-missing">Chưa có</span>';
 
-                // Đếm số lượng nhiệm vụ con phù hợp
                 let displayTasks = selectedPerson === "ALL" 
                     ? item.tasks 
                     : item.tasks.filter(t => t.teacherName === selectedPerson);
 
-                let isExpanded = selectedPerson !== "ALL"; // Tự động mở rộng khi chọn 1 cá nhân
+                let isExpanded = selectedPerson !== "ALL";
+
+                // MÃ HÓA ID CHO AN TOÀN (VD: Xóa dấu chấm trong DL1.01 -> DL1_01)
+                let safeKpiId = item.maKpi.replace(/[^a-zA-Z0-9]/g, '_');
 
                 // 1. DÒNG CHA (MASTER ROW)
                 let masterTr = document.createElement('tr');
                 masterTr.className = 'master-row';
-                masterTr.onclick = function() { toggleKpi(item.maKpi); };
+                // Truyền safeKpiId thay vì item.maKpi gốc để tránh lỗi Selector
+                masterTr.onclick = function() { toggleKpi(safeKpiId); };
                 
                 masterTr.innerHTML = `
                     <td style="text-align: center; color: var(--primary-color);">
-                        <button class="btn-toggle" id="btn-toggle-${item.maKpi}">
-                            <i class="fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
+                        <button class="btn-toggle">
+                            <i id="icon-toggle-${safeKpiId}" class="fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
                         </button>
                         <strong>${item.maKpi}</strong>
                     </td>
@@ -511,7 +514,8 @@
                         : `<span class="badge-missing">Chưa có</span>`;
 
                     let childTr = document.createElement('tr');
-                    childTr.className = `child-row child-of-${item.maKpi}`;
+                    // Sử dụng class an toàn để dễ dàng GetElements
+                    childTr.className = `child-row child-of-${safeKpiId}`;
                     if (isExpanded) childTr.style.display = 'table-row';
 
                     childTr.innerHTML = `
@@ -529,18 +533,19 @@
             });
         }
 
-        // BẬT / TẮT ẨN HIỆN DÒNG CON
-        function toggleKpi(maKpi) {
-            const childRows = document.querySelectorAll(`.child-of-${maKpi}`);
-            const btnIcon = document.querySelector(`#btn-toggle-${maKpi} i`);
+        // BẬT / TẮT ẨN HIỆN DÒNG CON - ĐÃ ĐƯỢC FIX LỖI CSS SELECTOR
+        function toggleKpi(safeKpiId) {
+            // Sử dụng getElementsByClassName thay vì querySelectorAll để tránh hoàn toàn các lỗi dính ký tự đặc biệt
+            const childRows = document.getElementsByClassName(`child-of-${safeKpiId}`);
+            const btnIcon = document.getElementById(`icon-toggle-${safeKpiId}`);
             
             if (childRows.length === 0) return;
 
             let isCurrentlyHidden = childRows[0].style.display === 'none' || childRows[0].style.display === '';
 
-            childRows.forEach(row => {
-                row.style.display = isCurrentlyHidden ? 'table-row' : 'none';
-            });
+            for(let i = 0; i < childRows.length; i++) {
+                childRows[i].style.display = isCurrentlyHidden ? 'table-row' : 'none';
+            }
 
             if (btnIcon) {
                 btnIcon.className = isCurrentlyHidden ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right';
