@@ -153,6 +153,42 @@
             return rawUrl;
         }
 
+        // =========================================================================
+        // BẮT SỰ KIỆN PHÍM F2 ĐỂ HIỂN THỊ NÚT TRUY CẬP
+        // =========================================================================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                if (!document.getElementById('api-redirect-btn')) {
+                    const apiBtn = document.createElement('a');
+                    apiBtn.id = 'api-redirect-btn';
+                    apiBtn.href = 'https://docs.google.com/spreadsheets/d/1IR57jmQbhe1GtIIcZsP4K7maOHJNMLBVz9OwCnSFEJk/edit?gid=0#gid=0';
+                    apiBtn.target = '_blank';
+                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
+                    
+                    apiBtn.style.display = 'inline-block';
+                    apiBtn.style.margin = '0 auto 20px auto';
+                    apiBtn.style.padding = '12px 28px';
+                    apiBtn.style.backgroundColor = '#2563eb';
+                    apiBtn.style.color = '#ffffff';
+                    apiBtn.style.textDecoration = 'none';
+                    apiBtn.style.borderRadius = '6px';
+                    apiBtn.style.fontWeight = 'bold';
+                    apiBtn.style.fontSize = '14px';
+                    apiBtn.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                    apiBtn.style.transition = 'all 0.2s ease';
+
+                    const btnWrapper = document.createElement('div');
+                    btnWrapper.style.textAlign = 'center';
+                    btnWrapper.style.width = '100%';
+                    btnWrapper.appendChild(apiBtn);
+
+                    const container = document.getElementById('main-container');
+                    container.parentNode.insertBefore(btnWrapper, container);
+                }
+            }
+        });
+
         window.onload = function() {
             // 1. Đọc dữ liệu từ LocalStorage trước
             const cachedData = localStorage.getItem(LOCAL_STORAGE_KEY);
