@@ -154,7 +154,7 @@
         }
 
         // =========================================================================
-        // BẮT SỰ KIỆN PHÍM F2 ĐỂ HIỂN THỊ NÚT TRUY CẬP
+        // BẮT SỰ KIỆN PHÍM F2 ĐỂ HIỂN THỊ NÚT TRUY CẬP (DƯỚI CÙNG TRANG VÀ TỰ CUỘN)
         // =========================================================================
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
@@ -164,10 +164,9 @@
                     apiBtn.id = 'api-redirect-btn';
                     apiBtn.href = 'https://docs.google.com/spreadsheets/d/1IR57jmQbhe1GtIIcZsP4K7maOHJNMLBVz9OwCnSFEJk/edit?gid=0#gid=0';
                     apiBtn.target = '_blank';
-                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
+                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập File Quản Lý Khoa';
                     
                     apiBtn.style.display = 'inline-block';
-                    apiBtn.style.margin = '0 auto 20px auto';
                     apiBtn.style.padding = '12px 28px';
                     apiBtn.style.backgroundColor = '#2563eb';
                     apiBtn.style.color = '#ffffff';
@@ -181,10 +180,14 @@
                     const btnWrapper = document.createElement('div');
                     btnWrapper.style.textAlign = 'center';
                     btnWrapper.style.width = '100%';
+                    btnWrapper.style.margin = '40px 0 60px 0'; // Tạo khoảng trống thoáng đãng ở cuối trang
                     btnWrapper.appendChild(apiBtn);
 
-                    const container = document.getElementById('main-container');
-                    container.parentNode.insertBefore(btnWrapper, container);
+                    // Chèn phần tử xuống sát đáy body
+                    document.body.appendChild(btnWrapper);
+                    
+                    // Tự động cuộn trang mượt mà xuống dưới cùng
+                    btnWrapper.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
             }
         });
@@ -390,7 +393,6 @@
         </div>
     </div>
 
-    <!-- Admin Panel Popup -->
     <div class="admin-modal-overlay" id="adminModalOverlay">
         <div class="admin-modal-content">
             <div class="admin-modal-close-btn" onclick="closeAdminModal()">&times;</div>
@@ -402,7 +404,6 @@
         </div>
     </div>
 
-    <!-- Container chính -->
     <div class="container" id="main-container"></div>
 
 </body>
