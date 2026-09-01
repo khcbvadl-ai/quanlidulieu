@@ -95,6 +95,10 @@
             display: inline-block; padding: 4px 10px; background-color: #e2e8f0; color: var(--teacher-color);
             border-radius: 12px; font-size: 12px; font-weight: 600; margin: 3px; border: 1px solid #cbd5e1;
         }
+        .role-tag {
+            display: inline-block; padding: 2px 6px; background-color: #f1f5f9; color: #64748b;
+            border-radius: 4px; font-size: 11px; margin-left: 6px; font-weight: normal; border: 1px solid #e2e8f0;
+        }
 
         /* Nút và Badge cho phần Link/Minh chứng */
         .btn-evidence {
@@ -115,7 +119,7 @@
 
         .source-badge {
             color: #d97706; font-size: 11px; font-weight: bold; background: #fef3c7; 
-            padding: 2px 6px; border-radius: 4px; border: 1px solid #fde68a; margin-right: 6px;
+            padding: 3px 8px; border-radius: 4px; border: 1px solid #fde68a; margin-right: 8px;
         }
 
         @media (max-width: 768px) {
@@ -130,6 +134,7 @@
 <body>
 
     <div class="container">
+        <!-- HEADER NAVBAR -->
         <div class="top-navbar">
             <div class="logo-box">
                 <img src="https://raw.githubusercontent.com/khcbvadl-ai/quanlidulieu/main/logo.%20KHCB%20trong.png" alt="KHCB LOGO" class="logo-img">
@@ -143,6 +148,7 @@
 
         <h2 class="header-title"><i class="fa-solid fa-sitemap"></i> HỆ THỐNG PHÂN CÔNG KPI CHI TIẾT</h2>
 
+        <!-- BỘ LỌC -->
         <div class="filter-section">
             <div class="filter-group">
                 <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học (Kế hoạch):</label>
@@ -163,31 +169,32 @@
             <span class="progress-text" id="loading-progress">Đang kết nối đến hệ thống...</span>
         </div>
 
+        <!-- BẢNG HIỂN THỊ DỮ LIỆU TREE-TABLE -->
         <div class="table-responsive">
             <table id="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 500px;">Nội dung KPI (Đầu việc)</th>
+                        <th style="width: 480px;">Nội dung KPI (Đầu việc)</th>
                         <th style="width: 250px;">Người thực hiện</th>
-                        <th style="width: 200px;">Minh chứng yêu cầu</th>
-                        <th style="width: 150px;">Link minh chứng</th>
+                        <th style="width: 240px;">Chỉ tiêu / Sản phẩm (Thời hạn)</th>
+                        <th style="width: 130px;">Link minh chứng</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    </tbody>
+                    <!-- Dữ liệu dạng Tree-table sẽ được vẽ vào đây -->
+                </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // CÁC THÔNG SỐ CẤU HÌNH API
         const MASTER_API_ID = "1n5HmlBHAjtQTKyHrjfeag6wOiwhl-4Yf";
         const DETAIL_API_ID = "1c1rrnXfz6f82xSuPbcngOONR4Ted41Fe";
         
         let currentYear = ""; 
         let allData = []; 
 
-        // KHÓA PHÍM F2 MỞ LINK ĐẾN FILE SPREADSHEET DETAIL
+        // SỰ KIỆN F2: TẠO NÚT Ở DƯỚI CÙNG VÀ TỰ ĐỘNG CUỘN
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
@@ -196,10 +203,9 @@
                     apiBtn.id = 'api-redirect-btn';
                     apiBtn.href = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/edit?gid=212029541#gid=212029541`;
                     apiBtn.target = '_blank';
-                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập';
+                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập Kế hoạch chi tiết';
                     
                     apiBtn.style.display = 'inline-block';
-                    apiBtn.style.margin = '25px auto 10px auto';
                     apiBtn.style.padding = '12px 28px';
                     apiBtn.style.backgroundColor = '#2563eb';
                     apiBtn.style.color = '#ffffff';
@@ -212,10 +218,15 @@
 
                     const btnWrapper = document.createElement('div');
                     btnWrapper.style.textAlign = 'center';
+                    btnWrapper.style.width = '100%';
+                    btnWrapper.style.margin = '30px 0 50px 0'; // Khoảng trống thoáng đãng ở cuối trang
                     btnWrapper.appendChild(apiBtn);
 
-                    document.querySelector('.container').appendChild(btnWrapper);
-                    btnWrapper.scrollIntoView({ behavior: 'smooth' });
+                    // Chèn trực tiếp vào thẻ body (ở dưới cùng)
+                    document.body.appendChild(btnWrapper);
+                    
+                    // Cuộn mượt mà xuống nút vừa tạo
+                    btnWrapper.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
             }
         });
@@ -224,7 +235,6 @@
             loadConfigAndInit();
         };
 
-        // Hàm đọc CSV an toàn
         function parseCSVLine(text) {
             let result = [];
             let entry = '';
@@ -246,7 +256,7 @@
             return result;
         }
 
-        // 1. TẢI CONFIG NĂM HỌC
+        // TẢI CONFIG NĂM HỌC TỪ MASTER API
         function loadConfigAndInit() {
             const configUrl = `https://docs.google.com/spreadsheets/d/${MASTER_API_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
             
@@ -293,7 +303,7 @@
             loadAndMergeData(currentYear);
         }
 
-        // 2. ĐỌC TÊN SHEET & TÊN GIẢNG VIÊN - ĐÃ CHẶN CÁC TỪ KHÓA LỖI ("Tên đầy đủ")
+        // ĐỌC DANH SÁCH GIẢNG VIÊN (LOẠI BỎ TỪ KHÓA RÁC)
         async function fetchStaffConfig() {
             try {
                 const detailConfigUrl = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
@@ -329,7 +339,7 @@
             }
         }
 
-        // 3. THUẬT TOÁN ĐỌC VÀ GỘP DỮ LIỆU ĐỘNG TỪ CÁC SHEET CÁ NHÂN
+        // ĐỌC VÀ GỘP DỮ LIỆU TỪ 12 CỘT MỚI
         async function loadAndMergeData(year) {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('table-body').innerHTML = '';
@@ -350,44 +360,54 @@
                         let detailCsv = await detailRes.text();
                         let detailLines = detailCsv.split(/\r?\n/);
 
+                        // Bỏ qua dòng tiêu đề
                         for (let r = 1; r < detailLines.length; r++) { 
                             if (!detailLines[r].trim()) continue;
                             let cols = parseCSVLine(detailLines[r]);
                             
-                            let maNguon = cols.length > 1 && cols[1] ? cols[1].trim() : ""; 
-                            let dauViec = cols.length > 2 && cols[2] ? cols[2].trim() : ""; 
+                            // Map index theo 12 cột thực tế
+                            let hoTen = cols.length > 1 && cols[1] ? cols[1].trim() : staff.teacherName;
+                            let maNguon = cols.length > 2 && cols[2] ? cols[2].trim() : ""; 
+                            let maKpi = cols.length > 3 && cols[3] ? cols[3].trim() : ""; 
+                            let tenKpi = cols.length > 4 && cols[4] ? cols[4].trim() : "";
                             
-                            if (dauViec && dauViec.toLowerCase() !== "mã kpi/nội dung kpi khoa" && dauViec.toLowerCase() !== "mã kpi") {
+                            if (maKpi && maKpi.toLowerCase() !== "mã kpi/nội dung kpi khoa" && maKpi.toLowerCase() !== "mã kpi") {
                                 
-                                let groupKey = dauViec;
+                                // Dùng Mã KPI làm nhóm chính
+                                let groupKey = maKpi;
 
                                 if (!kpiMap[groupKey]) {
                                     kpiMap[groupKey] = {
                                         id: 'kpi_' + Math.random().toString(36).substring(2, 10),
                                         maNguon: maNguon,
-                                        dauViec: dauViec,
+                                        maKpi: maKpi,
+                                        tenKpi: tenKpi,
                                         teachersSet: new Set(),
                                         tasks: []
                                     };
                                 }
 
-                                let chiTietNhiemVu = cols.length > 3 && cols[3] ? cols[3].trim() : "";
-                                let minhChungText = cols.length > 8 && cols[8] ? cols[8].trim() : "";
-                                let linkText = cols.length > 9 && cols[9] ? cols[9].trim() : "";
+                                let nhiemVu = cols.length > 5 && cols[5] ? cols[5].trim() : "";
+                                let vaiTro = cols.length > 6 && cols[6] ? cols[6].trim() : "";
+                                let chiTieu = cols.length > 8 && cols[8] ? cols[8].trim() : "";
+                                let thoiHan = cols.length > 9 && cols[9] ? cols[9].trim() : "";
+                                let minhChungLink = cols.length > 10 && cols[10] ? cols[10].trim() : "";
 
-                                if (!linkText && (minhChungText.startsWith('http://') || minhChungText.startsWith('https://'))) {
-                                    linkText = minhChungText;
-                                    minhChungText = "Minh chứng trực tuyến";
+                                // Định dạng lại hiển thị cho Sản phẩm / Hạn
+                                let hienThiSanPham = chiTieu;
+                                if (thoiHan) {
+                                    hienThiSanPham += `<br><small style="color:#d97706; font-weight:600;"><i class="fa-regular fa-clock"></i> Hạn: ${thoiHan}</small>`;
                                 }
 
-                                if (chiTietNhiemVu || minhChungText || linkText) {
+                                if (nhiemVu || chiTieu || minhChungLink) {
                                     kpiMap[groupKey].tasks.push({
-                                        chiTiet: chiTietNhiemVu,
-                                        teacherName: staff.teacherName,
-                                        minhChungText: minhChungText,
-                                        linkText: linkText
+                                        chiTiet: nhiemVu,
+                                        teacherName: hoTen,
+                                        vaiTro: vaiTro,
+                                        sanPham: hienThiSanPham,
+                                        linkText: minhChungLink
                                     });
-                                    kpiMap[groupKey].teachersSet.add(staff.teacherName);
+                                    kpiMap[groupKey].teachersSet.add(hoTen);
                                 }
                             }
                         }
@@ -397,9 +417,7 @@
                 });
 
                 await Promise.all(fetchPromises);
-
                 allData = Object.values(kpiMap);
-
                 document.getElementById('loading').style.display = 'none';
 
                 populateFilterDropdown();
@@ -411,7 +429,6 @@
             }
         }
 
-        // 4. BỘ LỌC GIẢNG VIÊN
         function populateFilterDropdown() {
             const select = document.getElementById('filter-person');
             const currentSelected = select.value;
@@ -435,7 +452,7 @@
             }
         }
 
-        // 5. HIỂN THỊ DỮ LIỆU DẠNG TREE-TABLE
+        // RENDER GIAO DIỆN TREE-TABLE
         function renderTable(dataArray, selectedPerson) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
@@ -453,19 +470,20 @@
                 if (displayTasks.length === 0) return; 
 
                 let isExpanded = selectedPerson !== "ALL"; 
-                let maNguonBadge = item.maNguon ? `<span class="source-badge">${item.maNguon}</span> ` : '';
+                let maNguonBadge = item.maNguon ? `<span class="source-badge">${item.maNguon}</span>` : '';
 
-                // DÒNG CHA (ĐÃ BỎ NỘI DUNG NGƯỜI THỰC HIỆN BỊ THỪA, CHỈ HIỂN THỊ DẤU '—')
+                // DÒNG CHA (NỘI DUNG KPI TỔNG)
                 let masterTr = document.createElement('tr');
                 masterTr.className = 'master-row';
                 masterTr.onclick = function() { toggleKpi(item.id); };
                 
                 masterTr.innerHTML = `
-                    <td style="font-weight: 700; color: #1e293b; padding-left:15px;">
+                    <td style="font-weight: 700; color: #1e293b; padding-left:15px; line-height: 1.6;">
                         <button class="btn-toggle">
                             <i id="icon-toggle-${item.id}" class="fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
                         </button>
-                        ${maNguonBadge} ${item.dauViec} 
+                        ${maNguonBadge} 
+                        <strong style="color: var(--primary-color)">${item.maKpi}</strong> - ${item.tenKpi} 
                         <span style="font-size:12px; font-weight:normal; color:#64748b; margin-left:6px;">(${displayTasks.length} tác vụ)</span>
                     </td>
                     <td style="text-align: center; color: #94a3b8;">—</td>
@@ -474,23 +492,28 @@
                 `;
                 tbody.appendChild(masterTr);
 
-                // CÁC DÒNG CON (HIỂN THỊ ĐẦY ĐỦ TÊN GIẢNG VIÊN THỰC HIỆN TỪNG NHIỆM VỤ CỤ THỂ)
+                // DÒNG CON (CHI TIẾT TÁC VỤ CÁ NHÂN)
                 displayTasks.forEach(task => {
                     let childLinkHTML = task.linkText && task.linkText.startsWith('http')
                         ? `<a href="${task.linkText}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`
                         : `<span class="badge-missing">Chưa có</span>`;
+                    
+                    let vaiTroTag = task.vaiTro ? `<span class="role-tag">${task.vaiTro}</span>` : '';
 
                     let childTr = document.createElement('tr');
                     childTr.className = `child-row child-of-${item.id}`;
                     if (isExpanded) childTr.style.display = 'table-row';
 
                     childTr.innerHTML = `
-                        <td style="padding-left: 45px; color: #334155;">
+                        <td style="padding-left: 45px; color: #334155; line-height: 1.5;">
                             <i class="fa-regular fa-circle-dot" style="font-size:10px; color:var(--primary-color); margin-right:8px;"></i>
                             ${task.chiTiet || '<span style="color:#94a3b8; font-style:italic">Chưa có mô tả cụ thể</span>'}
                         </td>
-                        <td><span class="person-tag"><i class="fa-solid fa-user-check"></i> ${task.teacherName}</span></td>
-                        <td style="color: #475569;">${task.minhChungText || '—'}</td>
+                        <td>
+                            <div style="margin-bottom: 3px;"><span class="person-tag"><i class="fa-solid fa-user-check"></i> ${task.teacherName}</span></div>
+                            ${vaiTroTag}
+                        </td>
+                        <td style="color: #475569; line-height: 1.5;">${task.sanPham || '—'}</td>
                         <td style="text-align: center;">${childLinkHTML}</td>
                     `;
                     tbody.appendChild(childTr);
@@ -516,15 +539,12 @@
             }
         }
 
-        // THỰC THI LỌC DỮ LIỆU
         function applyFilter() {
             let selectedPerson = document.getElementById('filter-person').value;
-
             let filteredData = allData.filter(item => {
                 if (selectedPerson === "ALL") return true;
                 return item.teachersSet.has(selectedPerson);
             });
-
             renderTable(filteredData, selectedPerson);
         }
     </script>
