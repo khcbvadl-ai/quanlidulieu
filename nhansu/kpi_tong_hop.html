@@ -51,10 +51,10 @@
 
         /* --- VÙNG LỌC DỮ LIỆU --- */
         .filter-section {
-            display: flex; gap: 20px; margin-bottom: 20px; background: var(--secondary-color);
-            padding: 18px 20px; border-radius: 8px; align-items: flex-end; flex-wrap: wrap;
+            display: flex; justify-content: flex-end; margin-bottom: 20px; background: var(--secondary-color);
+            padding: 18px 20px; border-radius: 8px; align-items: flex-end;
         }
-        .filter-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 250px; }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; width: 350px; }
         .filter-group label { font-weight: 600; color: #4a5568; font-size: 13px; text-transform: uppercase; }
         .filter-group select {
             padding: 10px 12px; border-radius: 4px; border: 1px solid #cbd5e0; outline: none;
@@ -121,13 +121,21 @@
             color: #d97706; font-size: 11px; font-weight: bold; background: #fef3c7; 
             padding: 3px 8px; border-radius: 4px; border: 1px solid #fde68a; margin-right: 8px;
         }
+        
+        .update-notify {
+            position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white;
+            padding: 10px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-weight: bold; font-size: 13px; z-index: 9999;
+            transform: translateY(100px); opacity: 0; transition: all 0.4s ease;
+        }
+        .update-notify.show { transform: translateY(0); opacity: 1; }
 
         @media (max-width: 768px) {
             .top-navbar { flex-direction: column; padding: 15px; gap: 15px; }
             .nav-menu { width: 100%; justify-content: space-around; }
             .nav-item { padding: 10px; font-size: 14px; }
             .filter-section { flex-direction: column; align-items: stretch; gap: 15px; padding: 15px; }
-            .filter-group { min-width: 100%; }
+            .filter-group { min-width: 100%; width: 100%; }
         }
     </style>
 </head>
@@ -146,19 +154,14 @@
             </div>
         </div>
 
-        <h2 class="header-title"><i class="fa-solid fa-sitemap"></i> HỆ THỐNG PHÂN CÔNG KPI CHI TIẾT</h2>
+        <h2 class="header-title"><i class="fa-solid fa-sitemap"></i> HỆ THỐNG PHÂN CÔNG KPI TỔNG HỢP TOÀN KHOA</h2>
 
-        <!-- BỘ LỌC -->
+        <!-- BỘ LỌC DUY NHẤT -->
         <div class="filter-section">
             <div class="filter-group">
-                <label for="filter-year"><i class="fa-regular fa-calendar-days"></i> Chọn năm học (Kế hoạch):</label>
-                <select id="filter-year" onchange="changeYear()">
-                </select>
-            </div>
-            <div class="filter-group">
-                <label id="label-filter-person" for="filter-person"><i class="fa-solid fa-user-check"></i> Lọc theo giảng viên:</label>
+                <label id="label-filter-person" for="filter-person"><i class="fa-solid fa-user-check"></i> Tra cứu theo giảng viên:</label>
                 <select id="filter-person" onchange="applyFilter()">
-                    <option value="ALL">-- Tất cả giảng viên --</option>
+                    <option value="ALL">-- Tất cả giảng viên (Xem toàn khoa) --</option>
                 </select>
             </div>
         </div>
@@ -186,12 +189,13 @@
             </table>
         </div>
     </div>
+    
+    <div id="update-notify" class="update-notify"><i class="fa-solid fa-check-circle"></i> Đã đồng bộ dữ liệu mới nhất!</div>
 
     <script>
-        const MASTER_API_ID = "1n5HmlBHAjtQTKyHrjfeag6wOiwhl-4Yf";
-        const DETAIL_API_ID = "1c1rrnXfz6f82xSuPbcngOONR4Ted41Fe";
+        const API_ID = "1qXOlGW66jwrwAqplg46n9M7ss3JCWn2x";
+        const CACHE_KEY = "KPI_CACHE_SWR_TONGHOP";
         
-        let currentYear = ""; 
         let allData = []; 
 
         // SỰ KIỆN F2: TẠO NÚT Ở DƯỚI CÙNG VÀ TỰ ĐỘNG CUỘN
@@ -201,9 +205,9 @@
                 if (!document.getElementById('api-redirect-btn')) {
                     const apiBtn = document.createElement('a');
                     apiBtn.id = 'api-redirect-btn';
-                    apiBtn.href = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/edit?gid=212029541#gid=212029541`;
+                    apiBtn.href = `https://docs.google.com/spreadsheets/d/${API_ID}/edit?gid=0#gid=0`;
                     apiBtn.target = '_blank';
-                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập Kế hoạch chi tiết';
+                    apiBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Truy cập File CSDL Gốc';
                     
                     apiBtn.style.display = 'inline-block';
                     apiBtn.style.padding = '12px 28px';
@@ -219,20 +223,17 @@
                     const btnWrapper = document.createElement('div');
                     btnWrapper.style.textAlign = 'center';
                     btnWrapper.style.width = '100%';
-                    btnWrapper.style.margin = '30px 0 50px 0'; // Khoảng trống thoáng đãng ở cuối trang
+                    btnWrapper.style.margin = '30px 0 50px 0';
                     btnWrapper.appendChild(apiBtn);
 
-                    // Chèn trực tiếp vào thẻ body (ở dưới cùng)
                     document.body.appendChild(btnWrapper);
-                    
-                    // Cuộn mượt mà xuống nút vừa tạo
                     btnWrapper.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
             }
         });
 
         window.onload = function() {
-            loadConfigAndInit();
+            loadDataWithSWR();
         };
 
         function parseCSVLine(text) {
@@ -256,184 +257,112 @@
             return result;
         }
 
-        // TẢI CONFIG NĂM HỌC TỪ MASTER API
-        function loadConfigAndInit() {
-            const configUrl = `https://docs.google.com/spreadsheets/d/${MASTER_API_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
+        // CƠ CHẾ SWR: ĐỌC CACHE TỨC THÌ -> RENDER -> TẢI NGẦM -> RENDER LẠI NẾU CÓ THAY ĐỔI
+        async function loadDataWithSWR() {
+            const cachedData = localStorage.getItem(CACHE_KEY);
             
-            fetch(configUrl)
-                .then(res => res.text())
-                .then(text => {
-                    let lines = text.split(/\r?\n/);
-                    let years = [];
-                    for(let i = 0; i < lines.length; i++) {
-                        let cols = parseCSVLine(lines[i]);
-                        let y = cols[0] ? cols[0].trim() : "";
-                        if(y && y.toLowerCase() !== "năm học" && y.toLowerCase() !== "config") {
-                            years.push(y);
-                        }
-                    }
-                    
-                    if(years.length > 0) {
-                        populateYearDropdown(years);
-                        currentYear = years[0];
-                        document.getElementById('filter-year').value = currentYear;
-                        loadAndMergeData(currentYear);
-                    }
-                })
-                .catch(err => {
-                    console.error("Lỗi Config Master:", err);
-                    document.getElementById('loading').innerHTML = `<span style="color:red">Lỗi tải cấu hình ban đầu.</span>`;
-                });
-        }
-
-        function populateYearDropdown(years) {
-            const select = document.getElementById('filter-year');
-            select.innerHTML = '';
-            years.forEach(y => {
-                let opt = document.createElement('option');
-                opt.value = y;
-                opt.textContent = "Kế hoạch năm " + y;
-                select.appendChild(opt);
-            });
-        }
-
-        function changeYear() {
-            currentYear = document.getElementById('filter-year').value;
-            document.getElementById('filter-person').innerHTML = '<option value="ALL">-- Tất cả giảng viên --</option>'; 
-            loadAndMergeData(currentYear);
-        }
-
-        // ĐỌC DANH SÁCH GIẢNG VIÊN (LOẠI BỎ TỪ KHÓA RÁC)
-        async function fetchStaffConfig() {
-            try {
-                const detailConfigUrl = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
-                const res = await fetch(detailConfigUrl);
-                const text = await res.text();
-                let lines = text.split(/\r?\n/);
-                let staffList = [];
-                
-                const excludedWords = ["danh sách", "tên đầy đủ", "họ và tên", "tên", "nhân sự", "stt", "mã gv", "giảng viên", "sheet name", "tên sheet"];
-
-                for (let i = 0; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    let cols = parseCSVLine(lines[i]);
-                    let sheetName = cols[0] ? cols[0].trim() : "";
-                    let teacherName = cols[1] ? cols[1].trim() : sheetName;
-
-                    if (sheetName) {
-                        let lowerA = sheetName.toLowerCase();
-                        let lowerB = teacherName.toLowerCase();
-                        
-                        if (!excludedWords.includes(lowerA) && !excludedWords.includes(lowerB)) {
-                            staffList.push({
-                                sheetName: sheetName,
-                                teacherName: teacherName || sheetName
-                            });
-                        }
-                    }
+            // 1. Hiển thị lập tức từ Cache (nếu có)
+            if (cachedData) {
+                try {
+                    allData = JSON.parse(cachedData);
+                    renderTable(allData);
+                    populateFilterDropdown();
+                } catch (e) {
+                    console.error("Lỗi đọc cache:", e);
                 }
-                return staffList;
-            } catch (e) {
-                console.error("Lỗi đọc danh sách giảng viên từ Config:", e);
-                return [];
+            } else {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('loading-progress').innerText = "Đang tải dữ liệu toàn Khoa...";
             }
-        }
 
-        // ĐỌC VÀ GỘP DỮ LIỆU TỪ 12 CỘT MỚI
-        async function loadAndMergeData(year) {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('table-body').innerHTML = '';
-            const progressText = document.getElementById('loading-progress');
-            
+            // 2. Fetch ngầm dữ liệu từ sheet tong_hop
             try {
-                progressText.innerText = "Đang lấy danh sách giảng viên...";
-                const staffList = await fetchStaffConfig();
+                let detailUrl = `https://docs.google.com/spreadsheets/d/${API_ID}/gviz/tq?tqx=out:csv&sheet=tong_hop`;
+                let detailRes = await fetch(detailUrl);
+                let detailCsv = await detailRes.text();
+                let detailLines = detailCsv.split(/\r?\n/);
 
                 let kpiMap = {}; 
 
-                progressText.innerText = `Đang tổng hợp nhiệm vụ từ ${staffList.length} giảng viên...`;
-                
-                let fetchPromises = staffList.map(async (staff) => {
-                    try {
-                        let detailUrl = `https://docs.google.com/spreadsheets/d/${DETAIL_API_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(staff.sheetName)}`;
-                        let detailRes = await fetch(detailUrl);
-                        let detailCsv = await detailRes.text();
-                        let detailLines = detailCsv.split(/\r?\n/);
+                for (let r = 1; r < detailLines.length; r++) { 
+                    if (!detailLines[r].trim()) continue;
+                    let cols = parseCSVLine(detailLines[r]);
+                    
+                    let hoTen = cols.length > 1 && cols[1] ? cols[1].trim() : "";
+                    let maNguon = cols.length > 2 && cols[2] ? cols[2].trim() : ""; 
+                    let maKpi = cols.length > 3 && cols[3] ? cols[3].trim() : ""; 
+                    let tenKpi = cols.length > 4 && cols[4] ? cols[4].trim() : "";
+                    
+                    if (maKpi && maKpi.toLowerCase() !== "mã kpi/nội dung kpi khoa" && maKpi.toLowerCase() !== "mã kpi") {
+                        let groupKey = maKpi;
 
-                        // Bỏ qua dòng tiêu đề
-                        for (let r = 1; r < detailLines.length; r++) { 
-                            if (!detailLines[r].trim()) continue;
-                            let cols = parseCSVLine(detailLines[r]);
+                        if (!kpiMap[groupKey]) {
+                            kpiMap[groupKey] = {
+                                id: 'kpi_' + Math.random().toString(36).substring(2, 10),
+                                maNguon: maNguon,
+                                maKpi: maKpi,
+                                tenKpi: tenKpi,
+                                teachersSet: [], 
+                                tasks: []
+                            };
+                        }
+
+                        let nhiemVu = cols.length > 5 && cols[5] ? cols[5].trim() : "";
+                        let vaiTro = cols.length > 6 && cols[6] ? cols[6].trim() : "";
+                        let chiTieu = cols.length > 8 && cols[8] ? cols[8].trim() : "";
+                        let thoiHan = cols.length > 9 && cols[9] ? cols[9].trim() : "";
+                        let minhChungLink = cols.length > 10 && cols[10] ? cols[10].trim() : "";
+
+                        let hienThiSanPham = chiTieu;
+                        if (thoiHan) {
+                            hienThiSanPham += `<br><small style="color:#d97706; font-weight:600;"><i class="fa-regular fa-clock"></i> Hạn: ${thoiHan}</small>`;
+                        }
+
+                        if (nhiemVu || chiTieu || minhChungLink || hoTen) {
+                            kpiMap[groupKey].tasks.push({
+                                chiTiet: nhiemVu,
+                                teacherName: hoTen,
+                                vaiTro: vaiTro,
+                                sanPham: hienThiSanPham,
+                                linkText: minhChungLink
+                            });
                             
-                            // Map index theo 12 cột thực tế
-                            let hoTen = cols.length > 1 && cols[1] ? cols[1].trim() : staff.teacherName;
-                            let maNguon = cols.length > 2 && cols[2] ? cols[2].trim() : ""; 
-                            let maKpi = cols.length > 3 && cols[3] ? cols[3].trim() : ""; 
-                            let tenKpi = cols.length > 4 && cols[4] ? cols[4].trim() : "";
-                            
-                            if (maKpi && maKpi.toLowerCase() !== "mã kpi/nội dung kpi khoa" && maKpi.toLowerCase() !== "mã kpi") {
-                                
-                                // Dùng Mã KPI làm nhóm chính
-                                let groupKey = maKpi;
-
-                                if (!kpiMap[groupKey]) {
-                                    kpiMap[groupKey] = {
-                                        id: 'kpi_' + Math.random().toString(36).substring(2, 10),
-                                        maNguon: maNguon,
-                                        maKpi: maKpi,
-                                        tenKpi: tenKpi,
-                                        teachersSet: new Set(),
-                                        tasks: []
-                                    };
-                                }
-
-                                let nhiemVu = cols.length > 5 && cols[5] ? cols[5].trim() : "";
-                                let vaiTro = cols.length > 6 && cols[6] ? cols[6].trim() : "";
-                                let chiTieu = cols.length > 8 && cols[8] ? cols[8].trim() : "";
-                                let thoiHan = cols.length > 9 && cols[9] ? cols[9].trim() : "";
-                                let minhChungLink = cols.length > 10 && cols[10] ? cols[10].trim() : "";
-
-                                // Định dạng lại hiển thị cho Sản phẩm / Hạn
-                                let hienThiSanPham = chiTieu;
-                                if (thoiHan) {
-                                    hienThiSanPham += `<br><small style="color:#d97706; font-weight:600;"><i class="fa-regular fa-clock"></i> Hạn: ${thoiHan}</small>`;
-                                }
-
-                                if (nhiemVu || chiTieu || minhChungLink) {
-                                    kpiMap[groupKey].tasks.push({
-                                        chiTiet: nhiemVu,
-                                        teacherName: hoTen,
-                                        vaiTro: vaiTro,
-                                        sanPham: hienThiSanPham,
-                                        linkText: minhChungLink
-                                    });
-                                    kpiMap[groupKey].teachersSet.add(hoTen);
-                                }
+                            if (hoTen && !kpiMap[groupKey].teachersSet.includes(hoTen)) {
+                                kpiMap[groupKey].teachersSet.push(hoTen);
                             }
                         }
-                    } catch (e) {
-                        console.warn(`Lỗi tải sheet cá nhân: ${staff.sheetName}`, e);
                     }
-                });
+                }
 
-                await Promise.all(fetchPromises);
-                allData = Object.values(kpiMap);
+                const freshData = Object.values(kpiMap);
+                const freshDataString = JSON.stringify(freshData);
+
+                // 3. So sánh dữ liệu, cập nhật giao diện nếu file Google Sheet bị thay đổi
+                if (freshDataString !== cachedData) {
+                    allData = freshData;
+                    localStorage.setItem(CACHE_KEY, freshDataString);
+                    renderTable(allData);
+                    populateFilterDropdown();
+                    
+                    if (cachedData) {
+                        showNotify();
+                    }
+                }
+
                 document.getElementById('loading').style.display = 'none';
 
-                populateFilterDropdown();
-                applyFilter();
-
             } catch (err) {
-                console.error("Lỗi tổng hợp:", err);
-                document.getElementById('loading').innerHTML = `<span style="color:red">Đã xảy ra lỗi khi tải dữ liệu! Vui lòng thử lại.</span>`;
+                console.error("Lỗi tải ngầm:", err);
+                if (!cachedData) {
+                    document.getElementById('loading').innerHTML = `<span style="color:red">Đã xảy ra lỗi khi tải dữ liệu! Vui lòng thử lại.</span>`;
+                }
             }
         }
 
         function populateFilterDropdown() {
             const select = document.getElementById('filter-person');
             const currentSelected = select.value;
-            
-            select.innerHTML = '<option value="ALL">-- Tất cả giảng viên --</option>';
+            select.innerHTML = '<option value="ALL">-- Tất cả giảng viên (Xem toàn khoa) --</option>';
             
             let persons = new Set();
             allData.forEach(item => {
@@ -452,8 +381,8 @@
             }
         }
 
-        // RENDER GIAO DIỆN TREE-TABLE
-        function renderTable(dataArray, selectedPerson) {
+        // RENDER GIAO DIỆN (CHỈ VẼ 1 LẦN DUY NHẤT)
+        function renderTable(dataArray) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
@@ -463,28 +392,22 @@
             }
 
             dataArray.forEach(item => {
-                let displayTasks = selectedPerson === "ALL" 
-                    ? item.tasks 
-                    : item.tasks.filter(t => t.teacherName === selectedPerson);
-
-                if (displayTasks.length === 0) return; 
-
-                let isExpanded = selectedPerson !== "ALL"; 
                 let maNguonBadge = item.maNguon ? `<span class="source-badge">${item.maNguon}</span>` : '';
 
-                // DÒNG CHA (NỘI DUNG KPI TỔNG)
+                // DÒNG CHA (MASTER ROW)
                 let masterTr = document.createElement('tr');
                 masterTr.className = 'master-row';
+                masterTr.setAttribute('data-kpi-id', item.id);
                 masterTr.onclick = function() { toggleKpi(item.id); };
                 
                 masterTr.innerHTML = `
                     <td style="font-weight: 700; color: #1e293b; padding-left:15px; line-height: 1.6;">
                         <button class="btn-toggle">
-                            <i id="icon-toggle-${item.id}" class="fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
+                            <i id="icon-toggle-${item.id}" class="fa-solid fa-chevron-right"></i>
                         </button>
                         ${maNguonBadge} 
                         <strong style="color: var(--primary-color)">${item.maKpi}</strong> - ${item.tenKpi} 
-                        <span style="font-size:12px; font-weight:normal; color:#64748b; margin-left:6px;">(${displayTasks.length} tác vụ)</span>
+                        <span style="font-size:12px; font-weight:normal; color:#64748b; margin-left:6px;">(${item.tasks.length} tác vụ)</span>
                     </td>
                     <td style="text-align: center; color: #94a3b8;">—</td>
                     <td style="color:#64748b; font-size:13px; font-style:italic;">Xem chi tiết bên dưới</td>
@@ -492,8 +415,8 @@
                 `;
                 tbody.appendChild(masterTr);
 
-                // DÒNG CON (CHI TIẾT TÁC VỤ CÁ NHÂN)
-                displayTasks.forEach(task => {
+                // DÒNG CON (CHILD ROW)
+                item.tasks.forEach(task => {
                     let childLinkHTML = task.linkText && task.linkText.startsWith('http')
                         ? `<a href="${task.linkText}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`
                         : `<span class="badge-missing">Chưa có</span>`;
@@ -502,7 +425,8 @@
 
                     let childTr = document.createElement('tr');
                     childTr.className = `child-row child-of-${item.id}`;
-                    if (isExpanded) childTr.style.display = 'table-row';
+                    // Gắn nhãn data-teacher để phục vụ việc lọc siêu tốc bằng CSS
+                    childTr.setAttribute('data-teacher', task.teacherName || "");
 
                     childTr.innerHTML = `
                         <td style="padding-left: 45px; color: #334155; line-height: 1.5;">
@@ -510,7 +434,7 @@
                             ${task.chiTiet || '<span style="color:#94a3b8; font-style:italic">Chưa có mô tả cụ thể</span>'}
                         </td>
                         <td>
-                            <div style="margin-bottom: 3px;"><span class="person-tag"><i class="fa-solid fa-user-check"></i> ${task.teacherName}</span></div>
+                            <div style="margin-bottom: 3px;"><span class="person-tag"><i class="fa-solid fa-user-check"></i> ${task.teacherName || 'Trống'}</span></div>
                             ${vaiTroTag}
                         </td>
                         <td style="color: #475569; line-height: 1.5;">${task.sanPham || '—'}</td>
@@ -519,33 +443,81 @@
                     tbody.appendChild(childTr);
                 });
             });
+
+            // Sau khi vẽ xong, áp dụng lại bộ lọc hiện tại
+            applyFilter();
         }
 
-        // BẬT / TẮT ẨN HIỆN CÁC DÒNG CON
+        // BẬT / TẮT ẨN HIỆN DÒNG BẰNG TAY (KHI CLICK VÀO MASTER ROW)
         function toggleKpi(safeKpiId) {
-            const childRows = document.getElementsByClassName(`child-of-${safeKpiId}`);
-            const btnIcon = document.getElementById(`icon-toggle-${safeKpiId}`);
+            let selectedPerson = document.getElementById('filter-person').value;
+            let childRows = document.querySelectorAll(`.child-of-${safeKpiId}`);
+            let icon = document.getElementById(`icon-toggle-${safeKpiId}`);
             
             if (childRows.length === 0) return;
 
-            let isCurrentlyHidden = childRows[0].style.display === 'none' || childRows[0].style.display === '';
-
-            for(let i = 0; i < childRows.length; i++) {
-                childRows[i].style.display = isCurrentlyHidden ? 'table-row' : 'none';
+            let currentState = 'none';
+            for (let child of childRows) {
+                let teacher = child.getAttribute('data-teacher');
+                if (selectedPerson === "ALL" || teacher === selectedPerson) {
+                    currentState = child.style.display;
+                    break;
+                }
             }
 
-            if (btnIcon) {
-                btnIcon.className = isCurrentlyHidden ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right';
+            let newState = (currentState === 'none' || currentState === '') ? 'table-row' : 'none';
+
+            childRows.forEach(child => {
+                let teacher = child.getAttribute('data-teacher');
+                // Nếu chọn toàn bộ, bung tất cả người. Nếu chọn cá nhân, chỉ bung dòng cá nhân đó.
+                if (selectedPerson === "ALL" || teacher === selectedPerson) {
+                    child.style.display = newState;
+                }
+            });
+
+            if (icon) {
+                icon.className = newState === 'table-row' ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right';
             }
         }
 
+        // LỌC SIÊU TỐC BẰNG CSS
         function applyFilter() {
             let selectedPerson = document.getElementById('filter-person').value;
-            let filteredData = allData.filter(item => {
-                if (selectedPerson === "ALL") return true;
-                return item.teachersSet.has(selectedPerson);
+            let masterRows = document.querySelectorAll('.master-row');
+
+            masterRows.forEach(master => {
+                let kpiId = master.getAttribute('data-kpi-id');
+                let childRows = document.querySelectorAll(`.child-of-${kpiId}`);
+                let hasVisibleChild = false;
+                let isExpanded = selectedPerson !== "ALL"; // Tự bung nếu chọn 1 cá nhân
+
+                childRows.forEach(child => {
+                    let teacher = child.getAttribute('data-teacher');
+                    if (selectedPerson === "ALL" || teacher === selectedPerson) {
+                        child.style.display = isExpanded ? 'table-row' : 'none';
+                        hasVisibleChild = true;
+                    } else {
+                        child.style.display = 'none';
+                    }
+                });
+
+                if (hasVisibleChild) {
+                    master.style.display = 'table-row';
+                    let icon = document.getElementById(`icon-toggle-${kpiId}`);
+                    if (icon) {
+                        icon.className = isExpanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right';
+                    }
+                } else {
+                    master.style.display = 'none';
+                }
             });
-            renderTable(filteredData, selectedPerson);
+        }
+
+        // HIỂN THỊ THÔNG BÁO CẬP NHẬT
+        function showNotify() {
+            let noti = document.getElementById('update-notify');
+            noti.classList.add('show');
+            setTimeout(() => { noti.classList.remove('show'); }, 3500);
         }
     </script>
 </body>
