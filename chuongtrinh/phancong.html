@@ -80,8 +80,8 @@
         th:nth-child(4), td:nth-child(4) { text-align: left; }
         th:nth-child(5), td:nth-child(5) { text-align: left; }
         th:nth-child(6), td:nth-child(6) { text-align: left; }
-        th:nth-child(7), td:nth-child(7) { text-align: left; } /* Cột mới thêm */
-        th:nth-child(8), td:nth-child(8) { text-align: center; } /* Cột link (đẩy sang vị trí thứ 8) */
+        th:nth-child(7), td:nth-child(7) { text-align: left; }
+        th:nth-child(8), td:nth-child(8) { text-align: center; }
 
         td:nth-child(4) { font-weight: 600; color: var(--teacher-color); }
 
@@ -132,12 +132,12 @@
             </div>
         </div>
 
-        <h2 class="header-title"><i class="fa-solid fa-list-check"></i> PHÂN CÔNG VIẾT GIÁO TRÌNH- TÀI LIỆU HỌC TẬP</h2>
+        <h2 class="header-title"><i class="fa-solid fa-list-check"></i> GIÁO TRÌNH</h2>
 
         <div class="filter-section">
             <div class="filter-group">
-                <label id="label-filter-col4" for="filter-col4"><i class="fa-solid fa-filter"></i> Lọc dữ liệu:</label>
-                <select id="filter-col4" onchange="applyFilter()">
+                <label id="label-filter-col6" for="filter-col6"><i class="fa-solid fa-filter"></i> Lọc dữ liệu:</label>
+                <select id="filter-col6" onchange="applyFilter()">
                     <option value="ALL">-- Tất cả --</option>
                 </select>
             </div>
@@ -246,7 +246,6 @@
                 }
             }
 
-            // Lấy dữ liệu từ Sheet
             const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
 
             fetch(CSV_URL)
@@ -273,7 +272,7 @@
                                 cols[4] ? cols[4].trim() : "CỘT E",
                                 cols[5] ? cols[5].trim() : "CỘT F",
                                 cols[6] ? cols[6].trim() : "CỘT G",
-                                cols[7] ? cols[7].trim() : "CỘT H" // Cập nhật có thêm 1 cột tổng là 8
+                                cols[7] ? cols[7].trim() : "CỘT H"
                             ];
                             isFirstRow = false;
                             continue;
@@ -288,7 +287,7 @@
                                 col5: (cols.length > 4 && cols[4]) ? cols[4].trim() : "",
                                 col6: (cols.length > 5 && cols[5]) ? cols[5].trim() : "",
                                 col7: (cols.length > 6 && cols[6]) ? cols[6].trim() : "",
-                                col8: (cols.length > 7 && cols[7]) ? cols[7].trim() : "" // Đọc thêm dữ liệu cho cột 8
+                                col8: (cols.length > 7 && cols[7]) ? cols[7].trim() : ""
                             });
                         }
                     }
@@ -321,22 +320,24 @@
             document.getElementById('header-col5').textContent = headers[4];
             document.getElementById('header-col6').textContent = headers[5];
             document.getElementById('header-col7').textContent = headers[6];
-            document.getElementById('header-col8').textContent = headers[7]; // Render Header thứ 8
+            document.getElementById('header-col8').textContent = headers[7];
 
-            document.getElementById('label-filter-col4').innerHTML = `<i class="fa-solid fa-filter"></i> Lọc theo ${headers[3]}:`;
+            // Hiển thị tên cột F vào nhãn lọc
+            document.getElementById('label-filter-col6').innerHTML = `<i class="fa-solid fa-filter"></i> Lọc theo ${headers[5]}:`;
         }
 
         function populateFilterDropdown() {
-            const select = document.getElementById('filter-col4');
+            const select = document.getElementById('filter-col6');
             const currentSelected = select.value;
             
             select.innerHTML = '<option value="ALL">-- Tất cả --</option>';
             
             let items = new Set();
             
+            // Lấy dữ liệu từ cột F (col6)
             allData.forEach(item => {
-                if (item.col4) {
-                    let parts = item.col4.split(',');
+                if (item.col6) {
+                    let parts = item.col6.split(',');
                     parts.forEach(part => {
                         let t = part.trim();
                         if (t && t !== "") items.add(t);
@@ -365,13 +366,12 @@
             tbody.innerHTML = '';
 
             if (dataArray.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-message">Không tìm thấy dữ liệu nào phù hợp.</td></tr>'; // Thay đổi colspan thành 8
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-message">Không tìm thấy dữ liệu nào phù hợp.</td></tr>';
                 return;
             }
 
             dataArray.forEach(item => {
                 let linkHTML = '';
-                // Nút mở link giờ sử dụng col8 thay vì col7
                 if (item.col8 && item.col8 !== "") {
                     let url = item.col8.startsWith('http') ? item.col8 : 'https://' + item.col8;
                     linkHTML = `<a href="${url}" target="_blank" class="btn-evidence"><i class="fa-solid fa-link"></i> Mở link</a>`;
@@ -395,11 +395,12 @@
         }
 
         function applyFilter() {
-            let selectedVal = document.getElementById('filter-col4').value;
+            // Lọc theo giá trị của cột F (col6)
+            let selectedVal = document.getElementById('filter-col6').value;
 
             let filteredData = allData.filter(item => {
                 if (selectedVal === "ALL") return true;
-                return item.col4 && item.col4.includes(selectedVal);
+                return item.col6 && item.col6.includes(selectedVal);
             });
 
             renderTable(filteredData);
