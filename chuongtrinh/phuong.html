@@ -3,389 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BẢNG THỐNG KÊ ĐĂNG KÝ NƯỚC</title>
+    <title>Hệ Thống Tra Cứu Học Sinh Tối Ưu</title>
+    <!-- Nhúng Tailwind CSS để giao diện hiển thị chuẩn -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            color: #1b5e20;
-            margin-bottom: 20px;
-        }
-        .filter-box {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            background: #f1f8e9;
-            padding: 15px;
-            border-radius: 6px;
-        }
-        .filter-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        select {
-            padding: 6px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th, td {
-            border: 1px solid #e0e0e0;
-            padding: 8px 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #1b5e20;
-            color: white;
-            font-weight: bold;
-        }
-        .sub-header {
-            background-color: #2e7d32;
-        }
-        tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        /* Style cho 2 hàng tổng */
-        tfoot tr.row-total {
-            background-color: #e8f5e9;
-            font-weight: bold;
-        }
-        tfoot tr.row-limit {
-            background-color: #fff3e0;
-            font-weight: bold;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen py-10 px-4">
 
-<div class="container">
-    <h2>BẢNG THỐNG KÊ ĐĂNG KÝ NƯỚC</h2>
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
+        <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">HỆ THỐNG TRA CỨU THÔNG TIN HỌC SINH</h1>
+        
+        <!-- Giai đoạn 1: Chỉ tải cột Tên -->
+        <div id="loadingStatus" class="text-center text-gray-500 font-medium my-4">🔄 Đang tải danh sách tên học sinh...</div>
 
-    <!-- Bộ lọc -->
-    <div class="filter-box">
-        <div class="filter-item">
-            <label for="unit-filter"><strong>ĐƠN VỊ:</strong></label>
-            <select id="unit-filter" onchange="applyFilter()">
-                <option value="">-- Tất cả đơn vị --</option>
-            </select>
+        <!-- Khung tìm kiếm -->
+        <div id="searchSection" class="hidden mb-6">
+            <label for="studentSearch" class="block text-sm font-medium text-gray-700 mb-2">Nhập tên học sinh để tìm kiếm:</label>
+            <input type="text" id="studentSearch" list="studentSuggestions" placeholder="Ví dụ: Hồ Minh Anh..." 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <datalist id="studentSuggestions"></datalist>
         </div>
-        <div class="filter-item">
-            <label for="month-filter"><strong>THÁNG:</strong></label>
-            <select id="month-filter" onchange="applyFilter()">
-                <option value="">-- Tất cả tháng --</option>
-            </select>
+
+        <!-- Trạng thái tải điểm khi click chọn tên (Giai đoạn 2) -->
+        <div id="scoreLoading" class="hidden text-center text-blue-500 font-medium my-4">⏳ Đang lấy bảng điểm chi tiết từ hệ thống...</div>
+
+        <!-- Khung hiển thị thông tin chi tiết -->
+        <div id="resultCard" class="hidden border border-gray-200 rounded-lg p-5 bg-gray-50">
+            <h2 id="studentNameTitle" class="text-xl font-bold mb-4 pb-2 border-b border-gray-300 text-blue-600"></h2>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 bg-white shadow-sm rounded-lg overflow-hidden">
+                    <thead class="bg-blue-500 text-white">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-1/3">Nội dung / Tiêu chí</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Kết quả đánh giá</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultTableBody" class="divide-y divide-gray-200 text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="notFoundMessage" class="hidden text-center text-red-500 my-4 font-medium">
+            ⚠️️ Không tìm thấy học sinh này. Vui lòng chọn đúng tên trong danh sách gợi ý!
         </div>
     </div>
 
-    <!-- Bảng dữ liệu -->
-    <table>
-        <thead>
-            <tr>
-                <th rowspan="2">STT</th>
-                <th rowspan="2">Tên đơn vị</th>
-                <th rowspan="2">Tháng</th>
-                <th colspan="4" class="sub-header">Số lượng đặt (Bình/Chai)</th>
-                <th colspan="4" class="sub-header">Thành tiền từng loại (VNĐ)</th>
-                <th rowspan="2">Tổng tiền</th>
-            </tr>
-            <tr>
-                <th>Loại 1 (18.5L)</th>
-                <th>Loại 2 (19L)</th>
-                <th>Loại 3 (0.35L)</th>
-                <th>Loại 4 (0.5L)</th>
-                <th>Tiền Loại 1</th>
-                <th>Tiền Loại 2</th>
-                <th>Tiền Loại 3</th>
-                <th>Tiền Loại 4</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-            <tr>
-                <td colspan="12">Đang tải dữ liệu...</td>
-            </tr>
-        </tbody>
-        <tfoot id="table-foot"></tfoot>
-    </table>
-</div>
-
-<!-- ĐOẠN CODE JAVASCRIPT XỬ LÝ DỮ LIỆU -->
-<script>
-let priceMap = {}; 
-let allData = [];
-
-// Đã cập nhật chính xác SHEET_ID của bạn
-const SHEET_ID = "1G2SbJcyAy1GYwe16cwaMmphRMaA609ow5l53aHwVw_w"; 
-const SHEET_SO_LUONG = "So_luong_dat";
-const SHEET_THONG_TIN = "Thong_tin_chung";
-
-// 1. Tải dữ liệu từ Google Sheets
-function loadData() {
-    const urlSoLuong = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_SO_LUONG)}`;
-    const urlThongTin = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_THONG_TIN)}`;
-
-    Promise.all([
-        fetch(urlThongTin).then(res => {
-            if(!res.ok) throw new Error("Lỗi tải Thong_tin_chung");
-            return res.text();
-        }),
-        fetch(urlSoLuong).then(res => {
-            if(!res.ok) throw new Error("Lỗi tải So_luong_dat");
-            return res.text();
-        })
-    ])
-    .then(([csvThongTin, csvSoLuong]) => {
-        parsePriceData(csvThongTin);
-        parseOrderData(csvSoLuong);
+    <script>
+        // Đường link chia sẻ Google Sheets
+        const GOOGLE_SHEET_SHARE_URL = 'https://docs.google.com/spreadsheets/d/1cQP8W0yMFM5RJ6yMX6nkhTWVj5FfF-OYYVjHyGwwF2k/edit?gid=2032778216#gid=2032778216'; 
         
-        populateFilters();
-        applyFilter();
-    })
-    .catch(err => {
-        console.error("Lỗi tải dữ liệu:", err);
-        const tbody = document.getElementById('table-body');
-        if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="12" style="color:red; text-align:center; padding:20px;">Lỗi tải dữ liệu. Vui lòng kiểm tra quyền truy cập Sheet.</td></tr>';
-        }
-    });
-}
+        let sheetId = '';
+        let sheetGid = '';
+        let studentList = [];
 
-// 2. Đọc bảng Thong_tin_chung (E: Giới hạn số lượng, F: Đơn giá, G: Tiền tối đa)
-function parsePriceData(csvText) {
-    let lines = csvText.split(/\r?\n/);
-    priceMap = {
-        'A1': { price: 0, limitQty: 0, maxAmount: 0 },
-        'A2': { price: 0, limitQty: 0, maxAmount: 0 },
-        'A3': { price: 0, limitQty: 0, maxAmount: 0 },
-        'A4': { price: 0, limitQty: 0, maxAmount: 0 }
-    };
-    
-    for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        let cols = parseCSVLine(lines[i]);
-        if (cols.length >= 2) {
-            let key = cols[1] ? cols[1].trim().toUpperCase() : ""; // Cột B: A1, A2...
-            if (key && priceMap.hasOwnProperty(key)) {
-                let limitQty = cols[4] ? parseFloat(cols[4].replace(/[^0-9.-]+/g, "")) : 0; // Cột E
-                let price = cols[5] ? parseFloat(cols[5].replace(/[^0-9.-]+/g, "")) : 0;    // Cột F
-                let maxAmount = cols[6] ? parseFloat(cols[6].replace(/[^0-9.-]+/g, "")) : 0;// Cột G
+        // Trích xuất ID và GID từ link chia sẻ
+        function initBaseUrl() {
+            const matchId = GOOGLE_SHEET_SHARE_URL.match(/\/d\/([^/]+)/);
+            const matchGid = GOOGLE_SHEET_SHARE_URL.match(/gid=([0-9]+)/);
 
-                priceMap[key] = {
-                    price: isNaN(price) ? 0 : price,
-                    limitQty: isNaN(limitQty) ? 0 : limitQty,
-                    maxAmount: isNaN(maxAmount) ? 0 : maxAmount
-                };
+            if (matchId) {
+                sheetId = matchId[1];
+                sheetGid = matchGid ? matchGid[1] : '0';
+                loadOnlyStudentNames(); // Chạy giai đoạn 1 ngay lập tức
+            } else {
+                document.getElementById('loadingStatus').innerText = "❌ Link Google Sheets sai định dạng!";
             }
         }
-    }
-}
 
-// 3. Đọc dữ liệu đặt nước
-function parseOrderData(csvText) {
-    let lines = csvText.split(/\r?\n/);
-    allData = [];
-    for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        let cols = parseCSVLine(lines[i]);
-        if (cols.length >= 7) {
-            allData.push({
-                unit: cols[1] ? cols[1].trim() : "",
-                month: cols[2] ? cols[2].trim() : "",
-                qty1: parseFloat(cols[3]) || 0,
-                qty2: parseFloat(cols[4]) || 0,
-                qty3: parseFloat(cols[5]) || 0,
-                qty4: parseFloat(cols[6]) || 0
+        // GIAI ĐOẠN 1: Chỉ quét duy nhất cột B (Cột Họ và Tên)
+        function loadOnlyStudentNames() {
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${sheetGid}&tqx=out:json&tq=SELECT B`;
+
+            fetch(url)
+                .then(res => res.text())
+                .then(txt => {
+                    const jsonString = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
+                    const data = JSON.parse(jsonString);
+                    
+                    // Gom toàn bộ tên học sinh vào mảng bộ nhớ tạm
+                    studentList = data.table.rows
+                        .map(row => row.c && row.c[0] ? (row.c[0].v ? String(row.c[0].v).trim() : "") : "")
+                        .filter(name => name !== "" && name.toLowerCase() !== "họ và tên" && name.toLowerCase() !== "họ tên");
+
+                    // Đổ dữ liệu tên vào ô gợi ý
+                    const datalist = document.getElementById('studentSuggestions');
+                    datalist.innerHTML = studentList.map(name => `<option value="${name}"></option>`).join('');
+
+                    // Mở khóa khung tìm kiếm
+                    document.getElementById('loadingStatus').classList.add('hidden');
+                    document.getElementById('searchSection').classList.remove('hidden');
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('loadingStatus').innerText = "❌ Lỗi kết nối. Hãy kiểm tra lại quyền chia sẻ trang tính (Xem công khai).";
+                });
+        }
+
+        // LẮNG NGHE SỰ KIỆN: Khi người dùng chọn tên
+        document.getElementById('studentSearch').addEventListener('input', function(e) {
+            const selectedName = e.target.value.trim();
+            
+            const resultCard = document.getElementById('resultCard');
+            const notFoundMessage = document.getElementById('notFoundMessage');
+            const scoreLoading = document.getElementById('scoreLoading');
+
+            // Kiểm tra tên nhập vào có trong danh sách hay không
+            const isMatch = studentList.some(name => name.toLowerCase() === selectedName.toLowerCase());
+
+            if (isMatch) {
+                notFoundMessage.classList.add('hidden');
+                resultCard.classList.add('hidden'); // Ẩn bảng cũ
+                scoreLoading.classList.remove('hidden'); // Hiện thông báo đang tải điểm
+
+                // GIAI ĐOẠN 2: Lấy dữ liệu chi tiết của học sinh được chọn
+                loadSingleStudentScores(selectedName);
+            } else {
+                resultCard.classList.add('hidden');
+                if (selectedName.length > 0) {
+                    notFoundMessage.classList.remove('hidden');
+                } else {
+                    notFoundMessage.classList.add('hidden');
+                }
+            }
+        });
+
+        // GIAI ĐOẠN 2: Tải điểm và các tiêu đề cột tương ứng
+        function loadSingleStudentScores(studentName) {
+            const encodedQuery = encodeURIComponent(`SELECT * WHERE B = '${studentName}'`);
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${sheetGid}&tqx=out:json&tq=${encodedQuery}`;
+
+            fetch(url)
+                .then(res => res.text())
+                .then(txt => {
+                    const jsonString = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
+                    const data = JSON.parse(jsonString);
+                    
+                    if (data.table && data.table.rows.length > 0) {
+                        renderTable(data.table);
+                    } else {
+                        alert("Không tìm thấy kết quả chi tiết cho học sinh này!");
+                        document.getElementById('scoreLoading').classList.add('hidden');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Không thể tải điểm, vui lòng thử lại!");
+                    document.getElementById('scoreLoading').classList.add('hidden');
+                });
+        }
+
+        // Dựng bảng hiển thị kết quả
+        function renderTable(table) {
+            const scoreLoading = document.getElementById('scoreLoading');
+            const resultCard = document.getElementById('resultCard');
+            const tableBody = document.getElementById('resultTableBody');
+
+            // 1. Đọc tên các cột
+            const headers = table.cols.map(col => col.label ? col.label.trim() : "");
+            
+            // 2. Lấy hàng dữ liệu
+            const rowData = table.rows[0].c;
+
+            // Tìm vị trí STT và Họ tên
+            const sttIndex = headers.findIndex(h => h.toLowerCase().includes("stt"));
+            const nameIndex = headers.findIndex(h => h.toLowerCase().includes("họ và tên") || h.toLowerCase().includes("họ tên"));
+            
+            const sttVal = (sttIndex !== -1 && rowData[sttIndex]) ? (rowData[sttIndex].v || "-") : "-";
+            const nameVal = (nameIndex !== -1 && rowData[nameIndex]) ? (rowData[nameIndex].v || "-") : "-";
+            
+            document.getElementById('studentNameTitle').innerText = `Học sinh: ${nameVal} ${sttVal !== '-' ? `(STT: ${sttVal})` : ''}`;
+            
+            // Xóa dữ liệu cũ
+            tableBody.innerHTML = '';
+
+            // 3. Hiển thị từng thuộc tính theo chiều dọc
+            headers.forEach((colName, index) => {
+                // Bỏ qua cột trống, cột STT và cột Họ Tên
+                if (!colName || index === sttIndex || index === nameIndex) return;
+
+                const cell = rowData[index];
+                const value = cell ? (cell.f ? cell.f : (cell.v !== null ? String(cell.v) : "")) : "";
+
+                const isSpecialRow = colName.includes("Ghi chú") || colName.includes("Tổng hợp");
+                const rowClass = isSpecialRow ? 'bg-yellow-50 font-medium' : '';
+
+                const row = `
+                    <tr class="${rowClass}">
+                        <td class="px-4 py-3 font-semibold text-gray-600 border-r border-gray-100">${colName}</td>
+                        <td class="px-4 py-3 text-gray-800 whitespace-pre-line">${value}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
             });
+
+            // Hiển thị bảng kết quả
+            scoreLoading.classList.add('hidden');
+            resultCard.classList.remove('hidden');
         }
-    }
-}
 
-// 4. Hiển thị bảng dữ liệu và 2 hàng tổng kết ở cuối
-function renderTable(dataArray) {
-    const tbody = document.getElementById('table-body');
-    const tfoot = document.getElementById('table-foot');
-    
-    tbody.innerHTML = '';
-    tfoot.innerHTML = '';
-
-    if (!dataArray || dataArray.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:15px;">Không tìm thấy dữ liệu phù hợp.</td></tr>';
-        return;
-    }
-
-    let sumQty1 = 0, sumQty2 = 0, sumQty3 = 0, sumQty4 = 0;
-    let sumAmt1 = 0, sumAmt2 = 0, sumAmt3 = 0, sumAmt4 = 0;
-    let totalAllAmount = 0;
-
-    dataArray.forEach((row, index) => {
-        let amt1 = (row.qty1 || 0) * (priceMap['A1'] ? priceMap['A1'].price : 0);
-        let amt2 = (row.qty2 || 0) * (priceMap['A2'] ? priceMap['A2'].price : 0);
-        let amt3 = (row.qty3 || 0) * (priceMap['A3'] ? priceMap['A3'].price : 0);
-        let amt4 = (row.qty4 || 0) * (priceMap['A4'] ? priceMap['A4'].price : 0);
-        let rowTotal = amt1 + amt2 + amt3 + amt4;
-
-        sumQty1 += (row.qty1 || 0);
-        sumQty2 += (row.qty2 || 0);
-        sumQty3 += (row.qty3 || 0);
-        sumQty4 += (row.qty4 || 0);
-
-        sumAmt1 += amt1;
-        sumAmt2 += amt2;
-        sumAmt3 += amt3;
-        sumAmt4 += amt4;
-        totalAllAmount += rowTotal;
-
-        let tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${index + 1}</td>
-            <td style="text-align: left;">${escapeHtml(row.unit)}</td>
-            <td>${escapeHtml(row.month)}</td>
-            <td>${formatNumber(row.qty1)}</td>
-            <td>${formatNumber(row.qty2)}</td>
-            <td>${formatNumber(row.qty3)}</td>
-            <td>${formatNumber(row.qty4)}</td>
-            <td>${formatCurrency(amt1)}</td>
-            <td>${formatCurrency(amt2)}</td>
-            <td>${formatCurrency(amt3)}</td>
-            <td>${formatCurrency(amt4)}</td>
-            <td style="font-weight: bold;">${formatCurrency(rowTotal)}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    // Lấy thông tin Giới hạn số lượng (Cột E) & Tiền tối đa (Cột G)
-    let limitA1 = priceMap['A1'] ? priceMap['A1'].limitQty : 0;
-    let limitA2 = priceMap['A2'] ? priceMap['A2'].limitQty : 0;
-    let limitA3 = priceMap['A3'] ? priceMap['A3'].limitQty : 0;
-    let limitA4 = priceMap['A4'] ? priceMap['A4'].limitQty : 0;
-
-    let maxAmtA1 = priceMap['A1'] ? priceMap['A1'].maxAmount : 0;
-    let maxAmtA2 = priceMap['A2'] ? priceMap['A2'].maxAmount : 0;
-    let maxAmtA3 = priceMap['A3'] ? priceMap['A3'].maxAmount : 0;
-    let maxAmtA4 = priceMap['A4'] ? priceMap['A4'].maxAmount : 0;
-
-    // TỔNG TIỀN TỐI ĐA (Tổng 4 giá trị cột G)
-    let grandTotalMaxAmount = maxAmtA1 + maxAmtA2 + maxAmtA3 + maxAmtA4;
-
-    // Hàng 1: Tổng đăng ký
-    let trTotal = document.createElement('tr');
-    trTotal.className = 'row-total';
-    trTotal.innerHTML = `
-        <td colspan="3" style="text-align: center;">TỔNG CỘNG ĐĂNG KÝ</td>
-        <td>${formatNumber(sumQty1)}</td>
-        <td>${formatNumber(sumQty2)}</td>
-        <td>${formatNumber(sumQty3)}</td>
-        <td>${formatNumber(sumQty4)}</td>
-        <td>${formatCurrency(sumAmt1)}</td>
-        <td>${formatCurrency(sumAmt2)}</td>
-        <td>${formatCurrency(sumAmt3)}</td>
-        <td>${formatCurrency(sumAmt4)}</td>
-        <td style="color: #2e7d32;">${formatCurrency(totalAllAmount)}</td>
-    `;
-
-    // Hàng 2: Số lượng giới hạn / Tiền tối đa
-    let trLimit = document.createElement('tr');
-    trLimit.className = 'row-limit';
-    trLimit.innerHTML = `
-        <td colspan="3" style="text-align: center;">SỐ LƯỢNG GIỚI HẠN / TIỀN TỐI ĐA</td>
-        <td style="color: #d84315;">${formatNumber(limitA1)}</td>
-        <td style="color: #d84315;">${formatNumber(limitA2)}</td>
-        <td style="color: #d84315;">${formatNumber(limitA3)}</td>
-        <td style="color: #d84315;">${formatNumber(limitA4)}</td>
-        <td style="color: #c62828;">${formatCurrency(maxAmtA1)}</td>
-        <td style="color: #c62828;">${formatCurrency(maxAmtA2)}</td>
-        <td style="color: #c62828;">${formatCurrency(maxAmtA3)}</td>
-        <td style="color: #c62828;">${formatCurrency(maxAmtA4)}</td>
-        <td style="color: #c62828; font-size: 1.05em;">${formatCurrency(grandTotalMaxAmount)}</td>
-    `;
-
-    tfoot.appendChild(trTotal);
-    tfoot.appendChild(trLimit);
-}
-
-// 5. Hàm lọc
-function applyFilter() {
-    const unitVal = document.getElementById('unit-filter').value;
-    const monthVal = document.getElementById('month-filter').value;
-
-    let filtered = allData.filter(item => {
-        let matchUnit = !unitVal || item.unit === unitVal;
-        let matchMonth = !monthVal || item.month === monthVal;
-        return matchUnit && matchMonth;
-    });
-
-    renderTable(filtered);
-}
-
-function populateFilters() {
-    const unitSelect = document.getElementById('unit-filter');
-    const monthSelect = document.getElementById('month-filter');
-
-    let units = [...new Set(allData.map(item => item.unit))].filter(Boolean);
-    let months = [...new Set(allData.map(item => item.month))].filter(Boolean);
-
-    unitSelect.innerHTML = '<option value="">-- Tất cả đơn vị --</option>';
-    units.forEach(u => unitSelect.innerHTML += `<option value="${u}">${u}</option>`);
-
-    monthSelect.innerHTML = '<option value="">-- Tất cả tháng --</option>';
-    months.forEach(m => monthSelect.innerHTML += `<option value="${m}">${m}</option>`);
-}
-
-// Hàm bổ trợ định dạng
-function formatNumber(num) {
-    if (!num || isNaN(num)) return '0';
-    return new Intl.NumberFormat('vi-VN').format(num);
-}
-
-function formatCurrency(amt) {
-    if (!amt || isNaN(amt)) return '0 đ';
-    return new Intl.NumberFormat('vi-VN').format(amt) + ' đ';
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function parseCSVLine(text) {
-    let result = [];
-    let cell = '';
-    let inQuotes = false;
-    for (let i = 0; i < text.length; i++) {
-        let c = text[i];
-        if (c === '"') {
-            inQuotes = !inQuotes;
-        } else if (c === ',' && !inQuotes) {
-            result.push(cell.trim());
-            cell = '';
-        } else {
-            cell += c;
-        }
-    }
-    result.push(cell.trim());
-    return result;
-}
-
-// Gọi thực thi khi trang web load hoàn tất
-document.addEventListener('DOMContentLoaded', loadData);
-</script>
-
+        // Khởi chạy khi tải trang
+        window.onload = initBaseUrl;
+    </script>
 </body>
 </html>
