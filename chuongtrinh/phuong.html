@@ -3,79 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Tra Cứu Học Sinh Tối Ưu</title>
-    <!-- Nhúng Tailwind CSS để giao diện hiển thị chuẩn -->
+    <title>Hệ Thống Tra Thông Tin</title>
+    <!-- Nhúng Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f2f7f4;
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen py-10 px-4">
+<body class="min-h-screen py-8 px-4">
 
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
-        <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">HỆ THỐNG TRA CỨU THÔNG TIN HỌC SINH</h1>
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-emerald-100 overflow-hidden">
         
-        <!-- Giai đoạn 1: Chỉ tải cột Tên -->
-        <div id="loadingStatus" class="text-center text-gray-500 font-medium my-4">🔄 Đang tải danh sách tên học sinh...</div>
-
-        <!-- Khung tìm kiếm -->
-        <div id="searchSection" class="hidden mb-6">
-            <label for="studentSearch" class="block text-sm font-medium text-gray-700 mb-2">Nhập tên học sinh để tìm kiếm:</label>
-            <input type="text" id="studentSearch" list="studentSuggestions" placeholder="Ví dụ: Hồ Minh Anh..." 
-                   class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <datalist id="studentSuggestions"></datalist>
-        </div>
-
-        <!-- Trạng thái tải điểm khi click chọn tên (Giai đoạn 2) -->
-        <div id="scoreLoading" class="hidden text-center text-blue-500 font-medium my-4">⏳ Đang lấy bảng điểm chi tiết từ hệ thống...</div>
-
-        <!-- Khung hiển thị thông tin chi tiết -->
-        <div id="resultCard" class="hidden border border-gray-200 rounded-lg p-5 bg-gray-50">
-            <h2 id="studentNameTitle" class="text-xl font-bold mb-4 pb-2 border-b border-gray-300 text-blue-600"></h2>
+        <!-- Header màu xanh rêu -->
+        <div class="bg-emerald-800 text-white p-6 relative shadow-md">
+            <h1 class="text-2xl md:text-3xl font-bold text-center tracking-wide">HỆ THỐNG TRA CỨU THÔNG TIN HỌC SINH</h1>
+            <p class="text-center text-emerald-100 text-sm mt-1">Tra cứu nhanh chóng - Tối ưu dữ liệu</p>
             
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 bg-white shadow-sm rounded-lg overflow-hidden">
-                    <thead class="bg-blue-500 text-white">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-1/3">Nội dung / Tiêu chí</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Kết quả đánh giá</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultTableBody" class="divide-y divide-gray-200 text-sm"></tbody>
-                </table>
-            </div>
+            <!-- Nút Truy cập (Ẩn mặc định, nhấn F2 để hiện) -->
+            <a id="btnAccessDrive" href="https://docs.google.com/spreadsheets/d/1cQP8W0yMFM5RJ6yMX6nkhTWVj5FfF-OYYVjHyGwwF2k/edit?gid=2032778216#gid=2032778216" target="_blank" 
+               class="hidden absolute top-4 right-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow transition transform hover:scale-105 items-center gap-1">
+               🔗 Truy cập
+            </a>
         </div>
-        
-        <div id="notFoundMessage" class="hidden text-center text-red-500 my-4 font-medium">
-            ⚠️️ Không tìm thấy học sinh này. Vui lòng chọn đúng tên trong danh sách gợi ý!
+
+        <div class="p-6">
+            <!-- Thanh công cụ & Hướng dẫn làm mới -->
+            <div class="flex flex-col md:flex-row justify-between items-center bg-emerald-50 p-4 rounded-xl border border-emerald-200 mb-6 gap-3">
+                <div class="text-xs text-emerald-800 flex items-center gap-2">
+                    <span class="text-base">💡</span>
+                    <span><b>Hướng dẫn:</b> Dữ liệu được lưu trong bộ nhớ đệm. Nhấn <b>"Làm mới"</b> để cập nhật thông tin mới nhất từ máy chủ.</span>
+                </div>
+                <button id="btnRefresh" onclick="refreshData()" class="w-full md:w-auto bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-medium px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-2 whitespace-nowrap">
+                    🔄 Làm mới dữ liệu
+                </button>
+            </div>
+
+            <!-- Khung Chọn Tháng & Chọn Học Sinh -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Chọn Tháng -->
+                <div>
+                    <label for="monthSelect" class="block text-sm font-semibold text-emerald-900 mb-2">1. Chọn tháng tra cứu:</label>
+                    <select id="monthSelect" class="w-full px-4 py-3 border border-emerald-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 bg-white text-gray-700 font-medium">
+                        <option value="">-- Đang tải danh sách tháng... --</option>
+                    </select>
+                </div>
+
+                <!-- Ô tìm kiếm tên học sinh -->
+                <div>
+                    <label for="studentSearch" class="block text-sm font-semibold text-emerald-900 mb-2">2. Nhập tên học sinh để tìm kiếm:</label>
+                    <input type="text" id="studentSearch" list="studentSuggestions" disabled placeholder="Vui lòng chọn tháng trước..." 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                    <datalist id="studentSuggestions"></datalist>
+                </div>
+            </div>
+
+            <!-- Trạng thái tải -->
+            <div id="loadingStatus" class="hidden text-center text-emerald-700 font-medium my-4 animate-pulse">
+                🔄 Đang tải dữ liệu từ trang tính...
+            </div>
+
+            <!-- Bảng hiển thị kết quả -->
+            <div id="resultCard" class="hidden border border-emerald-200 rounded-xl overflow-hidden shadow-sm bg-white">
+                <div class="bg-emerald-50 px-5 py-4 border-b border-emerald-200">
+                    <h2 id="studentNameTitle" class="text-xl font-bold text-emerald-800"></h2>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-emerald-100">
+                        <thead class="bg-emerald-700 text-white">
+                            <tr>
+                                <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider w-1/3">Nội dung / Tiêu chí</th>
+                                <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider">Kết quả đánh giá</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultTableBody" class="divide-y divide-emerald-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Thông báo không tìm thấy -->
+            <div id="notFoundMessage" class="hidden text-center text-red-500 my-4 font-medium bg-red-50 p-3 rounded-lg border border-red-200">
+                ⚠ Không tìm thấy học sinh này trong tháng đã chọn. Vui lòng chọn đúng tên trong gợi ý!
+            </div>
         </div>
     </div>
 
     <script>
-        // Đường link chia sẻ Google Sheets
-        const GOOGLE_SHEET_SHARE_URL = 'https://docs.google.com/spreadsheets/d/1cQP8W0yMFM5RJ6yMX6nkhTWVj5FfF-OYYVjHyGwwF2k/edit?gid=2032778216#gid=2032778216'; 
+        const SPREADSHEET_ID = '1cQP8W0yMFM5RJ6yMX6nkhTWVj5FfF-OYYVjHyGwwF2k';
         
-        let sheetId = '';
-        let sheetGid = '';
-        let studentList = [];
+        let monthList = []; // Danh sách các tháng [{sheetName, monthName}]
+        let studentList = []; // Danh sách học sinh của tháng hiện tại
+        let currentSelectedSheet = '';
 
-        // Trích xuất ID và GID từ link chia sẻ
-        function initBaseUrl() {
-            const matchId = GOOGLE_SHEET_SHARE_URL.match(/\/d\/([^/]+)/);
-            const matchGid = GOOGLE_SHEET_SHARE_URL.match(/gid=([0-9]+)/);
+        // --- KHỞI CHẠY KHI TẢI TRANG ---
+        window.onload = function() {
+            initF2Key();
+            loadMonths();
+            restoreCachedState();
+        };
 
-            if (matchId) {
-                sheetId = matchId[1];
-                sheetGid = matchGid ? matchGid[1] : '0';
-                loadOnlyStudentNames(); // Chạy giai đoạn 1 ngay lập tức
-            } else {
-                document.getElementById('loadingStatus').innerText = "❌ Link Google Sheets sai định dạng!";
-            }
+        // --- LẮNG NGHE PHÍM F2 ĐỂ HIỆN NÚT TRUY CẬP ---
+        function initF2Key() {
+            window.addEventListener('keydown', function(e) {
+                if (e.key === 'F2' || e.keyCode === 113) {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnAccessDrive');
+                    btn.classList.toggle('hidden');
+                    btn.classList.toggle('flex');
+                }
+            });
         }
 
-        // GIAI ĐOẠN 1: Chỉ quét duy nhất cột B (Cột Họ và Tên)
-        function loadOnlyStudentNames() {
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${sheetGid}&tqx=out:json&tq=SELECT B`;
+        // --- BƯỚC 1: LẤY DANH SÁCH THÁNG TỪ SHEET DS_Thang ---
+        function loadMonths(forceRefresh = false) {
+            const cachedMonths = localStorage.getItem('cached_months');
+            
+            if (cachedMonths && !forceRefresh) {
+                monthList = JSON.parse(cachedMonths);
+                renderMonthDropdown();
+                return;
+            }
+
+            showLoading(true, "🔄 Đang tải danh sách tháng...");
+            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=DS_Thang&tqx=out:json&tq=${encodeURIComponent('SELECT L, M')}`;
 
             fetch(url)
                 .then(res => res.text())
@@ -83,43 +136,127 @@
                     const jsonString = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
                     const data = JSON.parse(jsonString);
                     
-                    // Gom toàn bộ tên học sinh vào mảng bộ nhớ tạm
-                    studentList = data.table.rows
-                        .map(row => row.c && row.c[0] ? (row.c[0].v ? String(row.c[0].v).trim() : "") : "")
-                        .filter(name => name !== "" && name.toLowerCase() !== "họ và tên" && name.toLowerCase() !== "họ tên");
+                    monthList = [];
+                    if (data.table && data.table.rows) {
+                        data.table.rows.forEach(row => {
+                            if (row.c && row.c[0] && row.c[1] && row.c[0].v && row.c[1].v) {
+                                const sName = String(row.c[0].v).trim();
+                                const mName = String(row.c[1].v).trim();
+                                if (sName.toLowerCase() !== "tên sheet") {
+                                    monthList.push({ sheetName: sName, monthName: mName });
+                                }
+                            }
+                        });
+                    }
 
-                    // Đổ dữ liệu tên vào ô gợi ý
-                    const datalist = document.getElementById('studentSuggestions');
-                    datalist.innerHTML = studentList.map(name => `<option value="${name}"></option>`).join('');
-
-                    // Mở khóa khung tìm kiếm
-                    document.getElementById('loadingStatus').classList.add('hidden');
-                    document.getElementById('searchSection').classList.remove('hidden');
+                    localStorage.setItem('cached_months', JSON.stringify(monthList));
+                    renderMonthDropdown();
+                    showLoading(false);
                 })
                 .catch(err => {
                     console.error(err);
-                    document.getElementById('loadingStatus').innerText = "❌ Lỗi kết nối. Hãy kiểm tra lại quyền chia sẻ trang tính (Xem công khai).";
+                    showLoading(false);
+                    alert("Không thể tải danh sách tháng. Vui lòng kiểm tra lại kết nối hoặc quyền xem Google Sheet!");
                 });
         }
 
-        // LẮNG NGHE SỰ KIỆN: Khi người dùng chọn tên
+        // Đổ danh sách tháng vào thẻ Select
+        function renderMonthDropdown() {
+            const monthSelect = document.getElementById('monthSelect');
+            monthSelect.innerHTML = '<option value="">-- Chọn tháng --</option>' + 
+                monthList.map(m => `<option value="${m.sheetName}">${m.monthName}</option>`).join('');
+
+            const savedSheet = localStorage.getItem('selected_sheet');
+            if (savedSheet && monthList.some(m => m.sheetName === savedSheet)) {
+                monthSelect.value = savedSheet;
+                onMonthChange(savedSheet, false);
+            }
+        }
+
+        // Khi người dùng chọn tháng
+        document.getElementById('monthSelect').addEventListener('change', function(e) {
+            const selectedSheet = e.target.value;
+            if (selectedSheet) {
+                localStorage.setItem('selected_sheet', selectedSheet);
+                onMonthChange(selectedSheet, true);
+            } else {
+                disableStudentSearch();
+            }
+        });
+
+        function onMonthChange(sheetName, forceFetchNames = false) {
+            currentSelectedSheet = sheetName;
+            document.getElementById('resultCard').classList.add('hidden');
+            document.getElementById('notFoundMessage').classList.add('hidden');
+            document.getElementById('studentSearch').value = '';
+
+            const cachedStudents = localStorage.getItem(`students_${sheetName}`);
+            if (cachedStudents && !forceFetchNames) {
+                studentList = JSON.parse(cachedStudents);
+                enableStudentSearch();
+            } else {
+                loadStudentNamesBySheet(sheetName);
+            }
+        }
+
+        // --- BƯỚC 2: LẤY TÊN HỌC SINH CỦA THÁNG ĐƯỢC CHỌN (CỘT B) ---
+        function loadStudentNamesBySheet(sheetName) {
+            showLoading(true, "🔄 Đang tải danh sách học sinh...");
+            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json&tq=${encodeURIComponent('SELECT B')}`;
+
+            fetch(url)
+                .then(res => res.text())
+                .then(txt => {
+                    const jsonString = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
+                    const data = JSON.parse(jsonString);
+
+                    studentList = data.table.rows
+                        .map(row => row.c && row.c[0] && row.c[0].v ? String(row.c[0].v).trim() : "")
+                        .filter(name => name !== "" && name.toLowerCase() !== "họ và tên" && name.toLowerCase() !== "họ tên");
+
+                    localStorage.setItem(`students_${sheetName}`, JSON.stringify(studentList));
+                    enableStudentSearch();
+                    showLoading(false);
+                })
+                .catch(err => {
+                    console.error(err);
+                    showLoading(false);
+                    alert(`Không thể tải dữ liệu học sinh cho sheet ${sheetName}!`);
+                });
+        }
+
+        function enableStudentSearch() {
+            const searchInput = document.getElementById('studentSearch');
+            searchInput.disabled = false;
+            searchInput.placeholder = "Ví dụ: Hồ Minh Anh...";
+            
+            const datalist = document.getElementById('studentSuggestions');
+            datalist.innerHTML = studentList.map(name => `<option value="${name}"></option>`).join('');
+        }
+
+        function disableStudentSearch() {
+            const searchInput = document.getElementById('studentSearch');
+            searchInput.disabled = true;
+            searchInput.value = '';
+            searchInput.placeholder = "Vui lòng chọn tháng trước...";
+            document.getElementById('resultCard').classList.add('hidden');
+        }
+
+        // --- BƯỚC 3: LẮNG NGHE KHI NHẬP TÊN HỌC SINH ---
         document.getElementById('studentSearch').addEventListener('input', function(e) {
             const selectedName = e.target.value.trim();
-            
             const resultCard = document.getElementById('resultCard');
             const notFoundMessage = document.getElementById('notFoundMessage');
-            const scoreLoading = document.getElementById('scoreLoading');
 
-            // Kiểm tra tên nhập vào có trong danh sách hay không
             const isMatch = studentList.some(name => name.toLowerCase() === selectedName.toLowerCase());
 
             if (isMatch) {
                 notFoundMessage.classList.add('hidden');
-                resultCard.classList.add('hidden'); // Ẩn bảng cũ
-                scoreLoading.classList.remove('hidden'); // Hiện thông báo đang tải điểm
-
-                // GIAI ĐOẠN 2: Lấy dữ liệu chi tiết của học sinh được chọn
-                loadSingleStudentScores(selectedName);
+                resultCard.classList.add('hidden');
+                
+                // Lưu tên đang tìm vào bộ nhớ đệm
+                localStorage.setItem('last_searched_student', selectedName);
+                loadStudentScores(selectedName);
             } else {
                 resultCard.classList.add('hidden');
                 if (selectedName.length > 0) {
@@ -130,82 +267,109 @@
             }
         });
 
-        // GIAI ĐOẠN 2: Tải điểm và các tiêu đề cột tương ứng
-        function loadSingleStudentScores(studentName) {
-            const encodedQuery = encodeURIComponent(`SELECT * WHERE B = '${studentName}'`);
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${sheetGid}&tqx=out:json&tq=${encodedQuery}`;
+        // --- BƯỚC 4: TẢI ĐIỂM CHI TIẾT NGUYÊN HÀNG ---
+        function loadStudentScores(studentName) {
+            showLoading(true, "⏳ Đang lấy bảng điểm chi tiết...");
+            
+            // Xử lý an toàn dấu nháy đơn trong tên học sinh
+            const safeName = studentName.replace(/'/g, "\\'");
+            const query = `SELECT * WHERE B = '${safeName}'`;
+            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${encodeURIComponent(currentSelectedSheet)}&tqx=out:json&tq=${encodeURIComponent(query)}`;
 
             fetch(url)
                 .then(res => res.text())
                 .then(txt => {
                     const jsonString = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
                     const data = JSON.parse(jsonString);
-                    
+
                     if (data.table && data.table.rows.length > 0) {
-                        renderTable(data.table);
+                        localStorage.setItem(`result_${currentSelectedSheet}_${studentName}`, JSON.stringify(data.table));
+                        renderResultTable(data.table);
                     } else {
-                        alert("Không tìm thấy kết quả chi tiết cho học sinh này!");
-                        document.getElementById('scoreLoading').classList.add('hidden');
+                        alert("Không tìm thấy bảng điểm chi tiết!");
                     }
+                    showLoading(false);
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("Không thể tải điểm, vui lòng thử lại!");
-                    document.getElementById('scoreLoading').classList.add('hidden');
+                    showLoading(false);
+                    alert("Không thể tải bảng điểm!");
                 });
         }
 
-        // Dựng bảng hiển thị kết quả
-        function renderTable(table) {
-            const scoreLoading = document.getElementById('scoreLoading');
+        // --- BƯỚC 5: HIỂN THỊ KẾT QUẢ DẠNG BẢNG DỌC ---
+        function renderResultTable(table) {
             const resultCard = document.getElementById('resultCard');
             const tableBody = document.getElementById('resultTableBody');
 
-            // 1. Đọc tên các cột
             const headers = table.cols.map(col => col.label ? col.label.trim() : "");
-            
-            // 2. Lấy hàng dữ liệu
             const rowData = table.rows[0].c;
 
-            // Tìm vị trí STT và Họ tên
             const sttIndex = headers.findIndex(h => h.toLowerCase().includes("stt"));
             const nameIndex = headers.findIndex(h => h.toLowerCase().includes("họ và tên") || h.toLowerCase().includes("họ tên"));
-            
+
             const sttVal = (sttIndex !== -1 && rowData[sttIndex]) ? (rowData[sttIndex].v || "-") : "-";
             const nameVal = (nameIndex !== -1 && rowData[nameIndex]) ? (rowData[nameIndex].v || "-") : "-";
-            
-            document.getElementById('studentNameTitle').innerText = `Học sinh: ${nameVal} ${sttVal !== '-' ? `(STT: ${sttVal})` : ''}`;
-            
-            // Xóa dữ liệu cũ
+
+            document.getElementById('studentNameTitle').innerText = `👤 Học sinh: ${nameVal} ${sttVal !== '-' ? `(STT: ${sttVal})` : ''}`;
+
             tableBody.innerHTML = '';
 
-            // 3. Hiển thị từng thuộc tính theo chiều dọc
             headers.forEach((colName, index) => {
-                // Bỏ qua cột trống, cột STT và cột Họ Tên
                 if (!colName || index === sttIndex || index === nameIndex) return;
 
                 const cell = rowData[index];
                 const value = cell ? (cell.f ? cell.f : (cell.v !== null ? String(cell.v) : "")) : "";
 
                 const isSpecialRow = colName.includes("Ghi chú") || colName.includes("Tổng hợp");
-                const rowClass = isSpecialRow ? 'bg-yellow-50 font-medium' : '';
+                const rowClass = isSpecialRow ? 'bg-amber-50 font-semibold text-amber-900' : 'hover:bg-emerald-50/50';
 
                 const row = `
-                    <tr class="${rowClass}">
-                        <td class="px-4 py-3 font-semibold text-gray-600 border-r border-gray-100">${colName}</td>
-                        <td class="px-4 py-3 text-gray-800 whitespace-pre-line">${value}</td>
+                    <tr class="${rowClass} transition">
+                        <td class="px-5 py-3 font-semibold text-emerald-950 border-r border-emerald-100">${colName}</td>
+                        <td class="px-5 py-3 text-gray-800 whitespace-pre-line">${value}</td>
                     </tr>
                 `;
                 tableBody.insertAdjacentHTML('beforeend', row);
             });
 
-            // Hiển thị bảng kết quả
-            scoreLoading.classList.add('hidden');
             resultCard.classList.remove('hidden');
         }
 
-        // Khởi chạy khi tải trang
-        window.onload = initBaseUrl;
+        // --- PHÔI PHỤC TRẠNG THÁI TỪ CACHE KHI VÀO LẠI TRANG ---
+        function restoreCachedState() {
+            const savedSheet = localStorage.getItem('selected_sheet');
+            const savedStudent = localStorage.getItem('last_searched_student');
+
+            if (savedSheet && savedStudent) {
+                const cachedResult = localStorage.getItem(`result_${savedSheet}_${savedStudent}`);
+                if (cachedResult) {
+                    document.getElementById('studentSearch').value = savedStudent;
+                    renderResultTable(JSON.parse(cachedResult));
+                }
+            }
+        }
+
+        // --- HÀM NÚT LÀM MỚI DỮ LIỆU ---
+        function refreshData() {
+            if (confirm("Xác nhận xóa bộ nhớ đệm và cập nhật dữ liệu mới nhất từ máy chủ?")) {
+                localStorage.clear();
+                document.getElementById('studentSearch').value = '';
+                document.getElementById('resultCard').classList.add('hidden');
+                document.getElementById('notFoundMessage').classList.add('hidden');
+                loadMonths(true);
+            }
+        }
+
+        function showLoading(show, text = "") {
+            const el = document.getElementById('loadingStatus');
+            if (show) {
+                el.innerText = text;
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
     </script>
 </body>
 </html>
